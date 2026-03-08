@@ -1,0 +1,61 @@
+.app-shell {
+  position: relative;
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 1.5rem;
+}
+
+.app-shell::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 18% 24%, rgb(255 193 94 / 24%), transparent 42%),
+    radial-gradient(circle at 84% 72%, rgb(113 192 157 / 22%), transparent 48%);
+  content: '';
+}
+
+.app-shell__card {
+  width: min(40rem, 100%);
+  border: 1px solid var(--shell-border);
+  border-radius: 1.25rem;
+  background: var(--shell-surface);
+  box-shadow: 0 26px 60px rgb(26 34 31 / 16%);
+  padding: clamp(1.5rem, 4.5vw, 3rem);
+  animation: rise-in 520ms ease-out both;
+}
+
+.app-shell__eyebrow {
+  margin: 0;
+  color: var(--shell-accent);
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.app-shell h1 {
+  margin: 0.4rem 0 1rem;
+  color: var(--shell-ink);
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4.8vw, 3rem);
+  line-height: 1.1;
+}
+
+.app-shell__placeholder {
+  margin: 0;
+  color: var(--shell-muted);
+  font-size: clamp(1rem, 2.1vw, 1.12rem);
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

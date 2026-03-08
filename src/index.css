@@ -1,0 +1,32 @@
+:root {
+  --font-display: 'Bodoni Moda', 'Didot', 'Bodoni MT', serif;
+  --font-body: 'Fraunces', 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', serif;
+  --shell-ink: #18231f;
+  --shell-muted: #42514b;
+  --shell-accent: #7a2d12;
+  --shell-surface: rgb(255 251 245 / 82%);
+  --shell-border: rgb(24 35 31 / 14%);
+  --shell-background: #f5efe4;
+  font-family: var(--font-body);
+  line-height: 1.5;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: linear-gradient(145deg, #f8f1e6 0%, var(--shell-background) 58%, #efe7da 100%);
+  color: var(--shell-ink);
+}
+
+#root {
+  min-height: 100vh;
+}
