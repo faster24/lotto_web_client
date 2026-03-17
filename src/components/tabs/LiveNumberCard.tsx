@@ -25,12 +25,12 @@ export function LiveNumberCard() {
         Current Number
       </h2>
 
-      <div className="live-number-row">
-        <div className="live-number-digit">8</div>
+      <div className="live-number-row live-number-row--fading">
+        <div className="live-number-digit live-number-digit--fading">4</div>
         <span className="live-number-separator" aria-hidden>
           -
         </span>
-        <div className="live-number-digit">5</div>
+        <div className="live-number-digit live-number-digit--fading">5</div>
       </div>
 
       <div className="live-stats-grid">

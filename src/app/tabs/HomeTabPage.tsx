@@ -1,5 +1,3 @@
-import { routeMap } from '@/app/routeMap'
-import { TabShell } from '@/components/primitives/TabShell'
 import { HomeProfileHeader } from '@/components/tabs/HomeProfileHeader'
 import { LiveNumberCard } from '@/components/tabs/LiveNumberCard'
 
@@ -9,7 +7,6 @@ export function HomeTabPage() {
       <HomeProfileHeader />
 
       <main className="screen-scroll tab-screen__scroll">
-        <TabShell items={routeMap.tabs} activeId="home" />
         <LiveNumberCard />
       </main>
     </div>

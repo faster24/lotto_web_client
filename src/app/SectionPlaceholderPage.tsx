@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 import { AppHeader } from '@/components/primitives/AppHeader'
 import { SurfaceCard } from '@/components/primitives/SurfaceCard'
-import { TabShell } from '@/components/primitives/TabShell'
 import { type AppSectionId, routeMap } from './routeMap'
 
 const sectionTitleMap: Record<AppSectionId, string> = {
@@ -16,9 +15,13 @@ type SectionPlaceholderPageProps = {
   routeId: string
 }
 
-export function SectionPlaceholderPage({ section, routeId }: SectionPlaceholderPageProps) {
+export function SectionPlaceholderPage({
+  section,
+  routeId,
+}: SectionPlaceholderPageProps) {
   const sectionRoutes = routeMap[section]
-  const activeRoute = sectionRoutes.find((route) => route.id === routeId) ?? sectionRoutes[0]
+  const activeRoute =
+    sectionRoutes.find((route) => route.id === routeId) ?? sectionRoutes[0]
 
   if (activeRoute == null) {
     return null
@@ -41,11 +44,10 @@ export function SectionPlaceholderPage({ section, routeId }: SectionPlaceholderP
           description={activeRoute.description}
         >
           <p className="body-copy">
-            This baseline locks in the shell, spacing, and theme tokens before detailed page ports.
+            This baseline locks in the shell, spacing, and theme tokens before
+            detailed page ports.
           </p>
         </SurfaceCard>
-
-        {section === 'tabs' ? <TabShell items={routeMap.tabs} activeId={routeId} /> : null}
 
         <SurfaceCard
           title="Section route map"
@@ -53,10 +55,17 @@ export function SectionPlaceholderPage({ section, routeId }: SectionPlaceholderP
         >
           <div className="route-pill-grid">
             {sectionRoutes.map((route) => {
-              const routeClassName = route.id === routeId ? 'route-pill route-pill--active' : 'route-pill'
+              const routeClassName =
+                route.id === routeId
+                  ? 'route-pill route-pill--active'
+                  : 'route-pill'
 
               return (
-                <Link key={route.path} className={routeClassName} to={`/${route.path}`}>
+                <Link
+                  key={route.path}
+                  className={routeClassName}
+                  to={`/${route.path}`}
+                >
                   {route.label}
                 </Link>
               )
