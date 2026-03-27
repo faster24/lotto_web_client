@@ -44,6 +44,14 @@ export function ExploreHistorySection() {
   return (
     <section className="explore-history" aria-labelledby="explore-history-heading">
       <h2 id="explore-history-heading">Recent Draw History</h2>
+      <div className="explore-history__actions">
+        <Link to="/results/2d" className="explore-history__link">
+          2D History API
+        </Link>
+        <Link to="/results/3d" className="explore-history__link">
+          3D History API
+        </Link>
+      </div>
 
       <ul className="explore-history__list">
         {historyDays.map((day) => (
@@ -65,3 +73,4 @@ export function ExploreHistorySection() {
     </section>
   )
 }
+import { Link } from 'react-router-dom'

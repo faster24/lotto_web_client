@@ -1,19 +1,18 @@
-import { ExploreHistorySection } from '@/components/tabs/ExploreHistorySection'
+import { BetsContent } from '@/components/bets/BetsContent'
+import { screenRoot, screenScroll, tabHeader, tabHeaderCaption, tabHeaderEyebrow, tabHeaderTitle, tabScreen } from '@/styles/tw'
 
 export function ExploreTabPage() {
-  return (
-    <div className="screen-root tab-screen" data-testid="tabs-explore-page">
-      <header className="tab-top-header">
-        <p className="tab-top-header__eyebrow">Archive</p>
-        <h1>Explore</h1>
-        <p className="tab-top-header__caption">
-          List cards from recent draw history.
-        </p>
-      </header>
+    return (
+        <div className={`${screenRoot} ${tabScreen}`} data-testid="tabs-explore-page">
+            <header className={tabHeader}>
+                <p className={tabHeaderEyebrow}>Bet Center</p>
+                <h1 className={tabHeaderTitle}>Bets</h1>
+                <p className={tabHeaderCaption}>Place and review your bets from one tab.</p>
+            </header>
 
-      <main className="screen-scroll tab-screen__scroll">
-        <ExploreHistorySection />
-      </main>
-    </div>
-  )
+            <main className={screenScroll}>
+                <BetsContent />
+            </main>
+        </div>
+    )
 }

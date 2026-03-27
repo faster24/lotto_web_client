@@ -1,4 +1,4 @@
-export type AppSectionId = 'auth' | 'tabs' | 'gambling' | 'wallet-profile'
+export type AppSectionId = 'auth' | 'tabs' | 'gambling' | 'wallet-profile' | 'user-api'
 
 export type AppRouteDefinition = {
   id: string
@@ -34,11 +34,11 @@ export const routeMap: Record<AppSectionId, AppRouteDefinition[]> = {
       description: 'Primary dashboard shell for live numbers and quick actions.',
     },
     {
-      id: 'explore',
+      id: 'bets',
       section: 'tabs',
-      path: 'tabs/explore',
-      label: 'Explore',
-      description: 'Discovery shell for side widgets and recommendations.',
+      path: 'tabs/bets',
+      label: 'Bets',
+      description: 'Bet center shell for placing and tracking rounds.',
     },
     {
       id: 'setting',
@@ -127,6 +127,71 @@ export const routeMap: Record<AppSectionId, AppRouteDefinition[]> = {
       path: 'wallet-profile/ad',
       label: 'Ad',
       description: 'Ad and promotion shell for campaign cards.',
+    },
+  ],
+  'user-api': [
+    {
+      id: 'user-profile',
+      section: 'user-api',
+      path: 'user/profile',
+      label: 'Profile',
+      description: 'Authenticated profile payload from /me.',
+    },
+    {
+      id: 'user-bank-info',
+      section: 'user-api',
+      path: 'user/bank-info',
+      label: 'Bank Info',
+      description: 'Bank account create/update/clear flow from /me/bank-info.',
+    },
+    {
+      id: 'bets',
+      section: 'user-api',
+      path: 'bets',
+      label: 'Bets',
+      description: 'List and create bets using /bets.',
+    },
+    {
+      id: 'announcements',
+      section: 'user-api',
+      path: 'announcements',
+      label: 'Announcements',
+      description: 'Notices feed from /announcements.',
+    },
+    {
+      id: 'odd-settings',
+      section: 'user-api',
+      path: 'odd-settings',
+      label: 'Odd Settings',
+      description: 'Public odd settings from /odd-settings.',
+    },
+    {
+      id: 'results-2d',
+      section: 'user-api',
+      path: 'results/2d',
+      label: '2D Results',
+      description: '2D result history from /two-d-results.',
+    },
+    {
+      id: 'results-2d-latest',
+      section: 'user-api',
+      path: 'results/2d/latest',
+      label: 'Latest 2D',
+      description: 'Latest 2D result from /two-d-results/latest.',
+    },
+    {
+      id: 'results-3d',
+      section: 'user-api',
+      path: 'results/3d',
+      label: '3D Results',
+      description: '3D result history from /three-d-results.',
+    },
+    {
+      id: 'results-3d-latest',
+      section: 'user-api',
+      path: 'results/3d/latest',
+      label: 'Latest 3D',
+      description: 'Latest 3D result from /three-d-results/latest.',
     },
   ],
 }

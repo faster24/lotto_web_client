@@ -1,10 +1,12 @@
+import { Link } from 'react-router-dom'
+
 export function HomeProfileHeader() {
   return (
     <header className="tabs-header">
       <div className="tabs-header__profile-wrap">
-        <button type="button" className="tabs-avatar" aria-label="Open profile">
+        <Link to="/user/profile" className="tabs-avatar" aria-label="Open profile">
           AK
-        </button>
+        </Link>
 
         <div>
           <p className="tabs-header__eyebrow">Welcome back</p>

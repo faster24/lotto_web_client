@@ -1,13 +1,16 @@
 import { HomeProfileHeader } from '@/components/tabs/HomeProfileHeader'
 import { LiveNumberCard } from '@/components/tabs/LiveNumberCard'
+import { HomeBetEntryCard } from '@/components/tabs/HomeBetEntryCard'
+import { screenRoot, screenScroll, tabScreen } from '@/styles/tw'
 
 export function HomeTabPage() {
   return (
-    <div className="screen-root tab-screen" data-testid="tabs-home-page">
+    <div className={`${screenRoot} ${tabScreen}`} data-testid="tabs-home-page">
       <HomeProfileHeader />
 
-      <main className="screen-scroll tab-screen__scroll">
+      <main className={screenScroll}>
         <LiveNumberCard />
+        <HomeBetEntryCard />
       </main>
     </div>
   )
