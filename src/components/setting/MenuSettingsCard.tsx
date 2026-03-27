@@ -1,4 +1,5 @@
 import { useId, useState } from 'react'
+import { Link } from 'react-router-dom'
 
 type Language = 'English' | 'Thai' | 'Myanmar'
 
@@ -21,10 +22,10 @@ export function MenuSettingsCard() {
         </li>
 
         <li>
-          <button type="button" className="setting-menu-item">
-            <span>Game Status</span>
-            <span>Live</span>
-          </button>
+          <Link to="/odd-settings" className="setting-menu-item">
+            <span>Odd Settings</span>
+            <span>Open</span>
+          </Link>
         </li>
 
         <li>

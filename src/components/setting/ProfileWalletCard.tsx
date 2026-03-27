@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useState } from 'react'
 
 export function ProfileWalletCard() {
@@ -32,6 +33,9 @@ export function ProfileWalletCard() {
           </button>
         </div>
       </div>
+      <Link className="setting-profile__profile-link" to="/user/profile">
+        Open Profile API Page
+      </Link>
     </section>
   )
 }

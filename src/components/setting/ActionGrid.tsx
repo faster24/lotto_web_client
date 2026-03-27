@@ -1,8 +1,10 @@
+import { Link } from 'react-router-dom'
+
 type ActionItem = {
   id: string
   title: string
   subtitle: string
-  accent: 'blue' | 'green' | 'orange' | 'purple'
+  path: string
 }
 
 const actionItems: ActionItem[] = [
@@ -10,40 +12,40 @@ const actionItems: ActionItem[] = [
     id: 'bet-history',
     title: 'Bet History',
     subtitle: 'Review your latest rounds',
-    accent: 'blue',
+    path: '/bets',
   },
   {
     id: 'transactions',
     title: 'Transactions',
     subtitle: 'Money movement timeline',
-    accent: 'green',
+    path: '/gambling/transaction-record',
   },
   {
     id: 'tickets',
     title: 'Lottery Records',
     subtitle: 'Saved entries and outcomes',
-    accent: 'orange',
+    path: '/results/2d',
   },
   {
     id: 'withdrawal',
     title: 'Withdrawal',
     subtitle: 'Payout statuses and detail',
-    accent: 'purple',
+    path: '/gambling/withdrawal-history',
   },
 ]
 
 export function ActionGrid() {
   return (
     <section className="setting-action-grid" aria-labelledby="setting-action-grid-heading">
-      <h2 id="setting-action-grid-heading">Quick Actions</h2>
-
-      <ul className="setting-action-grid__list">
+      <ul className="setting-menu-list">
         {actionItems.map((item) => (
           <li key={item.id}>
-            <button type="button" className={`setting-action-card setting-action-card--${item.accent}`}>
-              <strong>{item.title}</strong>
-              <span>{item.subtitle}</span>
-            </button>
+            <Link to={item.path} className="setting-menu-item setting-action-grid__item">
+              <span className="setting-action-grid__content">
+                <span>{item.title}</span>
+                <span className="setting-action-grid__hint">{item.subtitle}</span>
+              </span>
+            </Link>
           </li>
         ))}
       </ul>

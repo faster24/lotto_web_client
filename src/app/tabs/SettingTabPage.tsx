@@ -2,19 +2,20 @@ import { ActionGrid } from '@/components/setting/ActionGrid'
 import { MenuSettingsCard } from '@/components/setting/MenuSettingsCard'
 import { ProfileWalletCard } from '@/components/setting/ProfileWalletCard'
 import { ServiceCenterCard } from '@/components/setting/ServiceCenterCard'
+import { screenRoot, screenScroll, tabHeader, tabHeaderCaption, tabHeaderEyebrow, tabHeaderTitle, tabScreen } from '@/styles/tw'
 
 export function SettingTabPage() {
   return (
-    <div className="screen-root tab-screen" data-testid="tabs-setting-page">
-      <header className="tab-top-header">
-        <p className="tab-top-header__eyebrow">Preferences</p>
-        <h1>Setting</h1>
-        <p className="tab-top-header__caption">
+    <div className={`${screenRoot} ${tabScreen}`} data-testid="tabs-setting-page">
+      <header className={tabHeader}>
+        <p className={tabHeaderEyebrow}>Preferences</p>
+        <h1 className={tabHeaderTitle}>Setting</h1>
+        <p className={tabHeaderCaption}>
           Profile cards, quick actions, and service tools.
         </p>
       </header>
 
-      <main className="screen-scroll tab-screen__scroll">
+      <main className={screenScroll}>
         <ProfileWalletCard />
         <ActionGrid />
         <MenuSettingsCard />
