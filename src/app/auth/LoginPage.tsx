@@ -1,87 +1,141 @@
 import { type FormEvent, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { loginUser } from '@/api/client'
+import type { LoginInput } from '@/api/types'
+import {
+    AuthCard,
+    AuthFeedback,
+    AuthField,
+    AuthScreen,
+    authInputClassName,
+    authPasswordWrapClassName,
+    authPrimaryButtonClassName,
+    authToggleClassName,
+} from '@/components/auth/AuthFormPrimitives'
+
+const initialForm: LoginInput = {
+    email: '',
+    password: '',
+}
 
 export function LoginPage() {
-  const [showPassword, setShowPassword] = useState(false)
+    const navigate = useNavigate()
+    const location = useLocation()
+    const [showPassword, setShowPassword] = useState(false)
+    const [form, setForm] = useState<LoginInput>(initialForm)
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
+    const [success, setSuccess] = useState<string | null>(null)
+    const fromState = (location.state as { from?: string } | null)?.from
+    const postAuthPath = typeof fromState === 'string' && fromState.startsWith('/') && !fromState.startsWith('//') ? fromState : '/tabs/home'
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-  }
+    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault()
+        setError(null)
+        setSuccess(null)
+        setLoading(true)
 
-  return (
-    <div className="screen-root auth-login-screen" data-testid="auth-login-page">
-      <header className="auth-login-hero">
-        <p className="auth-login-hero__eyebrow">Lottery Hub</p>
-        <h1>Sign in and keep your lucky streak moving</h1>
-        <p className="auth-login-hero__subtitle">
-          Continue with your account to check results, place number plays, and manage your wallet.
-        </p>
-      </header>
+        try {
+            const response = await loginUser(form)
+            setSuccess(`${response.message}. Redirecting...`)
+            window.setTimeout(() => {
+                void navigate(postAuthPath, { replace: true })
+            }, 500)
+        } catch (caughtError) {
+            setError(caughtError instanceof Error ? caughtError.message : 'Login failed. Check your email and password.')
+        } finally {
+            setLoading(false)
+        }
+    }
 
-      <main className="auth-login-scroll">
-        <form className="auth-login-card" onSubmit={handleSubmit}>
-          <p className="auth-login-card__label">Welcome Back</p>
+    return (
+        <AuthScreen testId="auth-login-page" title="Sign in and keep your lucky streak moving">
+            <AuthCard label="Welcome Back" apiNote="">
+                <form className="grid gap-4" onSubmit={(event) => void handleSubmit(event)}>
+                    <AuthField htmlFor="login-email" label="Email Address">
+                        <input
+                            id="login-email"
+                            name="email"
+                            type="email"
+                            autoComplete="email"
+                            className={authInputClassName}
+                            placeholder="name@example.com"
+                            required
+                            value={form.email}
+                            onChange={(event) => {
+                                const value = event.currentTarget.value
+                                setForm((prev) => ({ ...prev, email: value }))
+                            }}
+                        />
+                    </AuthField>
 
-          <div className="auth-login-field auth-login-field--email">
-            <label htmlFor="login-email">Email Address</label>
-            <input
-              id="login-email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              placeholder="name@example.com"
-              required
-            />
-          </div>
+                    <AuthField htmlFor="login-password" label="Password">
+                        <div className={authPasswordWrapClassName}>
+                            <input
+                                id="login-password"
+                                name="password"
+                                type={showPassword ? 'text' : 'password'}
+                                autoComplete="current-password"
+                                className={authInputClassName}
+                                placeholder="Enter your password"
+                                required
+                                minLength={8}
+                                value={form.password}
+                                onChange={(event) => {
+                                    const value = event.currentTarget.value
+                                    setForm((prev) => ({ ...prev, password: value }))
+                                }}
+                            />
 
-          <div className="auth-login-field auth-login-field--password">
-            <label htmlFor="login-password">Password</label>
+                            <button
+                                type="button"
+                                className={authToggleClassName}
+                                onClick={() => setShowPassword((value) => !value)}
+                                aria-controls="login-password"
+                                aria-pressed={showPassword}
+                                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                title={showPassword ? 'Hide password' : 'Show password'}
+                            >
+                                {showPassword ? (
+                                    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M3 3 21 21" strokeLinecap="round" />
+                                        <path d="M10.7 6.4A10.8 10.8 0 0 1 12 6c6 0 9.5 6 9.5 6a16.9 16.9 0 0 1-3.1 3.9" strokeLinecap="round" />
+                                        <path d="M6.4 10.7A16.8 16.8 0 0 0 2.5 12s3.5 6 9.5 6c1.8 0 3.3-.5 4.6-1.2" strokeLinecap="round" />
+                                        <path d="M14.1 14.1A3 3 0 0 1 9.9 9.9" strokeLinecap="round" />
+                                    </svg>
+                                ) : (
+                                    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" strokeLinecap="round" strokeLinejoin="round" />
+                                        <circle cx="12" cy="12" r="3" />
+                                    </svg>
+                                )}
+                                <span className="sr-only">{showPassword ? 'Hide' : 'Show'}</span>
+                            </button>
+                        </div>
+                    </AuthField>
 
-            <div className="auth-login-password-wrap">
-              <input
-                id="login-password"
-                name="password"
-                type={showPassword ? 'text' : 'password'}
-                autoComplete="current-password"
-                placeholder="Enter your password"
-                required
-                minLength={6}
-              />
+                    {error != null && <AuthFeedback kind="error" message={error} />}
+                    {success != null && <AuthFeedback kind="success" message={success} />}
 
-              <button
-                type="button"
-                className="auth-login-password-toggle"
-                onClick={() => setShowPassword((value) => !value)}
-                aria-controls="login-password"
-                aria-pressed={showPassword}
-              >
-                {showPassword ? 'Hide' : 'Show'}
-              </button>
-            </div>
-          </div>
+                    <button type="submit" className={authPrimaryButtonClassName} disabled={loading}>
+                        {loading ? 'Signing In...' : 'Sign In'}
+                        <span aria-hidden="true" className="rounded-full bg-[rgb(4_10_31_/_16%)] px-1.5 text-[0.8rem]">
+                            {'->'}
+                        </span>
+                    </button>
 
-          <button type="submit" className="auth-login-submit-btn">
-            Sign In
-            <span aria-hidden="true">{'->'}</span>
-          </button>
-
-          <p className="auth-login-divider">Or continue with</p>
-
-          <button type="button" className="auth-login-google-btn">
-            <span className="auth-login-google-icon" aria-hidden="true">
-              G
-            </span>
-            Continue with Google
-          </button>
-
-          <p className="auth-login-register-row">
-            Don't have an account?{' '}
-            <Link to="/auth/register" className="auth-login-register-link">
-              Create one
-            </Link>
-          </p>
-        </form>
-      </main>
-    </div>
-  )
+                    <p className="m-0 pt-1 text-center text-[0.8rem] text-[#8a9bb3]">
+                        Don't have an account?{' '}
+                        <Link
+                            to="/auth/register"
+                            state={fromState != null ? { from: fromState } : null}
+                            className="font-bold text-[#00e676] transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-[rgb(0_230_118_/_25%)]"
+                        >
+                            Create one
+                        </Link>
+                    </p>
+                </form>
+            </AuthCard>
+        </AuthScreen>
+    )
 }

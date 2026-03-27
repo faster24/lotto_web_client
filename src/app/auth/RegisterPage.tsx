@@ -1,135 +1,215 @@
 import { type FormEvent, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { registerUser } from '@/api/client'
+import type { RegisterInput } from '@/api/types'
+import {
+    AuthCard,
+    AuthFeedback,
+    AuthField,
+    AuthScreen,
+    authInputClassName,
+    authPasswordWrapClassName,
+    authPrimaryButtonClassName,
+    authToggleClassName,
+} from '@/components/auth/AuthFormPrimitives'
+
+const initialForm: RegisterInput = {
+    username: '',
+    email: '',
+    password: '',
+    password_confirmation: '',
+}
 
 export function RegisterPage() {
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+    const navigate = useNavigate()
+    const location = useLocation()
+    const [showPassword, setShowPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+    const [form, setForm] = useState<RegisterInput>(initialForm)
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
+    const [success, setSuccess] = useState<string | null>(null)
+    const fromState = (location.state as { from?: string } | null)?.from
+    const postAuthPath = typeof fromState === 'string' && fromState.startsWith('/') && !fromState.startsWith('//') ? fromState : '/tabs/home'
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-  }
+    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault()
+        setError(null)
+        setSuccess(null)
 
-  return (
-    <div className="screen-root auth-register-screen" data-testid="auth-register-page">
-      <header className="auth-register-hero">
-        <p className="auth-register-hero__eyebrow">Lottery Hub</p>
-        <h1>Create your account and start placing lucky picks</h1>
-        <p className="auth-register-hero__subtitle">
-          Set up your profile to track draws, save number plays, and manage your balance in one place.
-        </p>
-      </header>
+        if (form.password !== form.password_confirmation) {
+            setError('Password and confirmation must match.')
+            return
+        }
 
-      <main className="auth-register-scroll">
-        <form className="auth-register-card" onSubmit={handleSubmit}>
-          <p className="auth-register-card__label">New Account</p>
+        setLoading(true)
 
-          <div className="auth-register-field">
-            <label htmlFor="register-name">Full Name</label>
-            <input
-              id="register-name"
-              name="name"
-              type="text"
-              autoComplete="name"
-              placeholder="Your full name"
-              required
-              minLength={2}
-            />
-          </div>
+        try {
+            const response = await registerUser(form)
+            setSuccess(`${response.message}. Redirecting...`)
+            window.setTimeout(() => {
+                void navigate(postAuthPath, { replace: true })
+            }, 500)
+        } catch (caughtError) {
+            setError(caughtError instanceof Error ? caughtError.message : 'Registration failed. Check your form and try again.')
+        } finally {
+            setLoading(false)
+        }
+    }
 
-          <div className="auth-register-field">
-            <label htmlFor="register-email">Email Address</label>
-            <input
-              id="register-email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              placeholder="name@example.com"
-              required
-            />
-          </div>
+    return (
+        <AuthScreen
+            testId="auth-register-page"
+            title="Create your account and start placing lucky picks"
+            subtitle="Set up your profile to track draws, save number plays, and manage your balance in one place."
+        >
+            <AuthCard label="New Account" apiNote="">
+                <form className="grid gap-4" onSubmit={(event) => void handleSubmit(event)}>
+                    <AuthField htmlFor="register-username" label="Username">
+                        <input
+                            id="register-username"
+                            name="username"
+                            type="text"
+                            autoComplete="username"
+                            className={authInputClassName}
+                            placeholder="Your username"
+                            required
+                            maxLength={255}
+                            value={form.username}
+                            onChange={(event) => {
+                                const value = event.currentTarget.value
+                                setForm((prev) => ({ ...prev, username: value }))
+                            }}
+                        />
+                    </AuthField>
 
-          <div className="auth-register-field">
-            <label htmlFor="register-phone">Phone Number</label>
-            <input
-              id="register-phone"
-              name="phone"
-              type="tel"
-              autoComplete="tel"
-              placeholder="09 123 456 789"
-              required
-            />
-          </div>
+                    <AuthField htmlFor="register-email" label="Email Address">
+                        <input
+                            id="register-email"
+                            name="email"
+                            type="email"
+                            autoComplete="email"
+                            className={authInputClassName}
+                            placeholder="name@example.com"
+                            required
+                            value={form.email}
+                            onChange={(event) => {
+                                const value = event.currentTarget.value
+                                setForm((prev) => ({ ...prev, email: value }))
+                            }}
+                        />
+                    </AuthField>
 
-          <div className="auth-register-field">
-            <label htmlFor="register-password">Password</label>
-            <div className="auth-register-password-wrap">
-              <input
-                id="register-password"
-                name="password"
-                type={showPassword ? 'text' : 'password'}
-                autoComplete="new-password"
-                placeholder="At least 6 characters"
-                required
-                minLength={6}
-              />
-              <button
-                type="button"
-                className="auth-register-password-toggle"
-                onClick={() => setShowPassword((value) => !value)}
-                aria-controls="register-password"
-                aria-pressed={showPassword}
-              >
-                {showPassword ? 'Hide' : 'Show'}
-              </button>
-            </div>
-          </div>
+                    <AuthField htmlFor="register-password" label="Password">
+                        <div className={authPasswordWrapClassName}>
+                            <input
+                                id="register-password"
+                                name="password"
+                                type={showPassword ? 'text' : 'password'}
+                                autoComplete="new-password"
+                                className={authInputClassName}
+                                placeholder="At least 8 characters"
+                                required
+                                minLength={8}
+                                value={form.password}
+                                onChange={(event) => {
+                                    const value = event.currentTarget.value
+                                    setForm((prev) => ({ ...prev, password: value }))
+                                }}
+                            />
+                            <button
+                                type="button"
+                                className={authToggleClassName}
+                                onClick={() => setShowPassword((value) => !value)}
+                                aria-controls="register-password"
+                                aria-pressed={showPassword}
+                                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                title={showPassword ? 'Hide password' : 'Show password'}
+                            >
+                                {showPassword ? (
+                                    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M3 3 21 21" strokeLinecap="round" />
+                                        <path d="M10.7 6.4A10.8 10.8 0 0 1 12 6c6 0 9.5 6 9.5 6a16.9 16.9 0 0 1-3.1 3.9" strokeLinecap="round" />
+                                        <path d="M6.4 10.7A16.8 16.8 0 0 0 2.5 12s3.5 6 9.5 6c1.8 0 3.3-.5 4.6-1.2" strokeLinecap="round" />
+                                        <path d="M14.1 14.1A3 3 0 0 1 9.9 9.9" strokeLinecap="round" />
+                                    </svg>
+                                ) : (
+                                    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" strokeLinecap="round" strokeLinejoin="round" />
+                                        <circle cx="12" cy="12" r="3" />
+                                    </svg>
+                                )}
+                                <span className="sr-only">{showPassword ? 'Hide' : 'Show'}</span>
+                            </button>
+                        </div>
+                    </AuthField>
 
-          <div className="auth-register-field">
-            <label htmlFor="register-confirm-password">Confirm Password</label>
-            <div className="auth-register-password-wrap">
-              <input
-                id="register-confirm-password"
-                name="confirmPassword"
-                type={showConfirmPassword ? 'text' : 'password'}
-                autoComplete="new-password"
-                placeholder="Re-enter your password"
-                required
-                minLength={6}
-              />
-              <button
-                type="button"
-                className="auth-register-password-toggle"
-                onClick={() => setShowConfirmPassword((value) => !value)}
-                aria-controls="register-confirm-password"
-                aria-pressed={showConfirmPassword}
-              >
-                {showConfirmPassword ? 'Hide' : 'Show'}
-              </button>
-            </div>
-          </div>
+                    <AuthField htmlFor="register-confirm-password" label="Confirm Password">
+                        <div className={authPasswordWrapClassName}>
+                            <input
+                                id="register-confirm-password"
+                                name="password_confirmation"
+                                type={showConfirmPassword ? 'text' : 'password'}
+                                autoComplete="new-password"
+                                className={authInputClassName}
+                                placeholder="Re-enter your password"
+                                required
+                                minLength={8}
+                                value={form.password_confirmation}
+                                onChange={(event) => {
+                                    const value = event.currentTarget.value
+                                    setForm((prev) => ({ ...prev, password_confirmation: value }))
+                                }}
+                            />
+                            <button
+                                type="button"
+                                className={authToggleClassName}
+                                onClick={() => setShowConfirmPassword((value) => !value)}
+                                aria-controls="register-confirm-password"
+                                aria-pressed={showConfirmPassword}
+                                aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                                title={showConfirmPassword ? 'Hide password' : 'Show password'}
+                            >
+                                {showConfirmPassword ? (
+                                    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M3 3 21 21" strokeLinecap="round" />
+                                        <path d="M10.7 6.4A10.8 10.8 0 0 1 12 6c6 0 9.5 6 9.5 6a16.9 16.9 0 0 1-3.1 3.9" strokeLinecap="round" />
+                                        <path d="M6.4 10.7A16.8 16.8 0 0 0 2.5 12s3.5 6 9.5 6c1.8 0 3.3-.5 4.6-1.2" strokeLinecap="round" />
+                                        <path d="M14.1 14.1A3 3 0 0 1 9.9 9.9" strokeLinecap="round" />
+                                    </svg>
+                                ) : (
+                                    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" strokeLinecap="round" strokeLinejoin="round" />
+                                        <circle cx="12" cy="12" r="3" />
+                                    </svg>
+                                )}
+                                <span className="sr-only">{showConfirmPassword ? 'Hide' : 'Show'}</span>
+                            </button>
+                        </div>
+                    </AuthField>
 
-          <button type="submit" className="auth-register-submit-btn">
-            Create Account
-            <span aria-hidden="true">{'->'}</span>
-          </button>
+                    {error != null && <AuthFeedback kind="error" message={error} />}
+                    {success != null && <AuthFeedback kind="success" message={success} />}
 
-          <p className="auth-register-divider">Quick option</p>
+                    <button type="submit" className={authPrimaryButtonClassName} disabled={loading}>
+                        {loading ? 'Creating...' : 'Create Account'}
+                        <span aria-hidden="true" className="rounded-full bg-[rgb(4_10_31_/_16%)] px-1.5 text-[0.8rem]">
+                            {'->'}
+                        </span>
+                    </button>
 
-          <button type="button" className="auth-register-ghost-btn">
-            <span className="auth-register-ghost-icon" aria-hidden="true">
-              G
-            </span>
-            Continue with Google
-          </button>
-
-          <p className="auth-register-login-row">
-            Already have an account?{' '}
-            <Link to="/auth/login" className="auth-register-login-link">
-              Sign in
-            </Link>
-          </p>
-        </form>
-      </main>
-    </div>
-  )
+                    <p className="m-0 pt-1 text-center text-[0.8rem] text-[#8a9bb3]">
+                        Already have an account?{' '}
+                        <Link
+                            to="/auth/login"
+                            state={fromState != null ? { from: fromState } : null}
+                            className="font-bold text-[#00e676] transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-[rgb(0_230_118_/_25%)]"
+                        >
+                            Sign in
+                        </Link>
+                    </p>
+                </form>
+            </AuthCard>
+        </AuthScreen>
+    )
 }
