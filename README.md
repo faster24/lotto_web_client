@@ -2,6 +2,27 @@
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
+## Auth API Environment
+
+Login and register now support live API integration based on `openapi.yaml`:
+
+- `POST /register`
+- `POST /login`
+
+Set these environment variables in `.env`:
+
+```bash
+VITE_API_BASE_URL=http://localhost:8000/api/v1
+VITE_AUTH_LIVE_ENABLED=true
+VITE_BET_CREATE_LIVE_ENABLED=true
+```
+
+Notes:
+
+- `VITE_AUTH_LIVE_ENABLED=false` will use the local mock auth flow.
+- `VITE_BET_CREATE_LIVE_ENABLED=false` will use the local mock bet create flow.
+- `VITE_API_BASE_URL` defaults to `http://localhost:8000/api/v1` if omitted.
+
 Currently, two official plugins are available:
 
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
