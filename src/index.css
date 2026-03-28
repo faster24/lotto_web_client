@@ -662,8 +662,6 @@ a {
 }
 
 .explore-history h2,
-.setting-action-grid h2,
-.setting-menu-card h2,
 .service-center-card h2,
 .setting-profile h2 {
   margin: 0;
@@ -673,8 +671,6 @@ a {
 
 .explore-history__list,
 .explore-history-card__results,
-.setting-action-grid__list,
-.setting-menu-list,
 .service-center-grid {
   margin: 0;
   padding: 0;
@@ -683,7 +679,6 @@ a {
 
 .setting-profile__uid,
 .setting-action-card,
-.setting-menu-item,
 .service-center-item,
 .service-center-logout {
   border: 1px solid var(--color-outline);
@@ -776,8 +771,6 @@ a {
 }
 
 .setting-profile,
-.setting-action-grid,
-.setting-menu-card,
 .service-center-card {
   border: 1px solid var(--color-outline);
   border-radius: 1.1rem;
@@ -829,58 +822,6 @@ a {
   color: var(--color-neon);
   padding: 0.38rem 0.58rem;
   font-size: 0.74rem;
-}
-
-.setting-action-grid__item {
-  justify-content: flex-start;
-}
-
-.setting-action-grid__content {
-  display: grid;
-  gap: 0.18rem;
-}
-
-.setting-action-grid__hint {
-  color: var(--color-text-muted);
-  font-size: 0.68rem;
-}
-
-.setting-menu-list {
-  margin-top: var(--space-3);
-}
-
-.setting-menu-item,
-.setting-language-row {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.64rem 0.72rem;
-  color: var(--color-text);
-  font-size: 0.85rem;
-}
-
-.setting-menu-item {
-  border-radius: 0.7rem;
-}
-
-.setting-language-row {
-  border: 1px solid var(--color-outline);
-  border-radius: 0.7rem;
-  background: rgb(255 255 255 / 4%);
-}
-
-.setting-menu-list li + li {
-  margin-top: 0.45rem;
-}
-
-.setting-language-row select {
-  min-width: 6.6rem;
-  border: 1px solid var(--color-outline);
-  border-radius: 0.65rem;
-  background: var(--color-surface);
-  color: var(--color-text);
-  padding: 0.34rem 0.45rem;
 }
 
 .service-center-grid {
