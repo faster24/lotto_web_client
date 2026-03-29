@@ -1,6 +1,6 @@
 import type { RefObject } from 'react'
 import type { BetCreateInput } from '@/api/types'
-import { apiButton, apiCard } from '@/styles/tw'
+import { apiButton } from '@/styles/tw'
 import {
     CURRENCY_OPTIONS,
     TARGET_OPEN_TIME_OPTIONS,
@@ -36,37 +36,22 @@ function StepIndicator({ currentStep, stepActiveClassName, stepDoneClassName }: 
     ]
 
     return (
-        <div className="mb-3 grid grid-cols-3 gap-1.5" aria-label="Bet create steps">
+        <div className="mb-3 flex bg-[rgb(4_10_31_/_60%)] rounded-xl p-1.5 gap-1 border border-white/5" aria-label="Bet create steps">
             {steps.map((step) => {
                 const isActive = currentStep === step.id
                 const isDone = currentStep > step.id
                 return (
                     <div
                         key={step.id}
-                        className={`rounded-lg border px-2 py-2 text-center ${isDone ? stepDoneClassName : isActive ? stepActiveClassName : 'border-white/10 bg-white/3 text-[#8a9bb3]'}`}
+                        className={`flex-1 py-2.5 rounded-lg text-center text-[0.72rem] font-bold uppercase tracking-wider transition-colors ${
+                            isDone
+                                ? 'bg-[rgb(0_230_118_/_12%)] text-[#00e676]'
+                                : isActive
+                                ? 'bg-[rgb(23_29_48)] text-[#f7f9ff] shadow-sm'
+                                : 'text-[#8a9bb3] hover:bg-white/5'
+                        }`}
                     >
-                        <span className="mx-auto mb-1 inline-flex h-6 w-6 items-center justify-center">
-                            {step.id === 1 && (
-                                <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" />
-                                    <circle cx="8" cy="6" r="1.4" fill="currentColor" />
-                                    <circle cx="14" cy="12" r="1.4" fill="currentColor" />
-                                    <circle cx="10" cy="18" r="1.4" fill="currentColor" />
-                                </svg>
-                            )}
-                            {step.id === 2 && (
-                                <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M7 4v16M17 4v16M5 8h14M5 16h14" strokeLinecap="round" />
-                                </svg>
-                            )}
-                            {step.id === 3 && (
-                                <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M7 3h8l4 4v14H7z" strokeLinecap="round" strokeLinejoin="round" />
-                                    <path d="M15 3v5h5M10 12h6M10 16h6" strokeLinecap="round" />
-                                </svg>
-                            )}
-                        </span>
-                        <span className="block text-[0.72rem] font-semibold">{step.label}</span>
+                        {step.label}
                     </div>
                 )
             })}
@@ -520,25 +505,21 @@ function StepPaySlip({
                         type="submit"
                         aria-label="Submit bet"
                         title="Submit bet"
-                        className="my-[5px] inline-flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-[0.8rem] border border-[rgb(0_230_118_/_38%)] bg-[rgb(0_230_118_/_14%)] px-3 py-2 text-[0.9rem] font-semibold leading-[1.35] text-[#86efac] transition-colors hover:border-[rgb(0_230_118_/_58%)] hover:bg-[rgb(0_230_118_/_20%)] disabled:cursor-not-allowed disabled:opacity-60"
+                        className="h-16 w-full bg-gradient-to-r from-[#00e676] to-[#2ac48b] rounded-2xl flex items-center justify-between px-6 shadow-[0_12px_24px_rgba(0,230,118,0.3)] hover:scale-[1.02] active:scale-95 transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60 group"
                         disabled={!canCreateForActiveType || isSubmitting}
                     >
-                        {isSubmitting ? (
-                            <>
-                                <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 animate-spin" fill="none" stroke="currentColor" strokeWidth="2">
+                        <span className="font-semibold text-[0.9rem] text-[#003824] tracking-tight uppercase">
+                            {isSubmitting ? 'Submitting…' : 'Confirm Wager'}
+                        </span>
+                        <div className="w-9 h-9 rounded-full bg-black/10 flex items-center justify-center group-hover:translate-x-1 transition-transform">
+                            {isSubmitting ? (
+                                <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 animate-spin text-[#003824]" fill="none" stroke="currentColor" strokeWidth="2">
                                     <path d="M12 3a9 9 0 1 1-9 9" strokeLinecap="round" />
                                 </svg>
-                                <span className="sr-only">Submitting...</span>
-                            </>
-                        ) : (
-                            <>
-                                <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M22 2 11 13" strokeLinecap="round" />
-                                    <path d="m22 2-7 20-4-9-9-4z" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                                <span className="sr-only">Submit</span>
-                            </>
-                        )}
+                            ) : (
+                                <span className="material-symbols-outlined text-[#003824] text-[20px]">arrow_forward</span>
+                            )}
+                        </div>
                     </button>
                 </div>
             </div>
@@ -624,7 +605,7 @@ export function BetCreateCard({
 }: BetCreateCardProps) {
     return (
         <section
-            className={`${apiCard} relative overflow-hidden border-white/14 bg-[linear-gradient(160deg,rgb(11_19_43_/_95%)_0%,rgb(6_13_33_/_92%)_100%)] shadow-[0_18px_38px_rgb(2_6_16_/_34%),inset_0_1px_0_rgb(255_255_255_/_6%)]`}
+            className="relative overflow-hidden rounded-2xl p-4 border border-white/5 shadow-2xl bg-[rgba(35,41,60,0.4)] backdrop-blur-xl"
             role="tabpanel"
             id={`bet-panel-${activeBetTypeId}`}
             aria-labelledby={`bet-tab-${activeBetTypeId}`}

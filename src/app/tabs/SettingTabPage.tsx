@@ -2,7 +2,7 @@ import { ActionGrid } from '@/components/setting/ActionGrid'
 import { MenuSettingsCard } from '@/components/setting/MenuSettingsCard'
 import { ProfileWalletCard } from '@/components/setting/ProfileWalletCard'
 import { ServiceCenterCard } from '@/components/setting/ServiceCenterCard'
-import { screenRoot, screenScroll, tabHeader, tabHeaderCaption, tabHeaderEyebrow, tabHeaderTitle, tabScreen } from '@/styles/tw'
+import { screenRoot, screenScroll, tabHeader, tabHeaderEyebrow, tabHeaderTitle, tabScreen } from '@/styles/tw'
 
 export function SettingTabPage() {
   return (
@@ -10,9 +10,6 @@ export function SettingTabPage() {
       <header className={tabHeader}>
         <p className={tabHeaderEyebrow}>Preferences</p>
         <h1 className={tabHeaderTitle}>Setting</h1>
-        <p className={tabHeaderCaption}>
-          Profile cards, quick actions, and service tools.
-        </p>
       </header>
 
       <main className={screenScroll}>

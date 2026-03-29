@@ -5,22 +5,24 @@ import { logoutUser } from '@/api/client'
 type ServiceItem = {
   id: string
   title: string
-  subtitle: string
   path: string
+  icon: string
+  pulse?: boolean
 }
 
 const serviceItems: ServiceItem[] = [
   {
     id: 'announcements',
     title: 'Announcements',
-    subtitle: 'Platform updates and notices',
     path: '/announcements',
+    icon: 'campaign',
+    pulse: true,
   },
   {
     id: 'about',
     title: 'About',
-    subtitle: 'Terms, versions, and policy',
     path: '/wallet-profile/about',
+    icon: 'info',
   },
 ]
 
@@ -46,24 +48,49 @@ export function ServiceCenterCard() {
   }
 
   return (
-    <section className="service-center-card" aria-labelledby="service-center-heading">
-      <h2 id="service-center-heading">Service Center</h2>
+    <section aria-labelledby="service-center-heading" className="space-y-3">
+      <h2
+        id="service-center-heading"
+        className="m-0 px-1 text-[0.7rem] font-bold uppercase tracking-[0.2em] text-[#8a9bb3]"
+      >
+        Service Center
+      </h2>
 
-      <ul className="service-center-grid">
+      <div className="overflow-hidden rounded-xl border border-white/8 bg-[linear-gradient(160deg,rgb(11_19_43_/_94%)_0%,rgb(7_15_35_/_88%)_100%)] divide-y divide-white/8">
         {serviceItems.map((item) => (
-          <li key={item.id}>
-            <Link to={item.path} className="service-center-item">
-              <strong>{item.title}</strong>
-              <span>{item.subtitle}</span>
-            </Link>
-          </li>
+          <Link
+            key={item.id}
+            to={item.path}
+            className="group flex items-center justify-between p-4 transition-colors hover:bg-white/5"
+          >
+            <div className="flex items-center gap-4">
+              <span className="material-symbols-outlined text-[#8a9bb3] transition-colors group-hover:text-[#00e676]">
+                {item.icon}
+              </span>
+              <span className="text-sm font-medium text-[#f7f9ff]">{item.title}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              {item.pulse && (
+                <span className="h-2 w-2 rounded-full bg-[#00e676] animate-pulse" />
+              )}
+              <span className="material-symbols-outlined text-[#8a9bb3]">chevron_right</span>
+            </div>
+          </Link>
         ))}
-      </ul>
+      </div>
 
-      <button type="button" className="service-center-logout" onClick={() => setIsConfirmOpen(true)} disabled={isLoggingOut}>
+      <button
+        type="button"
+        className="w-full rounded-xl border border-red-500/10 bg-red-500/10 py-4 text-sm font-bold tracking-wide text-[#ff6a62] transition hover:bg-red-500/20 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+        onClick={() => setIsConfirmOpen(true)}
+        disabled={isLoggingOut}
+      >
         {isLoggingOut ? 'Logging out...' : 'Log out'}
       </button>
-      {logoutMessage != null && <p className="service-center-note">{logoutMessage}</p>}
+
+      {logoutMessage != null && (
+        <p className="m-0 text-[0.72rem] text-[#00e676]">{logoutMessage}</p>
+      )}
 
       {isConfirmOpen && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-[rgb(4_10_31_/_56%)] p-4">
