@@ -78,7 +78,7 @@ export function BankInfoPage() {
                 <select
                   className="w-full rounded-xl border border-white/12 bg-[rgb(5_10_31_/_68%)] px-2.5 py-2 text-[#f7f9ff]"
                   value={form.bank_name}
-                  onChange={(event) => setForm((prev) => ({ ...prev, bank_name: event.currentTarget.value as WalletBankInfo['bank_name'] }))}
+                  onChange={(event) => { const v = event.currentTarget.value as WalletBankInfo['bank_name']; setForm((prev) => ({ ...prev, bank_name: v })) }}
                 >
                   {['KBZ', 'AYA', 'CB', 'UAB', 'YOMA', 'OTHER'].map((item) => (
                     <option key={item} value={item}>
@@ -92,7 +92,7 @@ export function BankInfoPage() {
                 <input
                   className="w-full rounded-xl border border-white/12 bg-[rgb(5_10_31_/_68%)] px-2.5 py-2 text-[#f7f9ff]"
                   value={form.account_name}
-                  onChange={(event) => setForm((prev) => ({ ...prev, account_name: event.currentTarget.value }))}
+                  onChange={(event) => { const v = event.currentTarget.value; setForm((prev) => ({ ...prev, account_name: v })) }}
                   required
                 />
               </label>
@@ -101,7 +101,7 @@ export function BankInfoPage() {
                 <input
                   className="w-full rounded-xl border border-white/12 bg-[rgb(5_10_31_/_68%)] px-2.5 py-2 text-[#f7f9ff]"
                   value={form.account_number}
-                  onChange={(event) => setForm((prev) => ({ ...prev, account_number: event.currentTarget.value }))}
+                  onChange={(event) => { const v = event.currentTarget.value; setForm((prev) => ({ ...prev, account_number: v })) }}
                   required
                 />
               </label>

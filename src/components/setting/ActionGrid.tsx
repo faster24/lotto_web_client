@@ -11,9 +11,9 @@ type ActionItem = {
 const actionItems: ActionItem[] = [
   {
     id: 'bet-history',
-    title: 'History',
-    subtitle: 'View activity logs',
-    path: '/bets',
+    title: 'Bet History',
+    subtitle: 'Past wagers & results',
+    path: '/gambling/gambling-history',
     icon: 'history',
   },
   {

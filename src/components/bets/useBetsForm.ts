@@ -9,6 +9,7 @@ export type BetCreateFormState = {
     bet_type: BetCreateInput['bet_type']
     currency: BetCreateInput['currency']
     target_opentime: BetCreateInput['target_opentime']
+    transaction_id_last_two_digits: string
 }
 
 export type BetNumberRow = {
@@ -86,6 +87,7 @@ const initialForm: BetCreateFormState = {
     bet_type: '2D',
     currency: 'MMK',
     target_opentime: '12:01:00',
+    transaction_id_last_two_digits: '',
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -255,6 +257,7 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
                 bet_type: activePayloadBetType,
                 currency: form.currency,
                 target_opentime: form.target_opentime,
+                transaction_id_last_two_digits: form.transaction_id_last_two_digits,
                 bet_numbers: normalized,
             })
 

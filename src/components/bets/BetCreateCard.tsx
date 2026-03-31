@@ -1,5 +1,6 @@
 import type { RefObject } from 'react'
-import type { BetCreateInput } from '@/api/types'
+import { Link } from 'react-router-dom'
+import type { BetCreateInput, WalletBankInfo } from '@/api/types'
 import { apiButton } from '@/styles/tw'
 import {
     CURRENCY_OPTIONS,
@@ -379,6 +380,7 @@ type StepPaySlipProps = {
     canCreateForActiveType: boolean
     isSubmitting: boolean
     fileInputRef: RefObject<HTMLInputElement | null>
+    bankInfo: WalletBankInfo | null
     onBack: () => void
 }
 
@@ -392,6 +394,7 @@ function StepPaySlip({
     canCreateForActiveType,
     isSubmitting,
     fileInputRef,
+    bankInfo,
     onBack,
 }: StepPaySlipProps) {
     return (
@@ -463,6 +466,52 @@ function StepPaySlip({
                 )}
             </section>
 
+            {/* Payout Account */}
+            <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                    <span className="text-[0.78rem] font-semibold uppercase tracking-[0.06em] text-[#8a9bb3]">Payout Account</span>
+                    <Link
+                        to="/user/bank-info"
+                        className="text-[0.72rem] font-medium text-[#93c5fd] hover:text-[#60a5fa] transition-colors"
+                    >
+                        {bankInfo == null ? 'Set up now →' : 'Manage →'}
+                    </Link>
+                </div>
+
+                {bankInfo == null ? (
+                    <div className="flex items-center gap-3 rounded-xl border border-dashed border-[rgb(245_158_11_/_35%)] bg-[rgb(245_158_11_/_6%)] px-3.5 py-3">
+                        <span className="material-symbols-outlined text-[#fcd34d] text-[1.1rem] shrink-0">account_balance</span>
+                        <div>
+                            <p className="m-0 text-[0.78rem] font-medium text-[#fef3c7]">No payout account linked</p>
+                            <p className="m-0 mt-0.5 text-[0.7rem] text-[#fcd34d]">Add a bank account so winnings can be transferred to you.</p>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="rounded-xl border border-white/10 bg-[rgb(5_10_31_/_68%)] px-3.5 py-3 space-y-2">
+                        <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[#00e676] text-[1.1rem] shrink-0">account_balance</span>
+                            <span className="text-[0.82rem] font-semibold text-[#f7f9ff]">{bankInfo.bank_name}</span>
+                            <span className="ml-auto text-[0.66rem] uppercase tracking-widest text-[#00e676]/60 bg-[rgb(0_230_118_/_8%)] px-2 py-0.5 rounded-full">Verified</span>
+                        </div>
+                        <dl className="grid grid-cols-2 gap-x-4 gap-y-1.5 m-0">
+                            <div>
+                                <dt className="text-[0.65rem] uppercase tracking-[0.06em] text-[#8a9bb3]">Account Holder</dt>
+                                <dd className="m-0 mt-0.5 text-[0.8rem] text-[#f7f9ff]">{bankInfo.account_name}</dd>
+                            </div>
+                            <div>
+                                <dt className="text-[0.65rem] uppercase tracking-[0.06em] text-[#8a9bb3]">Account Number</dt>
+                                <dd className="m-0 mt-0.5 text-[0.8rem] font-semibold tracking-[0.04em] text-[#e2e8f0]">{bankInfo.account_number}</dd>
+                            </div>
+                        </dl>
+                        <p className="m-0 text-[0.68rem] text-[#8a9bb3]">Winnings will be transferred to this account after results are confirmed.</p>
+                        <div className="flex items-start gap-2 mt-2 pt-2 border-t border-white/8">
+                            <span className="material-symbols-outlined text-[#fcd34d] text-[1rem] shrink-0 mt-px">warning</span>
+                            <p className="m-0 text-[0.68rem] text-[#fcd34d] leading-relaxed">Please double-check your account details are correct. Incorrect bank info may result in delayed or failed payouts.</p>
+                        </div>
+                    </div>
+                )}
+            </div>
+
             <label className="block space-y-1.8">
                 <span className="text-[0.78rem] font-semibold uppercase tracking-[0.06em] text-[#8a9bb3]">Pay Slip Image</span>
                 <input
@@ -480,6 +529,35 @@ function StepPaySlip({
                 {form.pay_slip_image != null && (
                     <p className="m-0 text-[0.74rem] text-[#93c5fd]">Selected: {form.pay_slip_image.name}</p>
                 )}
+            </label>
+
+            {/* Transaction ID */}
+            <label className="block space-y-1.5">
+                <div className="flex items-center justify-between">
+                    <span className="text-[0.78rem] font-semibold uppercase tracking-[0.06em] text-[#8a9bb3]">
+                        Last 2 Digits of Transaction ID
+                    </span>
+                    <span className={`text-[0.7rem] font-semibold tabular-nums ${form.transaction_id_last_two_digits.length === 2 ? 'text-[#00e676]' : 'text-[#8a9bb3]'}`}>
+                        {form.transaction_id_last_two_digits.length}/2
+                    </span>
+                </div>
+                <input
+                    className="h-11 w-full rounded-xl border border-white/12 bg-[rgb(5_10_31_/_68%)] px-4 text-[#f7f9ff] text-center text-2xl font-bold tracking-[0.3em] placeholder:text-white/20 placeholder:text-base placeholder:tracking-normal focus:border-[rgb(0_230_118_/_50%)] focus:outline-none"
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={2}
+                    pattern="[0-9]{2}"
+                    placeholder="e.g. 47"
+                    required
+                    value={form.transaction_id_last_two_digits}
+                    onChange={(event) => {
+                        const v = event.currentTarget.value.replace(/\D/g, '').slice(0, 2)
+                        setForm((prev) => ({ ...prev, transaction_id_last_two_digits: v }))
+                    }}
+                />
+                <p className="m-0 text-[0.72rem] text-[#8a9bb3]">
+                    Enter the last two digits of your bank transfer reference number. This helps us verify your payment.
+                </p>
             </label>
 
             <div className="my-3 rounded-xl border border-white/12 bg-[rgb(7_15_37_/_70%)] p-3.5">
@@ -561,6 +639,7 @@ type BetCreateCardProps = {
     typePillClassName: string
     stepActiveClassName: string
     stepDoneClassName: string
+    bankInfo: WalletBankInfo | null
     goToStepTwo: () => void
     goToStepThree: () => void
     setMessage: React.Dispatch<React.SetStateAction<string | null>>
@@ -577,6 +656,7 @@ export function BetCreateCard({
     setForm,
     betRows,
     setBetRows,
+    bankInfo,
     rowErrors,
     setRowErrors,
     isCurrencyOpen,
@@ -688,6 +768,7 @@ export function BetCreateCard({
                         canCreateForActiveType={canCreateForActiveType}
                         isSubmitting={isSubmitting}
                         fileInputRef={fileInputRef}
+                        bankInfo={bankInfo}
                         onBack={() => {
                             setMessage(null)
                             setCurrentStep(2)

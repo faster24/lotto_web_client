@@ -31,6 +31,8 @@ const NETWORK_DELAY_MS = 260
 const MOCK_AUTH_TOKEN_KEY = 'lottery-webclient-mock-token'
 const AUTH_LIVE_ENABLED = (import.meta.env.VITE_AUTH_LIVE_ENABLED as string | undefined) !== 'false'
 const BET_CREATE_LIVE_ENABLED = (import.meta.env.VITE_BET_CREATE_LIVE_ENABLED as string | undefined) !== 'false'
+const WALLET_LIVE_ENABLED = (import.meta.env.VITE_WALLET_LIVE_ENABLED as string | undefined) === 'true'
+const BET_LIST_LIVE_ENABLED = (import.meta.env.VITE_BET_LIST_LIVE_ENABLED as string | undefined) === 'true'
 const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'http://localhost:8000/api/v1').replace(/\/+$/, '')
 
 const wait = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms))
@@ -226,6 +228,56 @@ async function postBetFormData<TResponse>(path: string, payload: FormData, fallb
   return parsed as TResponse
 }
 
+function buildWalletErrorMessage(status: number, payload: unknown, fallbackMessage: string) {
+  const body = payload as { message?: string; errors?: Record<string, string[]> } | undefined
+  const validationMessages = collectValidationMessages(body?.errors)
+
+  if (validationMessages.length > 0) return validationMessages.join(' ')
+  if (typeof body?.message === 'string' && body.message.trim().length > 0) return body.message.trim()
+  if (status === 401) return 'Your session has expired. Please log in again.'
+  if (status === 404) return 'Bank info not found.'
+  if (status === 422) return 'Please review your bank info and try again.'
+
+  return fallbackMessage
+}
+
+async function authedRequest<TResponse>(
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+  path: string,
+  body: unknown,
+  fallbackMessage: string,
+): Promise<TResponse> {
+  const token = getAuthToken()
+  let response: Response
+
+  try {
+    response = await fetch(buildApiUrl(path), {
+      method,
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        ...(token != null ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      ...(body != null ? { body: JSON.stringify(body) } : {}),
+    })
+  } catch {
+    throw new Error('Unable to connect to server. Please try again.')
+  }
+
+  let parsed: unknown = null
+  try {
+    parsed = await response.json()
+  } catch {
+    parsed = null
+  }
+
+  if (!response.ok) {
+    throw new Error(buildWalletErrorMessage(response.status, parsed, fallbackMessage))
+  }
+
+  return parsed as TResponse
+}
+
 async function registerUserMock(input: RegisterInput) {
   ensureMockMode()
   await wait(NETWORK_DELAY_MS)
@@ -356,49 +408,83 @@ export async function getMe() {
 }
 
 export async function getMyBankInfo() {
-  ensureMockMode()
-  await wait(NETWORK_DELAY_MS)
+  if (WALLET_LIVE_ENABLED) {
+    // 404 means no bank info yet — normalise to null instead of throwing
+    const token = getAuthToken()
+    let response: Response
+    try {
+      response = await fetch(buildApiUrl('/me/bank-info'), {
+        headers: {
+          Accept: 'application/json',
+          ...(token != null ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      })
+    } catch {
+      throw new Error('Unable to connect to server. Please try again.')
+    }
 
-  return ok<{ bank_info: WalletBankInfo | null }>('Bank info retrieved', {
-    bank_info: mockBankInfo,
-  })
+    if (response.status === 404) {
+      return ok<{ bank_info: WalletBankInfo | null }>('Bank info not found', { bank_info: null })
+    }
+
+    if (!response.ok) {
+      throw new Error(`Failed to load bank info (${response.status})`)
+    }
+
+    const payload = (await response.json()) as ApiResult<{ bank_info: WalletBankInfo | null }>
+    return payload
+  }
+
+  await wait(NETWORK_DELAY_MS)
+  return ok<{ bank_info: WalletBankInfo | null }>('Bank info retrieved', { bank_info: mockBankInfo })
 }
 
 export async function createMyBankInfo(input: WalletBankInfo) {
-  ensureMockMode()
+  if (WALLET_LIVE_ENABLED) {
+    return authedRequest<ApiResult<{ bank_info: WalletBankInfo }>>(
+      'POST',
+      '/me/bank-info',
+      input,
+      'Failed to save bank info.',
+    )
+  }
+
   await wait(NETWORK_DELAY_MS)
-
   setMockBankInfo(input)
-
-  return ok<{ bank_info: WalletBankInfo }>('Bank info created', {
-    bank_info: input,
-  })
+  return ok<{ bank_info: WalletBankInfo }>('Bank info created', { bank_info: input })
 }
 
 export async function updateMyBankInfo(input: WalletBankInfo) {
-  ensureMockMode()
+  if (WALLET_LIVE_ENABLED) {
+    return authedRequest<ApiResult<{ bank_info: WalletBankInfo }>>(
+      'PUT',
+      '/me/bank-info',
+      input,
+      'Failed to update bank info.',
+    )
+  }
+
   await wait(NETWORK_DELAY_MS)
-
   setMockBankInfo(input)
-
-  return ok<{ bank_info: WalletBankInfo }>('Bank info updated', {
-    bank_info: input,
-  })
+  return ok<{ bank_info: WalletBankInfo }>('Bank info updated', { bank_info: input })
 }
 
 export async function clearMyBankInfo() {
-  ensureMockMode()
+  if (WALLET_LIVE_ENABLED) {
+    return authedRequest<ApiResult<null>>('DELETE', '/me/bank-info', null, 'Failed to clear bank info.')
+  }
+
   await wait(NETWORK_DELAY_MS)
-
   setMockBankInfo(null)
-
   return ok('Bank info cleared', null)
 }
 
 export async function listBets() {
-  ensureMockMode()
-  await wait(NETWORK_DELAY_MS)
+  if (BET_LIST_LIVE_ENABLED) {
+    return authedRequest<ApiResult<{ bets: Bet[] }>>('GET', '/bets', null, 'Failed to load bet history.')
+  }
 
+  await wait(NETWORK_DELAY_MS)
   return ok<{ bets: Bet[] }>('Bets list', { bets: mockBets })
 }
 
@@ -489,6 +575,7 @@ export async function createBet(input: BetCreateInput) {
   payload.append('bet_type', input.bet_type)
   payload.append('currency', input.currency)
   payload.append('target_opentime', input.target_opentime)
+  payload.append('transaction_id_last_two_digits', input.transaction_id_last_two_digits)
 
   normalizedNumbers.forEach((row, index) => {
     payload.append(`bet_numbers[${index}][number]`, row.number)

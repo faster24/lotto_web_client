@@ -104,6 +104,7 @@ export type BetCreateInput = {
   bet_type: BetType
   currency: BetCurrency
   target_opentime: BetTargetOpenTime
+  transaction_id_last_two_digits: string
   bet_numbers: BetNumberInput[]
 }
 

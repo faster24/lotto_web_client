@@ -19,6 +19,23 @@ export function MenuSettingsCard() {
       </h2>
 
       <div className="overflow-hidden rounded-xl border border-white/8 bg-[linear-gradient(160deg,rgb(11_19_43_/_94%)_0%,rgb(7_15_35_/_88%)_100%)] divide-y divide-white/8">
+        {/* Bank Account row */}
+        <Link
+          to="/user/bank-info"
+          className="group flex items-center justify-between p-4 transition-colors hover:bg-white/5"
+        >
+          <div className="flex items-center gap-4">
+            <span className="material-symbols-outlined text-[#8a9bb3] transition-colors group-hover:text-[#00e676]">
+              account_balance
+            </span>
+            <div>
+              <p className="text-sm font-medium text-[#f7f9ff] leading-tight">Bank Account</p>
+              <p className="text-[11px] text-[#8a9bb3] leading-tight mt-0.5">Manage your linked payout account</p>
+            </div>
+          </div>
+          <span className="material-symbols-outlined text-[#8a9bb3]">chevron_right</span>
+        </Link>
+
         {/* Odd Settings row */}
         <Link
           to="/odd-settings"
@@ -28,7 +45,10 @@ export function MenuSettingsCard() {
             <span className="material-symbols-outlined text-[#8a9bb3] transition-colors group-hover:text-[#00e676]">
               settings_input_component
             </span>
-            <span className="text-sm font-medium text-[#f7f9ff]">Odd Settings</span>
+            <div>
+              <p className="text-sm font-medium text-[#f7f9ff] leading-tight">Odds & Payouts</p>
+              <p className="text-[11px] text-[#8a9bb3] leading-tight mt-0.5">View current rates by bet type</p>
+            </div>
           </div>
           <span className="material-symbols-outlined text-[#8a9bb3]">chevron_right</span>
         </Link>
@@ -39,7 +59,10 @@ export function MenuSettingsCard() {
             <span className="material-symbols-outlined text-[#8a9bb3] transition-colors group-hover:text-[#00e676]">
               language
             </span>
-            <span className="text-sm font-medium text-[#f7f9ff]">Language</span>
+            <div>
+              <p className="text-sm font-medium text-[#f7f9ff] leading-tight">Language</p>
+              <p className="text-[11px] text-[#8a9bb3] leading-tight mt-0.5">Choose your display language</p>
+            </div>
           </div>
           <div className="relative flex items-center gap-1">
             <select

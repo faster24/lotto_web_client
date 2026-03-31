@@ -1,6 +1,5 @@
 import { HomeProfileHeader } from '@/components/tabs/HomeProfileHeader'
 import { LiveNumberCard } from '@/components/tabs/LiveNumberCard'
-import { HomeBetEntryCard } from '@/components/tabs/HomeBetEntryCard'
 import { screenRoot, screenScroll, tabScreen } from '@/styles/tw'
 
 export function HomeTabPage() {
@@ -10,7 +9,6 @@ export function HomeTabPage() {
 
       <main className={screenScroll}>
         <LiveNumberCard />
-        <HomeBetEntryCard />
       </main>
     </div>
   )

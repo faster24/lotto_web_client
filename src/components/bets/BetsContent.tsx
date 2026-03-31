@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import type { BetCreateInput } from '@/api/types'
+import { useEffect, useState } from 'react'
+import type { BetCreateInput, WalletBankInfo } from '@/api/types'
+import { getMyBankInfo } from '@/api/client'
 import { betTypeCatalog } from './betTypeCatalog'
 import { useBetsForm, createEmptyRow } from './useBetsForm'
 import { BetTypeSwitcher } from './BetTypeSwitcher'
@@ -10,6 +11,13 @@ import { BetMessageModal } from './BetMessageModal'
 export function BetsContent() {
     const defaultType = betTypeCatalog[0]
     const [activeBetTypeId, setActiveBetTypeId] = useState(defaultType?.id ?? '2D')
+    const [bankInfo, setBankInfo] = useState<WalletBankInfo | null>(null)
+
+    useEffect(() => {
+        getMyBankInfo()
+            .then((result) => setBankInfo(result.data.bank_info))
+            .catch(() => setBankInfo(null))
+    }, [])
 
     const activeBetType = betTypeCatalog.find((item) => item.id === activeBetTypeId) ?? defaultType
     const activePayloadBetType = activeBetType?.payloadBetType
@@ -74,6 +82,7 @@ export function BetsContent() {
                 goToStepThree={form.goToStepThree}
                 setMessage={form.setMessage}
                 onSubmit={form.onSubmit}
+                bankInfo={bankInfo}
             />
 
             {form.showBetList && (

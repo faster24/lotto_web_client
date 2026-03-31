@@ -30,14 +30,14 @@ export const routeMap: Record<AppSectionId, AppRouteDefinition[]> = {
       id: 'home',
       section: 'tabs',
       path: 'tabs/home',
-      label: 'Home',
+      label: 'Lobby',
       description: 'Primary dashboard shell for live numbers and quick actions.',
     },
     {
       id: 'bets',
       section: 'tabs',
       path: 'tabs/bets',
-      label: 'Bets',
+      label: 'My Bets',
       description: 'Bet center shell for placing and tracking rounds.',
     },
     {

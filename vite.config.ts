@@ -11,6 +11,15 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  server: {
+    proxy: {
+      '/live-proxy': {
+        target: 'https://api.thaistock2d.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/live-proxy/, '/live'),
+      },
+    },
+  },
   test: {
     environment: 'jsdom',
     setupFiles: './src/tests/setup.ts',
