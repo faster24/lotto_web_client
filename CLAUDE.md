@@ -26,10 +26,14 @@ Create a `.env` file to override defaults:
 VITE_API_BASE_URL=http://localhost:8000/api/v1   # default
 VITE_AUTH_LIVE_ENABLED=true                       # use real login/register endpoints
 VITE_BET_CREATE_LIVE_ENABLED=true                 # use real 2D bet creation endpoint
-VITE_WALLET_LIVE_ENABLED=true                     # use real wallet bank-info endpoints
+VITE_WALLET_LIVE_ENABLED=true                     # use real wallet bank-info endpoints (live by default)
+VITE_BET_LIST_LIVE_ENABLED=true                   # use real /bets list endpoint (live by default)
+VITE_TWOD_RESULTS_LIVE_ENABLED=true               # use real /two-d-results/last-5-days endpoint (live by default)
+VITE_PAYOUT_LIVE_ENABLED=true                     # use real /bets/payout-history endpoint (live by default)
+VITE_ACCEPTED_PAYMENTS_LIVE_ENABLED=true          # use real /bets/accepted-payments endpoint (live by default)
 ```
 
-Without these flags the app runs fully in mock mode with simulated 260ms network delay.
+All endpoints default to live. Set any flag to `false` to fall back to mock mode.
 
 ## Architecture
 
