@@ -1,90 +1,92 @@
-import { GamblingRouteNav } from './GamblingRouteNav'
+import { useEffect, useState } from 'react'
+import { listPayoutHistory } from '@/api/client'
+import type { Bet } from '@/api/types'
+import { ApiStatePanel } from '@/components/api/ApiStatePanel'
+import { apiHeader, apiScreen, screenRoot, screenScroll } from '@/styles/tw'
 
-type WithdrawalEntry = {
-  id: string
-  destination: string
-  account: string
-  requestedAt: string
-  amount: string
-  status: 'completed' | 'pending'
+const payoutStatusConfig: Partial<Record<Bet['payout_status'], { label: string; className: string }>> = {
+  PAID_OUT: { label: 'Paid Out',  className: 'bg-[#00e676]/12 text-[#00e676] border-[#00e676]/25' },
+  REFUNDED: { label: 'Refunded', className: 'bg-blue-500/12 text-blue-400 border-blue-500/25' },
 }
 
-const withdrawalEntries: WithdrawalEntry[] = [
-  {
-    id: 'wd-1',
-    destination: 'KBZ Pay Wallet',
-    account: '09*** *** 112',
-    requestedAt: '08 Mar 2026 · 02:16 PM',
-    amount: '-80,000 MMK',
-    status: 'pending',
-  },
-  {
-    id: 'wd-2',
-    destination: 'Wave Money',
-    account: '09*** *** 889',
-    requestedAt: '06 Mar 2026 · 07:48 PM',
-    amount: '-40,000 MMK',
-    status: 'completed',
-  },
-]
-
-const payoutStats = [
-  { id: 'sent', label: 'Sent this week', value: '120,000 MMK' },
-  { id: 'pending', label: 'Under review', value: '1 request' },
-]
-
-const statusLabelMap: Record<WithdrawalEntry['status'], string> = {
-  completed: 'Transferred',
-  pending: 'Reviewing',
+function formatDateTime(iso: string | null) {
+  if (iso == null) return null
+  const d = new Date(iso)
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
 export function WithdrawalHistoryPage() {
+  const [bets, setBets] = useState<Bet[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    listPayoutHistory()
+      .then((res) => setBets(res.data.payout_history))
+      .catch(() => setError('Unable to load payout history. Please try again.'))
+      .finally(() => setLoading(false))
+  }, [])
+
   return (
-    <div className="screen-root gambling-screen" data-testid="gambling-withdrawal-history-page">
-      <header className="gambling-header">
-        <p className="gambling-header__eyebrow">Payouts</p>
-        <h1>Withdrawal History</h1>
-        <p className="gambling-header__caption">Monitor outgoing cash-out requests and transfer confirmations.</p>
+    <div className={`${screenRoot} ${apiScreen}`} data-testid="gambling-withdrawal-history-page">
+      <header className={apiHeader}>
+        <p className="m-0 text-[0.72rem] uppercase tracking-[0.1em] text-[#93c5fd]">Payouts</p>
+        <h1 className="mt-1 mb-0 text-[clamp(1.48rem,5vw,1.9rem)] [font-family:'Noe_Display','Iowan_Old_Style','Palatino_Linotype',serif]">
+          Withdrawal History
+        </h1>
+        <p className="mt-1.5 mb-0 text-[0.86rem] leading-[1.45] text-[#8a9bb3]">
+          Track your payout requests and transfer status.
+        </p>
       </header>
 
-      <main className="screen-scroll gambling-scroll">
-        <GamblingRouteNav activeId="withdrawal-history" />
+      <main className={screenScroll}>
+        <ApiStatePanel
+          loading={loading}
+          error={error}
+          empty={!loading && error == null && bets.length === 0}
+          emptyMessage="No payout records yet. Winnings will appear here once processed."
+        />
 
-        <section className="gambling-stat-grid gambling-stat-grid--compact" aria-label="Withdrawal summary">
-          {payoutStats.map((metric) => (
-            <article key={metric.id} className="gambling-stat-card">
-              <p>{metric.label}</p>
-              <strong>{metric.value}</strong>
-            </article>
-          ))}
-        </section>
+        {bets.length > 0 && (
+          <ul className="m-0 list-none grid gap-3 p-0">
+            {bets.map((bet) => {
+              const payout = payoutStatusConfig[bet.payout_status] ?? { label: bet.payout_status, className: 'bg-white/5 text-[#8a9bb3] border-white/10' }
+              const paidAt = formatDateTime(bet.paid_out_at)
+              return (
+                <li
+                  key={bet.id}
+                  className="rounded-xl border border-white/8 bg-[linear-gradient(160deg,rgb(11_19_43_/_94%)_0%,rgb(7_15_35_/_88%)_100%)] p-4"
+                >
+                  {/* Header row */}
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-[0.72rem] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border bg-white/5 text-[#f7f9ff] border-white/10">
+                      {bet.bet_type}
+                    </span>
+                    <span className={`text-[0.72rem] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border ${payout.className}`}>
+                      {payout.label}
+                    </span>
+                  </div>
 
-        <section className="gambling-ledger-card" aria-labelledby="withdrawal-ledger-heading">
-          <div className="gambling-ledger-card__head">
-            <h2 id="withdrawal-ledger-heading">Withdrawal requests</h2>
-            <p>Most recent payout activity</p>
-          </div>
+                  {/* Amount */}
+                  <div className="mb-2">
+                    <p className="m-0 text-[0.7rem] uppercase tracking-widest text-[#8a9bb3]">Amount</p>
+                    <p className="m-0 text-[1.1rem] font-bold text-[#f7f9ff]">
+                      {bet.total_amount} <span className="text-[0.8rem] font-normal text-[#8a9bb3]">{bet.currency}</span>
+                    </p>
+                  </div>
 
-          <ul className="gambling-ledger-list" aria-label="Withdrawal list">
-            {withdrawalEntries.map((entry) => (
-              <li key={entry.id} className="gambling-ledger-item">
-                <div className="gambling-ledger-main">
-                  <p className="gambling-ledger-title">{entry.destination}</p>
-                  <p className="gambling-ledger-meta">
-                    {entry.account} · {entry.requestedAt}
-                  </p>
-                </div>
-
-                <div className="gambling-ledger-side">
-                  <p className="gambling-amount gambling-amount--negative">{entry.amount}</p>
-                  <span className={`gambling-status-pill gambling-status-pill--${entry.status}`}>
-                    {statusLabelMap[entry.status]}
-                  </span>
-                </div>
-              </li>
-            ))}
+                  {/* Draw date + paid date */}
+                  <div className="flex items-center justify-between mt-1">
+                    <p className="m-0 text-[0.7rem] text-[#8a9bb3]">Draw: {bet.stock_date}</p>
+                    {paidAt != null && (
+                      <p className="m-0 text-[0.68rem] text-[#8a9bb3]">Paid: {paidAt}</p>
+                    )}
+                  </div>
+                </li>
+              )
+            })}
           </ul>
-        </section>
+        )}
       </main>
     </div>
   )
