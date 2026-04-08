@@ -135,14 +135,6 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
         ? 'border-[rgb(245_158_11_/_42%)] bg-[rgb(245_158_11_/_14%)] text-[#fbbf24]'
         : 'border-[rgb(0_230_118_/_42%)] bg-[rgb(0_230_118_/_14%)] text-[#86efac]'
 
-    const stepActiveClassName = isThreeDType
-        ? 'border-[rgb(245_158_11_/_44%)] bg-[rgb(245_158_11_/_14%)] text-[#fbbf24]'
-        : 'border-[rgb(59_130_246_/_42%)] bg-[rgb(59_130_246_/_16%)] text-[#93c5fd]'
-
-    const stepDoneClassName = isThreeDType
-        ? 'border-[rgb(245_158_11_/_35%)] bg-[rgb(245_158_11_/_10%)] text-[#fde68a]'
-        : 'border-[rgb(0_230_118_/_35%)] bg-[rgb(0_230_118_/_14%)] text-[#86efac]'
-
     useEffect(() => {
         if (!isCurrencyOpen) return
         const selectedIndex = CURRENCY_OPTIONS.findIndex((item) => item.code === form.currency)
@@ -326,8 +318,6 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
         validAmountTotal,
         paymentAccounts,
         typePillClassName,
-        stepActiveClassName,
-        stepDoneClassName,
         // feedback
         message,
         setMessage,

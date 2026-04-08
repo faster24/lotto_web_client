@@ -25,11 +25,9 @@ function CurrencyFlag({ code }: { code: BetCreateInput['currency'] }) {
 
 type StepIndicatorProps = {
     currentStep: 1 | 2 | 3
-    stepActiveClassName: string
-    stepDoneClassName: string
 }
 
-function StepIndicator({ currentStep, stepActiveClassName, stepDoneClassName }: StepIndicatorProps) {
+function StepIndicator({ currentStep }: StepIndicatorProps) {
     const steps = [
         { id: 1 as const, label: 'Setup' },
         { id: 2 as const, label: 'Numbers' },
@@ -637,8 +635,6 @@ type BetCreateCardProps = {
     validAmountTotal: number
     isSubmitting: boolean
     typePillClassName: string
-    stepActiveClassName: string
-    stepDoneClassName: string
     bankInfo: WalletBankInfo | null
     goToStepTwo: () => void
     goToStepThree: () => void
@@ -676,8 +672,6 @@ export function BetCreateCard({
     validAmountTotal,
     isSubmitting,
     typePillClassName,
-    stepActiveClassName,
-    stepDoneClassName,
     goToStepTwo,
     goToStepThree,
     setMessage,
@@ -720,8 +714,6 @@ export function BetCreateCard({
 
             <StepIndicator
                 currentStep={currentStep}
-                stepActiveClassName={stepActiveClassName}
-                stepDoneClassName={stepDoneClassName}
             />
 
             <form className="space-y-4" onSubmit={(event) => void onSubmit(event)}>

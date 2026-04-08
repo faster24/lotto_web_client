@@ -75,8 +75,6 @@ export function BetsContent() {
                 validAmountTotal={form.validAmountTotal}
                 isSubmitting={form.isSubmitting}
                 typePillClassName={form.typePillClassName}
-                stepActiveClassName={form.stepActiveClassName}
-                stepDoneClassName={form.stepDoneClassName}
                 goToStepTwo={form.goToStepTwo}
                 goToStepThree={form.goToStepThree}
                 setMessage={form.setMessage}

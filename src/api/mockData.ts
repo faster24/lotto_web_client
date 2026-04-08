@@ -42,6 +42,7 @@ export let mockBets: Bet[] = [
       { number: '89', amount: 500 },
     ],
     placed_at: '2026-03-26T04:40:00Z',
+    paid_out_at: null,
   },
   {
     id: '64b66a80-f4ec-4e3a-a614-8cbf53da28e8',
@@ -57,6 +58,7 @@ export let mockBets: Bet[] = [
       { number: '317', amount: 3000 },
     ],
     placed_at: '2026-03-25T03:10:00Z',
+    paid_out_at: null,
   },
 ]
 

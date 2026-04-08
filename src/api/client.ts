@@ -562,6 +562,7 @@ async function createBetMock(input: BetCreateInput) {
     target_opentime: input.target_opentime,
     bet_numbers: normalizedNumbers,
     placed_at: new Date().toISOString(),
+    paid_out_at: null,
   }
 
   mockBets.unshift(newBet)
