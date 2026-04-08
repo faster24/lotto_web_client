@@ -54,6 +54,7 @@ export type Bet = {
   status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'REFUNDED'
   bet_result_status: 'OPEN' | 'WON' | 'LOST' | 'INVALID'
   payout_status: 'PENDING' | 'PAID_OUT' | 'REFUNDED'
+  paid_out_at: string | null
   stock_date: string
   target_opentime: BetTargetOpenTime
   bet_numbers: BetNumberInput[]

@@ -31,8 +31,11 @@ const NETWORK_DELAY_MS = 260
 const MOCK_AUTH_TOKEN_KEY = 'lottery-webclient-mock-token'
 const AUTH_LIVE_ENABLED = (import.meta.env.VITE_AUTH_LIVE_ENABLED as string | undefined) !== 'false'
 const BET_CREATE_LIVE_ENABLED = (import.meta.env.VITE_BET_CREATE_LIVE_ENABLED as string | undefined) !== 'false'
-const WALLET_LIVE_ENABLED = (import.meta.env.VITE_WALLET_LIVE_ENABLED as string | undefined) === 'true'
-const BET_LIST_LIVE_ENABLED = (import.meta.env.VITE_BET_LIST_LIVE_ENABLED as string | undefined) === 'true'
+const WALLET_LIVE_ENABLED = (import.meta.env.VITE_WALLET_LIVE_ENABLED as string | undefined) !== 'false'
+const BET_LIST_LIVE_ENABLED = (import.meta.env.VITE_BET_LIST_LIVE_ENABLED as string | undefined) !== 'false'
+const TWOD_RESULTS_LIVE_ENABLED = (import.meta.env.VITE_TWOD_RESULTS_LIVE_ENABLED as string | undefined) !== 'false'
+const PAYOUT_LIVE_ENABLED = (import.meta.env.VITE_PAYOUT_LIVE_ENABLED as string | undefined) !== 'false'
+const ACCEPTED_PAYMENTS_LIVE_ENABLED = (import.meta.env.VITE_ACCEPTED_PAYMENTS_LIVE_ENABLED as string | undefined) !== 'false'
 const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'http://localhost:8000/api/v1').replace(/\/+$/, '')
 
 const wait = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms))
@@ -488,6 +491,34 @@ export async function listBets() {
   return ok<{ bets: Bet[] }>('Bets list', { bets: mockBets })
 }
 
+export async function listPayoutHistory() {
+  if (PAYOUT_LIVE_ENABLED) {
+    return authedRequest<ApiResult<{ payout_history: Bet[] }>>(
+      'GET',
+      '/bets/payout-history',
+      null,
+      'Failed to load payout history.',
+    )
+  }
+
+  await wait(NETWORK_DELAY_MS)
+  return ok<{ payout_history: Bet[] }>('Payout history', { payout_history: mockBets })
+}
+
+export async function listAcceptedPayments() {
+  if (ACCEPTED_PAYMENTS_LIVE_ENABLED) {
+    return authedRequest<ApiResult<{ accepted_payments: Bet[] }>>(
+      'GET',
+      '/bets/accepted-payments',
+      null,
+      'Failed to load accepted payments.',
+    )
+  }
+
+  await wait(NETWORK_DELAY_MS)
+  return ok<{ accepted_payments: Bet[] }>('Accepted payments', { accepted_payments: mockBets })
+}
+
 async function createBetMock(input: BetCreateInput) {
   ensureMockMode()
   await wait(NETWORK_DELAY_MS)
@@ -564,9 +595,9 @@ export async function createBet(input: BetCreateInput) {
     }
   })
 
-  const shouldUseLiveTwoDCreate = BET_CREATE_LIVE_ENABLED && input.bet_type === '2D'
+  const shouldUseLiveCreate = BET_CREATE_LIVE_ENABLED
 
-  if (!shouldUseLiveTwoDCreate) {
+  if (!shouldUseLiveCreate) {
     return createBetMock(input)
   }
 
@@ -649,6 +680,22 @@ export async function getOddSettingById(id: number) {
   const oddSetting = mockOddSettings.find((item) => item.id === id) ?? null
   return ok<{ odd_setting: OddSetting | null }>('Odd setting detail', {
     odd_setting: oddSetting,
+  })
+}
+
+export async function listTwoDResultsLastFiveDays() {
+  if (TWOD_RESULTS_LIVE_ENABLED) {
+    return authedRequest<ApiResult<{ two_d_results: TwoDResult[] }>>(
+      'GET',
+      '/two-d-results/last-5-days',
+      null,
+      'Failed to load 2D results.',
+    )
+  }
+
+  await wait(NETWORK_DELAY_MS)
+  return ok<{ two_d_results: TwoDResult[] }>('2D results (last 5 days)', {
+    two_d_results: mockTwoDResults,
   })
 }
 
