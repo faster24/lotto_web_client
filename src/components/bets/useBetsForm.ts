@@ -1,6 +1,6 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react'
-import { createBet, listBets } from '@/api/client'
-import type { Bet, BetCreateInput } from '@/api/types'
+import { createBet } from '@/api/client'
+import type { BetCreateInput } from '@/api/types'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -106,9 +106,6 @@ export function formatAmount(value: number, currency: BetCreateInput['currency']
 // ── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetCreateInput['bet_type'] | undefined) {
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
-    const [bets, setBets] = useState<Bet[]>([])
     const [form, setForm] = useState<BetCreateFormState>(initialForm)
     const [betRows, setBetRows] = useState<BetNumberRow[]>([createEmptyRow()])
     const [rowErrors, setRowErrors] = useState<Record<string, BetRowError>>({})
@@ -125,8 +122,6 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
     const isTwoDType = activePayloadBetType === '2D'
     const isThreeDType = activePayloadBetType === '3D'
     const canCreateForActiveType = activePayloadBetType != null
-    const filteredBets = activePayloadBetType == null ? [] : bets.filter((bet) => bet.bet_type === activePayloadBetType)
-    const showBetList = activePayloadBetType !== '2D'
     const selectedCurrency = CURRENCY_OPTIONS.find((item) => item.code === form.currency) ?? CURRENCY_OPTIONS[0]!
     const paymentAccounts = ADMIN_PAYMENT_ACCOUNTS.filter((account) => account.currency === form.currency)
 
@@ -147,22 +142,6 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
     const stepDoneClassName = isThreeDType
         ? 'border-[rgb(245_158_11_/_35%)] bg-[rgb(245_158_11_/_10%)] text-[#fde68a]'
         : 'border-[rgb(0_230_118_/_35%)] bg-[rgb(0_230_118_/_14%)] text-[#86efac]'
-
-    const load = async () => {
-        setError(null)
-        try {
-            const response = await listBets()
-            setBets(response.data.bets)
-        } catch {
-            setError('Unable to load bets.')
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    useEffect(() => {
-        void load()
-    }, [])
 
     useEffect(() => {
         if (!isCurrencyOpen) return
@@ -262,7 +241,6 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
             })
 
             setMessage(response.message)
-            await load()
             setForm((prev) => ({ ...prev, pay_slip_image: null, bet_type: activePayloadBetType }))
             setBetRows([createEmptyRow()])
             setRowErrors({})
@@ -322,12 +300,6 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
     }
 
     return {
-        // data
-        loading,
-        error,
-        bets,
-        filteredBets,
-        showBetList,
         // form
         form,
         setForm,

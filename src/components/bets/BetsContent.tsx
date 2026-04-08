@@ -5,7 +5,6 @@ import { betTypeCatalog } from './betTypeCatalog'
 import { useBetsForm, createEmptyRow } from './useBetsForm'
 import { BetTypeSwitcher } from './BetTypeSwitcher'
 import { BetCreateCard } from './BetCreateCard'
-import { BetListSection } from './BetListSection'
 import { BetMessageModal } from './BetMessageModal'
 
 export function BetsContent() {
@@ -84,15 +83,6 @@ export function BetsContent() {
                 onSubmit={form.onSubmit}
                 bankInfo={bankInfo}
             />
-
-            {form.showBetList && (
-                <BetListSection
-                    loading={form.loading}
-                    error={form.error}
-                    bets={form.filteredBets}
-                    label={activeBetType?.label ?? ''}
-                />
-            )}
 
             {form.message != null && (
                 <BetMessageModal
