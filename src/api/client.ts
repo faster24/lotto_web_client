@@ -249,6 +249,7 @@ async function authedRequest<TResponse>(
   path: string,
   body: unknown,
   fallbackMessage: string,
+  on404?: () => TResponse,
 ): Promise<TResponse> {
   const token = getAuthToken()
   let response: Response
@@ -272,6 +273,10 @@ async function authedRequest<TResponse>(
     parsed = await response.json()
   } catch {
     parsed = null
+  }
+
+  if (response.status === 404 && on404 != null) {
+    return on404()
   }
 
   if (!response.ok) {
@@ -404,9 +409,12 @@ export async function logoutUser() {
 }
 
 export async function getMe() {
+  if (AUTH_LIVE_ENABLED) {
+    return authedRequest<ApiResult<{ user: User }>>('GET', '/me', null, 'Unable to load authenticated user profile.')
+  }
+
   ensureMockMode()
   await wait(NETWORK_DELAY_MS)
-
   return ok<{ user: User }>('Authenticated user profile', { user: mockUser })
 }
 
@@ -484,7 +492,10 @@ export async function clearMyBankInfo() {
 
 export async function listBets() {
   if (BET_LIST_LIVE_ENABLED) {
-    return authedRequest<ApiResult<{ bets: Bet[] }>>('GET', '/bets', null, 'Failed to load bet history.')
+    return authedRequest<ApiResult<{ bets: Bet[] }>>(
+      'GET', '/bets', null, 'Failed to load bet history.',
+      () => ok<{ bets: Bet[] }>('No bets', { bets: [] }),
+    )
   }
 
   await wait(NETWORK_DELAY_MS)
@@ -498,6 +509,7 @@ export async function listPayoutHistory() {
       '/bets/payout-history',
       null,
       'Failed to load payout history.',
+      () => ok<{ payout_history: Bet[] }>('No payout history', { payout_history: [] }),
     )
   }
 
@@ -512,6 +524,7 @@ export async function listAcceptedPayments() {
       '/bets/accepted-payments',
       null,
       'Failed to load accepted payments.',
+      () => ok<{ accepted_payments: Bet[] }>('No accepted payments', { accepted_payments: [] }),
     )
   }
 
@@ -691,6 +704,7 @@ export async function listTwoDResultsLastFiveDays() {
       '/two-d-results/last-5-days',
       null,
       'Failed to load 2D results.',
+      () => ok<{ two_d_results: TwoDResult[] }>('No 2D results', { two_d_results: [] }),
     )
   }
 
