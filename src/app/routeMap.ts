@@ -110,9 +110,9 @@ export const routeMap: Record<AppSectionId, AppRouteDefinition[]> = {
     {
       id: 'about',
       section: 'wallet-profile',
-      path: 'wallet-profile/about',
-      label: 'About',
-      description: 'Informational shell for app details and policies.',
+      path: 'privacy-policy',
+      label: 'Privacy Policy',
+      description: 'Privacy and policy information.',
     },
     {
       id: 'help-center',

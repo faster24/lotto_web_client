@@ -166,6 +166,8 @@ export function AppRouter() {
           })}
 
           <Route path="tabs/explore" element={<Navigate replace to="/tabs/bets" />} />
+          <Route path="wallet-profile/about" element={<Navigate replace to="/privacy-policy" />} />
+          <Route path="wallet-profile/privacy-policy" element={<Navigate replace to="/privacy-policy" />} />
           <Route path="bets/:betId" element={<BetDetailPage />} />
           <Route path="announcements/:id" element={<AnnouncementDetailPage />} />
           <Route path="odd-settings/:id" element={<OddSettingDetailPage />} />
