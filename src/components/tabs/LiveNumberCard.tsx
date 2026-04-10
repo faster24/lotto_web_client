@@ -162,11 +162,11 @@ export function LiveNumberCard() {
 
             {/* Overlay: LIVE pill + number */}
             <div className="absolute inset-0 flex flex-col items-center justify-end pb-6 gap-1 bg-gradient-to-t from-black/80 via-black/20 to-transparent">
-              <div className="flex items-center gap-1.5 px-3 py-1 bg-black/40 backdrop-blur-md rounded-full border border-[#51e1a5]/20">
+              <div className="flex items-center gap-1.5 px-3 py-1 bg-[#51e1a5]/20 backdrop-blur-md rounded-full border border-[#51e1a5]/40">
                 <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-                <span className="text-[10px] tracking-widest uppercase font-bold text-white">{t('home.live')}</span>
+                <span className="text-[10px] tracking-[0.2em] uppercase font-bold text-[#51e1a5]">{t('home.live')}</span>
               </div>
-              <p className="text-5xl font-bold tracking-tighter text-white drop-shadow-lg">{liveNumber}</p>
+              <p className="text-7xl font-bold tracking-tight text-white drop-shadow-lg">{liveNumber}</p>
               <p className="text-[10px] text-white/60">{lastUpdatedLabel}</p>
             </div>
           </div>
