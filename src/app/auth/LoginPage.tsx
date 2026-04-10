@@ -1,5 +1,6 @@
 import { type FormEvent, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { loginUser } from '@/api/client'
 import type { LoginInput } from '@/api/types'
 import {
@@ -19,6 +20,7 @@ const initialForm: LoginInput = {
 }
 
 export function LoginPage() {
+    const { t } = useTranslation()
     const navigate = useNavigate()
     const location = useLocation()
     const [showPassword, setShowPassword] = useState(false)
@@ -42,24 +44,24 @@ export function LoginPage() {
                 void navigate(postAuthPath, { replace: true })
             }, 500)
         } catch (caughtError) {
-            setError(caughtError instanceof Error ? caughtError.message : 'Login failed. Check your email and password.')
+            setError(caughtError instanceof Error ? caughtError.message : t('auth.loginFailed'))
         } finally {
             setLoading(false)
         }
     }
 
     return (
-        <AuthScreen testId="auth-login-page" title="Sign in and keep your lucky streak moving">
-            <AuthCard label="Welcome Back" apiNote="">
+        <AuthScreen testId="auth-login-page" title={t('auth.signInTitle')}>
+            <AuthCard label={t('auth.welcomeBack')} apiNote="">
                 <form className="grid gap-4" onSubmit={(event) => void handleSubmit(event)}>
-                    <AuthField htmlFor="login-email" label="Email Address">
+                    <AuthField htmlFor="login-email" label={t('auth.emailAddress')}>
                         <input
                             id="login-email"
                             name="email"
                             type="email"
                             autoComplete="email"
                             className={authInputClassName}
-                            placeholder="name@example.com"
+                            placeholder={t('auth.emailPlaceholder')}
                             required
                             value={form.email}
                             onChange={(event) => {
@@ -69,7 +71,7 @@ export function LoginPage() {
                         />
                     </AuthField>
 
-                    <AuthField htmlFor="login-password" label="Password">
+                    <AuthField htmlFor="login-password" label={t('auth.password')}>
                         <div className={authPasswordWrapClassName}>
                             <input
                                 id="login-password"
@@ -77,7 +79,7 @@ export function LoginPage() {
                                 type={showPassword ? 'text' : 'password'}
                                 autoComplete="current-password"
                                 className={authInputClassName}
-                                placeholder="Enter your password"
+                                placeholder={t('auth.passwordPlaceholder')}
                                 required
                                 minLength={8}
                                 value={form.password}
@@ -93,8 +95,8 @@ export function LoginPage() {
                                 onClick={() => setShowPassword((value) => !value)}
                                 aria-controls="login-password"
                                 aria-pressed={showPassword}
-                                aria-label={showPassword ? 'Hide password' : 'Show password'}
-                                title={showPassword ? 'Hide password' : 'Show password'}
+                                aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
+                                title={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                             >
                                 {showPassword ? (
                                     <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
@@ -109,7 +111,7 @@ export function LoginPage() {
                                         <circle cx="12" cy="12" r="3" />
                                     </svg>
                                 )}
-                                <span className="sr-only">{showPassword ? 'Hide' : 'Show'}</span>
+                                <span className="sr-only">{showPassword ? t('auth.hidePassword') : t('auth.showPassword')}</span>
                             </button>
                         </div>
                     </AuthField>
@@ -118,20 +120,20 @@ export function LoginPage() {
                     {success != null && <AuthFeedback kind="success" message={success} />}
 
                     <button type="submit" className={authPrimaryButtonClassName} disabled={loading}>
-                        {loading ? 'Signing In...' : 'Sign In'}
+                        {loading ? t('auth.signingIn') : t('auth.signIn')}
                         <span aria-hidden="true" className="rounded-full bg-[rgb(4_10_31_/_16%)] px-1.5 text-[0.8rem]">
                             {'->'}
                         </span>
                     </button>
 
                     <p className="m-0 pt-1 text-center text-[0.8rem] text-[#8a9bb3]">
-                        Don't have an account?{' '}
+                        {t('auth.noAccount')}{' '}
                         <Link
                             to="/auth/register"
                             state={fromState != null ? { from: fromState } : null}
                             className="font-bold text-[#00e676] transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-[rgb(0_230_118_/_25%)]"
                         >
-                            Create one
+                            {t('auth.createOne')}
                         </Link>
                     </p>
                 </form>

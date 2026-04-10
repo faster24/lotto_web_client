@@ -1,16 +1,9 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { listBets } from '@/api/client'
 import type { Bet } from '@/api/types'
 import { ApiStatePanel } from '@/components/api/ApiStatePanel'
 import { screenRoot, screenScroll, apiScreen, apiHeader } from '@/styles/tw'
-
-const statusConfig: Record<Bet['status'], { label: string; className: string }> = {
-  PENDING:  { label: 'Pending',  className: 'bg-amber-500/15 text-amber-300 border-amber-500/25' },
-  ACCEPTED: { label: 'Accepted', className: 'bg-[#00e676]/12 text-[#00e676] border-[#00e676]/25' },
-  REJECTED: { label: 'Rejected', className: 'bg-red-500/12 text-red-400 border-red-500/25' },
-  REFUNDED: { label: 'Refunded', className: 'bg-blue-500/12 text-blue-400 border-blue-500/25' },
-}
-
 
 function formatOpenTime(time: string) {
   const [h, m] = time.split(':')
@@ -21,26 +14,34 @@ function formatOpenTime(time: string) {
 }
 
 export function GamblingHistoryPage() {
+  const { t } = useTranslation()
   const [bets, setBets] = useState<Bet[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const statusConfig: Record<Bet['status'], { label: string; className: string }> = {
+    PENDING:  { label: t('gambling.pending'),  className: 'bg-amber-500/15 text-amber-300 border-amber-500/25' },
+    ACCEPTED: { label: t('gambling.accepted'), className: 'bg-[#00e676]/12 text-[#00e676] border-[#00e676]/25' },
+    REJECTED: { label: t('gambling.rejected'), className: 'bg-red-500/12 text-red-400 border-red-500/25' },
+    REFUNDED: { label: t('gambling.refunded'), className: 'bg-blue-500/12 text-blue-400 border-blue-500/25' },
+  }
+
   useEffect(() => {
     listBets()
       .then((res) => setBets(res.data.bets))
-      .catch(() => setError('Unable to load bet history. Please try again.'))
+      .catch(() => setError(t('gambling.loadError')))
       .finally(() => setLoading(false))
-  }, [])
+  }, [t])
 
   return (
     <div className={`${screenRoot} ${apiScreen}`} data-testid="gambling-history-page">
       <header className={apiHeader}>
-        <p className="m-0 text-[0.72rem] uppercase tracking-[0.1em] text-[#93c5fd]">Activity</p>
+        <p className="m-0 text-[0.72rem] uppercase tracking-[0.1em] text-[#93c5fd]">{t('gambling.activityEyebrow')}</p>
         <h1 className="mt-1 mb-0 text-[clamp(1.48rem,5vw,1.9rem)] [font-family:'Noe_Display','Iowan_Old_Style','Palatino_Linotype',serif]">
-          Bet History
+          {t('gambling.betHistoryTitle')}
         </h1>
         <p className="mt-1.5 mb-0 text-[0.86rem] leading-[1.45] text-[#8a9bb3]">
-          Your past wagers, results, and payout status.
+          {t('gambling.betHistoryDesc')}
         </p>
       </header>
 
@@ -49,7 +50,7 @@ export function GamblingHistoryPage() {
           loading={loading}
           error={error}
           empty={!loading && error == null && bets.length === 0}
-          emptyMessage="No bets placed yet. Head to the Bets tab to place your first wager."
+          emptyMessage={t('gambling.emptyMessage')}
         />
 
         {bets.length > 0 && (
@@ -73,7 +74,7 @@ export function GamblingHistoryPage() {
 
                   {/* Amount */}
                   <div className="mb-2">
-                    <p className="m-0 text-[0.7rem] uppercase tracking-widest text-[#8a9bb3]">Total Wager</p>
+                    <p className="m-0 text-[0.7rem] uppercase tracking-widest text-[#8a9bb3]">{t('gambling.totalWager')}</p>
                     <p className="m-0 text-[1.1rem] font-bold text-[#f7f9ff]">
                       {bet.total_amount} <span className="text-[0.8rem] font-normal text-[#8a9bb3]">{bet.currency}</span>
                     </p>

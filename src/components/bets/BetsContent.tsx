@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { BetCreateInput, WalletBankInfo } from '@/api/types'
 import { getMyBankInfo } from '@/api/client'
 import { betTypeCatalog } from './betTypeCatalog'
@@ -8,6 +9,7 @@ import { BetCreateCard } from './BetCreateCard'
 import { BetMessageModal } from './BetMessageModal'
 
 export function BetsContent() {
+    const { t } = useTranslation()
     const defaultType = betTypeCatalog[0]
     const [activeBetTypeId, setActiveBetTypeId] = useState(defaultType?.id ?? '2D')
     const [bankInfo, setBankInfo] = useState<WalletBankInfo | null>(null)
@@ -27,7 +29,7 @@ export function BetsContent() {
         setActiveBetTypeId(id)
 
         if (payloadBetType == null) {
-            form.setMessage('This bet type is not available for create yet.')
+            form.setMessage(t('bets.unavailable'))
             return
         }
 

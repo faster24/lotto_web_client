@@ -1,5 +1,6 @@
 import { type FormEvent, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { registerUser } from '@/api/client'
 import type { RegisterInput } from '@/api/types'
 import {
@@ -21,6 +22,7 @@ const initialForm: RegisterInput = {
 }
 
 export function RegisterPage() {
+    const { t } = useTranslation()
     const navigate = useNavigate()
     const location = useLocation()
     const [showPassword, setShowPassword] = useState(false)
@@ -38,7 +40,7 @@ export function RegisterPage() {
         setSuccess(null)
 
         if (form.password !== form.password_confirmation) {
-            setError('Password and confirmation must match.')
+            setError(t('auth.passwordMismatch'))
             return
         }
 
@@ -51,7 +53,7 @@ export function RegisterPage() {
                 void navigate(postAuthPath, { replace: true })
             }, 500)
         } catch (caughtError) {
-            setError(caughtError instanceof Error ? caughtError.message : 'Registration failed. Check your form and try again.')
+            setError(caughtError instanceof Error ? caughtError.message : t('auth.registrationFailed'))
         } finally {
             setLoading(false)
         }
@@ -60,19 +62,19 @@ export function RegisterPage() {
     return (
         <AuthScreen
             testId="auth-register-page"
-            title="Create your account and start placing lucky picks"
-            subtitle="Set up your profile to track draws, save number plays, and manage your balance in one place."
+            title={t('auth.registerTitle')}
+            subtitle={t('auth.registerSubtitle')}
         >
-            <AuthCard label="New Account" apiNote="">
+            <AuthCard label={t('auth.newAccount')} apiNote="">
                 <form className="grid gap-4" onSubmit={(event) => void handleSubmit(event)}>
-                    <AuthField htmlFor="register-username" label="Username">
+                    <AuthField htmlFor="register-username" label={t('auth.username')}>
                         <input
                             id="register-username"
                             name="username"
                             type="text"
                             autoComplete="username"
                             className={authInputClassName}
-                            placeholder="Your username"
+                            placeholder={t('auth.usernamePlaceholder')}
                             required
                             maxLength={255}
                             value={form.username}
@@ -83,14 +85,14 @@ export function RegisterPage() {
                         />
                     </AuthField>
 
-                    <AuthField htmlFor="register-email" label="Email Address">
+                    <AuthField htmlFor="register-email" label={t('auth.emailAddress')}>
                         <input
                             id="register-email"
                             name="email"
                             type="email"
                             autoComplete="email"
                             className={authInputClassName}
-                            placeholder="name@example.com"
+                            placeholder={t('auth.emailPlaceholder')}
                             required
                             value={form.email}
                             onChange={(event) => {
@@ -100,7 +102,7 @@ export function RegisterPage() {
                         />
                     </AuthField>
 
-                    <AuthField htmlFor="register-password" label="Password">
+                    <AuthField htmlFor="register-password" label={t('auth.password')}>
                         <div className={authPasswordWrapClassName}>
                             <input
                                 id="register-password"
@@ -108,7 +110,7 @@ export function RegisterPage() {
                                 type={showPassword ? 'text' : 'password'}
                                 autoComplete="new-password"
                                 className={authInputClassName}
-                                placeholder="At least 8 characters"
+                                placeholder={t('auth.passwordAtLeast')}
                                 required
                                 minLength={8}
                                 value={form.password}
@@ -123,8 +125,8 @@ export function RegisterPage() {
                                 onClick={() => setShowPassword((value) => !value)}
                                 aria-controls="register-password"
                                 aria-pressed={showPassword}
-                                aria-label={showPassword ? 'Hide password' : 'Show password'}
-                                title={showPassword ? 'Hide password' : 'Show password'}
+                                aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
+                                title={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                             >
                                 {showPassword ? (
                                     <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
@@ -139,12 +141,12 @@ export function RegisterPage() {
                                         <circle cx="12" cy="12" r="3" />
                                     </svg>
                                 )}
-                                <span className="sr-only">{showPassword ? 'Hide' : 'Show'}</span>
+                                <span className="sr-only">{showPassword ? t('auth.hidePassword') : t('auth.showPassword')}</span>
                             </button>
                         </div>
                     </AuthField>
 
-                    <AuthField htmlFor="register-confirm-password" label="Confirm Password">
+                    <AuthField htmlFor="register-confirm-password" label={t('auth.confirmPassword')}>
                         <div className={authPasswordWrapClassName}>
                             <input
                                 id="register-confirm-password"
@@ -152,7 +154,7 @@ export function RegisterPage() {
                                 type={showConfirmPassword ? 'text' : 'password'}
                                 autoComplete="new-password"
                                 className={authInputClassName}
-                                placeholder="Re-enter your password"
+                                placeholder={t('auth.reEnterPassword')}
                                 required
                                 minLength={8}
                                 value={form.password_confirmation}
@@ -167,8 +169,8 @@ export function RegisterPage() {
                                 onClick={() => setShowConfirmPassword((value) => !value)}
                                 aria-controls="register-confirm-password"
                                 aria-pressed={showConfirmPassword}
-                                aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
-                                title={showConfirmPassword ? 'Hide password' : 'Show password'}
+                                aria-label={showConfirmPassword ? t('auth.hidePassword') : t('auth.showPassword')}
+                                title={showConfirmPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                             >
                                 {showConfirmPassword ? (
                                     <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
@@ -183,7 +185,7 @@ export function RegisterPage() {
                                         <circle cx="12" cy="12" r="3" />
                                     </svg>
                                 )}
-                                <span className="sr-only">{showConfirmPassword ? 'Hide' : 'Show'}</span>
+                                <span className="sr-only">{showConfirmPassword ? t('auth.hidePassword') : t('auth.showPassword')}</span>
                             </button>
                         </div>
                     </AuthField>
@@ -192,20 +194,20 @@ export function RegisterPage() {
                     {success != null && <AuthFeedback kind="success" message={success} />}
 
                     <button type="submit" className={authPrimaryButtonClassName} disabled={loading}>
-                        {loading ? 'Creating...' : 'Create Account'}
+                        {loading ? t('auth.creating') : t('auth.createAccount')}
                         <span aria-hidden="true" className="rounded-full bg-[rgb(4_10_31_/_16%)] px-1.5 text-[0.8rem]">
                             {'->'}
                         </span>
                     </button>
 
                     <p className="m-0 pt-1 text-center text-[0.8rem] text-[#8a9bb3]">
-                        Already have an account?{' '}
+                        {t('auth.alreadyHaveAccount')}{' '}
                         <Link
                             to="/auth/login"
                             state={fromState != null ? { from: fromState } : null}
                             className="font-bold text-[#00e676] transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-[rgb(0_230_118_/_25%)]"
                         >
-                            Sign in
+                            {t('auth.signInLink')}
                         </Link>
                     </p>
                 </form>

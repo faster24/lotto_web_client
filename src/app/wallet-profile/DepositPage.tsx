@@ -1,23 +1,29 @@
+import { useTranslation } from 'react-i18next'
 import { WalletProfileRouteNav } from './WalletProfileRouteNav'
 
-const channels = [
-  { id: 'kbz', name: 'KBZ Pay', eta: '1-3 min', fee: 'No fee' },
-  { id: 'wave', name: 'Wave Money', eta: 'Instant', fee: 'No fee' },
-  { id: 'bank', name: 'Bank Slip', eta: '5-15 min', fee: 'Bank charge may apply' },
+type Channel = { id: string; nameKey: string; eta: string; fee: string }
+type RecentDeposit = { id: string; channel: string; submittedAt: string; amount: string; status: string }
+
+const channels: Channel[] = [
+  { id: 'kbz', nameKey: 'KBZ Pay', eta: '1-3 min', fee: 'No fee' },
+  { id: 'wave', nameKey: 'Wave Money', eta: 'Instant', fee: 'No fee' },
+  { id: 'bank', nameKey: 'Bank Slip', eta: '5-15 min', fee: 'Bank charge may apply' },
 ]
 
-const recentDeposits = [
+const recentDeposits: RecentDeposit[] = [
   { id: 'dep-1', channel: 'KBZ Pay', submittedAt: 'Today, 12:18 PM', amount: '+120,000 MMK', status: 'Approved' },
   { id: 'dep-2', channel: 'Wave Money', submittedAt: 'Yesterday, 08:02 PM', amount: '+60,000 MMK', status: 'Checking' },
 ]
 
 export function DepositPage() {
+  const { t } = useTranslation()
+
   return (
     <div className="screen-root wallet-profile-screen" data-testid="wallet-profile-deposit-page">
       <header className="wallet-profile-header">
-        <p className="wallet-profile-header__eyebrow">Wallet Funding</p>
-        <h1>Deposit</h1>
-        <p className="wallet-profile-header__caption">Top up balance through trusted channels and keep proof ready.</p>
+        <p className="wallet-profile-header__eyebrow">{t('deposit.eyebrow')}</p>
+        <h1>{t('deposit.title')}</h1>
+        <p className="wallet-profile-header__caption">{t('deposit.desc')}</p>
       </header>
 
       <main className="screen-scroll wallet-profile-scroll">
@@ -25,14 +31,14 @@ export function DepositPage() {
 
         <section className="wallet-profile-card" aria-labelledby="deposit-channel-heading">
           <div className="wallet-profile-card__head">
-            <h2 id="deposit-channel-heading">Choose channel</h2>
-            <p>Manual confirmation flow</p>
+            <h2 id="deposit-channel-heading">{t('deposit.chooseChannel')}</h2>
+            <p>{t('deposit.manualFlow')}</p>
           </div>
 
-          <ul className="wallet-profile-list" aria-label="Deposit channel options">
+          <ul className="wallet-profile-list" aria-label={t('deposit.chooseChannel')}>
             {channels.map((channel) => (
               <li key={channel.id} className="wallet-profile-list-item wallet-profile-list-item--stacked">
-                <p className="wallet-profile-list-item__title">{channel.name}</p>
+                <p className="wallet-profile-list-item__title">{channel.nameKey}</p>
                 <p className="wallet-profile-list-item__meta">
                   ETA {channel.eta} · {channel.fee}
                 </p>
@@ -43,32 +49,32 @@ export function DepositPage() {
 
         <section className="wallet-profile-card" aria-labelledby="deposit-form-heading">
           <div className="wallet-profile-card__head">
-            <h2 id="deposit-form-heading">Submit request</h2>
-            <p>UI-only draft</p>
+            <h2 id="deposit-form-heading">{t('deposit.submitRequest')}</h2>
+            <p>{t('deposit.uiOnlyDraft')}</p>
           </div>
 
           <form className="wallet-profile-form" onSubmit={(event) => event.preventDefault()}>
             <label className="wallet-profile-form__field" htmlFor="deposit-amount">
-              Amount (MMK)
-              <input id="deposit-amount" type="text" inputMode="numeric" placeholder="Enter amount" />
+              {t('deposit.amountLabel')}
+              <input id="deposit-amount" type="text" inputMode="numeric" placeholder={t('deposit.amountPlaceholder')} />
             </label>
             <label className="wallet-profile-form__field" htmlFor="deposit-note">
-              Transfer note
-              <input id="deposit-note" type="text" placeholder="Last 6 digits or reference code" />
+              {t('deposit.transferNote')}
+              <input id="deposit-note" type="text" placeholder={t('deposit.transferNotePlaceholder')} />
             </label>
             <button type="submit" className="wallet-profile-primary-btn">
-              Create deposit ticket
+              {t('deposit.createTicket')}
             </button>
           </form>
         </section>
 
         <section className="wallet-profile-card" aria-labelledby="deposit-recent-heading">
           <div className="wallet-profile-card__head">
-            <h2 id="deposit-recent-heading">Recent requests</h2>
-            <p>Latest 2 items</p>
+            <h2 id="deposit-recent-heading">{t('deposit.recentRequests')}</h2>
+            <p>{t('deposit.recentItems')}</p>
           </div>
 
-          <ul className="wallet-profile-list" aria-label="Recent deposits">
+          <ul className="wallet-profile-list" aria-label={t('deposit.recentRequests')}>
             {recentDeposits.map((entry) => (
               <li key={entry.id} className="wallet-profile-list-item">
                 <div>

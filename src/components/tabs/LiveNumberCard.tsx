@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import zarmaniLogo from '@/assets/Zarmani_Brand_logo.png'
 
 type SessionResult = {
@@ -29,11 +30,9 @@ function readTwodValue(payload: unknown): string | null {
 
   if (isRecord(live) && (typeof live.twod === 'string' || typeof live.twod === 'number')) {
     const digits = String(live.twod).replace(/\D/g, '')
-    // Field present but no digits means market is closed / not yet announced.
     return digits.length > 0 ? digits.slice(-2).padStart(2, '0') : '--'
   }
 
-  // Backward-compat fallback for nested legacy shape.
   const payout = payload.payout
   if (!isRecord(payout)) return null
   const payoutLive = payout.live
@@ -95,6 +94,7 @@ function readSessionStats(payload: unknown): SessionResult[] {
 }
 
 export function LiveNumberCard() {
+  const { t } = useTranslation()
   const [liveNumber, setLiveNumber] = useState('--')
   const [lastUpdatedTimeText, setLastUpdatedTimeText] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -123,7 +123,7 @@ export function LiveNumberCard() {
         setError(null)
       } catch {
         if (!mounted) return
-        setError('Live update unavailable')
+        setError(t('home.liveUnavailable'))
       }
     }
 
@@ -133,12 +133,19 @@ export function LiveNumberCard() {
       mounted = false
       window.clearInterval(intervalId)
     }
-  }, [])
+  }, [t])
 
   const lastUpdatedLabel = useMemo(
-    () => (lastUpdatedTimeText == null ? 'Pending...' : `Updated ${lastUpdatedTimeText}`),
-    [lastUpdatedTimeText],
+    () => (lastUpdatedTimeText == null ? t('home.pending') : t('home.updated', { time: lastUpdatedTimeText })),
+    [lastUpdatedTimeText, t],
   )
+
+  const sessionLabelI18n = (label: string): string => {
+    if (label === 'Morning') return t('home.morning')
+    if (label === 'Noon') return t('home.noon')
+    if (label === 'Evening') return t('home.evening')
+    return t('home.night')
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -157,7 +164,7 @@ export function LiveNumberCard() {
             <div className="absolute inset-0 flex flex-col items-center justify-end pb-6 gap-1 bg-gradient-to-t from-black/80 via-black/20 to-transparent">
               <div className="flex items-center gap-1.5 px-3 py-1 bg-black/40 backdrop-blur-md rounded-full border border-[#51e1a5]/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-                <span className="text-[10px] tracking-widest uppercase font-bold text-white">LIVE</span>
+                <span className="text-[10px] tracking-widest uppercase font-bold text-white">{t('home.live')}</span>
               </div>
               <p className="text-5xl font-bold tracking-tighter text-white drop-shadow-lg">{liveNumber}</p>
               <p className="text-[10px] text-white/60">{lastUpdatedLabel}</p>
@@ -171,13 +178,13 @@ export function LiveNumberCard() {
       </section>
 
       {/* Bento grid */}
-      <section className="grid grid-cols-2 gap-3" aria-label="Current numbers">
+      <section className="grid grid-cols-2 gap-3" aria-label={t('home.current2D')}>
         <div className="bg-[rgba(35,41,60,0.4)] backdrop-blur border border-[#3c4a3c]/20 rounded-xl p-5 flex flex-col items-center shadow-[0_0_20px_rgba(81,225,165,0.1)]">
-          <span className="text-[10px] uppercase tracking-widest text-[#51e1a5] mb-2">Current 2D</span>
+          <span className="text-[10px] uppercase tracking-widest text-[#51e1a5] mb-2">{t('home.current2D')}</span>
           <span className="text-4xl font-bold text-white">{liveNumber}</span>
         </div>
         <div className="bg-[rgba(35,41,60,0.4)] backdrop-blur border border-[#3c4a3c]/20 rounded-xl p-5 flex flex-col items-center shadow-[0_0_20px_rgba(81,225,165,0.1)]">
-          <span className="text-[10px] uppercase tracking-widest text-[#51e1a5] mb-2">Current 3D</span>
+          <span className="text-[10px] uppercase tracking-widest text-[#51e1a5] mb-2">{t('home.current3D')}</span>
           <span className="text-4xl font-bold text-white">--</span>
         </div>
       </section>
@@ -185,13 +192,13 @@ export function LiveNumberCard() {
       {/* Daily Results */}
       <section>
         <div className="flex justify-between items-end mb-3">
-          <h2 className="text-lg font-semibold text-white m-0">Daily Results</h2>
+          <h2 className="text-lg font-semibold text-white m-0">{t('home.dailyResults')}</h2>
           <span className="text-[10px] text-white/30 uppercase tracking-wider">{lastUpdatedLabel}</span>
         </div>
 
         <div className="flex flex-col gap-2">
           {sessionStats.length === 0 ? (
-            <p className="text-sm text-white/30 text-center py-4">No results yet</p>
+            <p className="text-sm text-white/30 text-center py-4">{t('home.noResults')}</p>
           ) : (
             sessionStats.map((stat, i) => (
               <div
@@ -203,7 +210,7 @@ export function LiveNumberCard() {
                     <span className="material-symbols-outlined text-[1.2rem]">{sessionIcon(stat.label)}</span>
                   </div>
                   <div>
-                    <p className="text-[10px] uppercase tracking-widest text-white/50 leading-none mb-1">{stat.label}</p>
+                    <p className="text-[10px] uppercase tracking-widest text-white/50 leading-none mb-1">{sessionLabelI18n(stat.label)}</p>
                     <p className="font-semibold text-base text-white leading-none">{stat.time}</p>
                   </div>
                 </div>
@@ -221,7 +228,7 @@ export function LiveNumberCard() {
         to="/tabs/bets"
         className="flex items-center justify-center h-14 rounded-xl bg-gradient-to-br from-[#51e1a5] to-[#2ac48b] text-[#003824] font-bold text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(81,225,165,0.3)] hover:opacity-90 active:scale-95 transition-all"
       >
-        Place Bet
+        {t('home.placeBet')}
       </Link>
     </div>
   )

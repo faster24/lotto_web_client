@@ -68,9 +68,16 @@ export function ExploreHistorySection({ historyDays, loading, error }: ExploreHi
             )}
 
             {!loading && error == null && historyDays.length === 0 && (
-                <p className="m-0 rounded-xl border border-white/12 bg-white/5 p-2.5 text-[0.86rem] text-[#8a9bb3]">
-                    No 2D results available yet.
-                </p>
+                <div className="flex flex-col items-center justify-center gap-3 py-14 px-6 text-center">
+                    <span
+                        className="material-symbols-outlined text-[2.8rem] text-[#2a3a5c] select-none"
+                        aria-hidden="true"
+                    >
+                        inbox
+                    </span>
+                    <p className="m-0 text-[0.95rem] font-semibold text-[#4a5d7a]">No data here</p>
+                    <p className="m-0 text-[0.78rem] leading-[1.5] text-[#3a4d66] max-w-[220px]">No 2D results available yet.</p>
+                </div>
             )}
 
             <ul className="explore-history__list">

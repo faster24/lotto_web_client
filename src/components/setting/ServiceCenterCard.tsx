@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { logoutUser } from '@/api/client'
 
 type ServiceItem = {
   id: string
-  title: string
+  titleKey: string
   path: string
   icon: string
   pulse?: boolean
@@ -13,20 +14,21 @@ type ServiceItem = {
 const serviceItems: ServiceItem[] = [
   {
     id: 'announcements',
-    title: 'Announcements',
+    titleKey: 'settings.announcements',
     path: '/announcements',
     icon: 'campaign',
     pulse: true,
   },
   {
     id: 'about',
-    title: 'About',
-    path: '/wallet-profile/about',
+    titleKey: 'settings.about',
+    path: '/privacy-policy',
     icon: 'info',
   },
 ]
 
 export function ServiceCenterCard() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
@@ -41,7 +43,7 @@ export function ServiceCenterCard() {
       setLogoutMessage(response.message)
       void navigate('/auth/login', { replace: true })
     } catch {
-      setLogoutMessage('Logout failed.')
+      setLogoutMessage(t('settings.logoutFailed'))
     } finally {
       setIsLoggingOut(false)
     }
@@ -53,7 +55,7 @@ export function ServiceCenterCard() {
         id="service-center-heading"
         className="m-0 px-1 text-[0.7rem] font-bold uppercase tracking-[0.2em] text-[#8a9bb3]"
       >
-        Service Center
+        {t('settings.serviceCenter')}
       </h2>
 
       <div className="overflow-hidden rounded-xl border border-white/8 bg-[linear-gradient(160deg,rgb(11_19_43_/_94%)_0%,rgb(7_15_35_/_88%)_100%)] divide-y divide-white/8">
@@ -67,7 +69,7 @@ export function ServiceCenterCard() {
               <span className="material-symbols-outlined text-[#8a9bb3] transition-colors group-hover:text-[#00e676]">
                 {item.icon}
               </span>
-              <span className="text-sm font-medium text-[#f7f9ff]">{item.title}</span>
+              <span className="text-sm font-medium text-[#f7f9ff]">{t(item.titleKey)}</span>
             </div>
             <div className="flex items-center gap-3">
               {item.pulse && (
@@ -85,7 +87,7 @@ export function ServiceCenterCard() {
         onClick={() => setIsConfirmOpen(true)}
         disabled={isLoggingOut}
       >
-        {isLoggingOut ? 'Logging out...' : 'Log out'}
+        {isLoggingOut ? t('settings.loggingOut') : t('settings.logout')}
       </button>
 
       {logoutMessage != null && (
@@ -102,10 +104,10 @@ export function ServiceCenterCard() {
             className="w-full max-w-sm rounded-2xl border border-[rgb(255_255_255_/_16%)] bg-[#0f1d38] p-5 shadow-[0_18px_42px_rgb(4_10_31_/_45%)]"
           >
             <h3 id="logout-confirm-title" className="m-0 text-base font-semibold text-[#f5f8ff]">
-              Confirm logout
+              {t('settings.confirmLogout')}
             </h3>
             <p id="logout-confirm-description" className="mt-2 mb-0 text-sm text-[#a7b4cb]">
-              You will be redirected to the login page.
+              {t('settings.logoutDescription')}
             </p>
 
             <div className="mt-5 grid grid-cols-2 gap-2">
@@ -115,7 +117,7 @@ export function ServiceCenterCard() {
                 onClick={() => setIsConfirmOpen(false)}
                 disabled={isLoggingOut}
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 type="button"
@@ -126,7 +128,7 @@ export function ServiceCenterCard() {
                 }}
                 disabled={isLoggingOut}
               >
-                Log out
+                {t('settings.logout')}
               </button>
             </div>
           </div>

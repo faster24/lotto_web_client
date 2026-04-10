@@ -1,46 +1,49 @@
+import { useTranslation } from 'react-i18next'
 import { WalletProfileRouteNav } from './WalletProfileRouteNav'
 
-const supportChannels = [
-  {
-    id: 'facebook',
-    title: 'Facebook Support',
-    detail: 'Chat with live support agents',
-    href: 'https://facebook.com',
-  },
-  {
-    id: 'telegram',
-    title: 'Telegram Line',
-    detail: 'Fast response for payment and ticket issues',
-    href: 'https://t.me',
-  },
-  {
-    id: 'viber',
-    title: 'Viber Contact',
-    detail: 'Voice and text support for urgent cases',
-    href: 'viber://chat',
-  },
-]
-
-const faqItems = [
-  {
-    id: 'faq-1',
-    question: 'How long does a deposit approval take?',
-    answer: 'Most requests are approved within a few minutes when transfer notes are complete.',
-  },
-  {
-    id: 'faq-2',
-    question: 'Can I edit a number slip after submit?',
-    answer: 'No, submitted slips are locked, so review picks and stake before final confirmation.',
-  },
-]
-
 export function HelpCenterPage() {
+  const { t } = useTranslation()
+
+  const supportChannels = [
+    {
+      id: 'facebook',
+      title: t('helpCenter.fbSupport'),
+      detail: t('helpCenter.fbSupportDesc'),
+      href: 'https://facebook.com',
+    },
+    {
+      id: 'telegram',
+      title: t('helpCenter.telegram'),
+      detail: t('helpCenter.telegramDesc'),
+      href: 'https://t.me',
+    },
+    {
+      id: 'viber',
+      title: t('helpCenter.viber'),
+      detail: t('helpCenter.viberDesc'),
+      href: 'viber://chat',
+    },
+  ]
+
+  const faqItems = [
+    {
+      id: 'faq-1',
+      question: t('helpCenter.faqQ1'),
+      answer: t('helpCenter.faqA1'),
+    },
+    {
+      id: 'faq-2',
+      question: t('helpCenter.faqQ2'),
+      answer: t('helpCenter.faqA2'),
+    },
+  ]
+
   return (
     <div className="screen-root wallet-profile-screen" data-testid="wallet-profile-help-center-page">
       <header className="wallet-profile-header">
-        <p className="wallet-profile-header__eyebrow">Support</p>
-        <h1>Help Center</h1>
-        <p className="wallet-profile-header__caption">Reach support channels and browse quick answers for common issues.</p>
+        <p className="wallet-profile-header__eyebrow">{t('helpCenter.eyebrow')}</p>
+        <h1>{t('helpCenter.title')}</h1>
+        <p className="wallet-profile-header__caption">{t('helpCenter.desc')}</p>
       </header>
 
       <main className="screen-scroll wallet-profile-scroll">
@@ -48,11 +51,11 @@ export function HelpCenterPage() {
 
         <section className="wallet-profile-card" aria-labelledby="help-center-contacts-heading">
           <div className="wallet-profile-card__head">
-            <h2 id="help-center-contacts-heading">Contact channels</h2>
-            <p>Available daily</p>
+            <h2 id="help-center-contacts-heading">{t('helpCenter.contactChannels')}</h2>
+            <p>{t('helpCenter.availableDaily')}</p>
           </div>
 
-          <ul className="wallet-profile-list" aria-label="Support channels">
+          <ul className="wallet-profile-list" aria-label={t('helpCenter.contactChannels')}>
             {supportChannels.map((channel) => (
               <li key={channel.id} className="wallet-profile-list-item wallet-profile-list-item--stacked">
                 <a href={channel.href} className="wallet-profile-support-link" target="_blank" rel="noreferrer">
@@ -66,8 +69,8 @@ export function HelpCenterPage() {
 
         <section className="wallet-profile-card" aria-labelledby="help-center-faq-heading">
           <div className="wallet-profile-card__head">
-            <h2 id="help-center-faq-heading">FAQ</h2>
-            <p>2 quick answers</p>
+            <h2 id="help-center-faq-heading">{t('helpCenter.faq')}</h2>
+            <p>{t('helpCenter.quickAnswers')}</p>
           </div>
 
           <dl className="wallet-profile-faq-list">

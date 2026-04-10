@@ -1,5 +1,6 @@
 import type { RefObject } from 'react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import type { BetCreateInput, WalletBankInfo } from '@/api/types'
 import { apiButton } from '@/styles/tw'
 import {
@@ -28,14 +29,15 @@ type StepIndicatorProps = {
 }
 
 function StepIndicator({ currentStep }: StepIndicatorProps) {
+    const { t } = useTranslation()
     const steps = [
-        { id: 1 as const, label: 'Setup' },
-        { id: 2 as const, label: 'Numbers' },
-        { id: 3 as const, label: 'Pay Slip' },
+        { id: 1 as const, label: t('bets.setup') },
+        { id: 2 as const, label: t('bets.numbers') },
+        { id: 3 as const, label: t('bets.paySlip') },
     ]
 
     return (
-        <div className="mb-3 flex bg-[rgb(4_10_31_/_60%)] rounded-xl p-1.5 gap-1 border border-white/5" aria-label="Bet create steps">
+        <div className="mb-3 flex bg-[rgb(4_10_31_/_60%)] rounded-xl p-1.5 gap-1 border border-white/5" aria-label={t('bets.createStepsLabel')}>
             {steps.map((step) => {
                 const isActive = currentStep === step.id
                 const isDone = currentStep > step.id
@@ -89,11 +91,12 @@ function StepSetup({
     canCreateForActiveType,
     goToStepTwo,
 }: StepSetupProps) {
+    const { t } = useTranslation()
     return (
         <>
             <div className="grid gap-3 sm:grid-cols-2">
                 <div className="block space-y-1.5" ref={currencySelectRef}>
-                    <span className="block text-[0.78rem] font-semibold uppercase tracking-[0.06em] text-[#8a9bb3]">Currency</span>
+                    <span className="block text-[0.78rem] font-semibold uppercase tracking-[0.06em] text-[#8a9bb3]">{t('bets.currency')}</span>
                     <button
                         ref={currencyButtonRef}
                         type="button"
@@ -122,7 +125,7 @@ function StepSetup({
                         <ul
                             id="currency-options"
                             role="listbox"
-                            aria-label="Currency options"
+                            aria-label={t('bets.currencyOptions')}
                             aria-activedescendant={`currency-option-${CURRENCY_OPTIONS[highlightedCurrencyIndex]?.code ?? selectedCurrency.code}`}
                             className="mt-1.5 max-h-44 overflow-y-auto rounded-xl border border-white/12 bg-[rgb(5_10_31_/_96%)] p-1"
                             onKeyDown={(event) => {
@@ -191,7 +194,7 @@ function StepSetup({
                 </div>
 
                 <label className="block space-y-1.5">
-                    <span className="text-[0.78rem] font-semibold uppercase tracking-[0.06em] text-[#8a9bb3]">Target Open Time</span>
+                    <span className="text-[0.78rem] font-semibold uppercase tracking-[0.06em] text-[#8a9bb3]">{t('bets.targetOpenTime')}</span>
                     <select
                         className="h-11 w-full rounded-xl border border-white/12 bg-[rgb(5_10_31_/_68%)] px-3 text-[#f7f9ff] transition-colors focus:border-[rgb(59_130_246_/_60%)] focus:outline-none"
                         value={form.target_opentime}
@@ -209,8 +212,8 @@ function StepSetup({
 
             <button
                 type="button"
-                aria-label="Next step"
-                title="Next step"
+                aria-label={t('bets.nextStep')}
+                title={t('bets.nextStep')}
                 className={`${apiButton} my-[5px] min-h-[44px] w-full !justify-center text-center`}
                 onClick={goToStepTwo}
                 disabled={!canCreateForActiveType}
@@ -219,7 +222,7 @@ function StepSetup({
                     <path d="M5 12h14" strokeLinecap="round" />
                     <path d="m13 6 6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                <span className="sr-only">Next</span>
+                <span className="sr-only">{t('common.next')}</span>
             </button>
         </>
     )
@@ -238,18 +241,19 @@ type StepNumbersProps = {
 }
 
 function StepNumbers({ betRows, setBetRows, rowErrors, setRowErrors, isTwoDType, goToStepThree, onBack }: StepNumbersProps) {
+    const { t } = useTranslation()
     return (
         <>
             <fieldset className="m-0 space-y-2.5 rounded-xl border border-white/12 bg-white/3 p-2.5 sm:p-3">
-                <legend className="px-1 text-[0.78rem] font-semibold uppercase tracking-[0.06em] text-[#8a9bb3]">Bet Numbers</legend>
+                <legend className="px-1 text-[0.78rem] font-semibold uppercase tracking-[0.06em] text-[#8a9bb3]">{t('bets.betNumbers')}</legend>
 
                 {betRows.map((row) => (
                     <div key={row.id} className="rounded-xl border border-white/12 bg-[rgb(5_10_31_/_56%)] p-2.5">
                         <div className="mb-2 flex items-center justify-end gap-2">
                             <button
                                 type="button"
-                                aria-label="Remove number row"
-                                title="Remove number row"
+                                aria-label={t('bets.removeNumberRow')}
+                                title={t('bets.removeNumberRow')}
                                 className="inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg border border-white/12 bg-white/4 text-[#f7f9ff] transition-colors hover:border-[rgb(248_113_113_/_45%)] hover:text-[#fecaca] disabled:cursor-not-allowed disabled:opacity-50"
                                 onClick={() => {
                                     setBetRows((prev) => prev.filter((item) => item.id !== row.id))
@@ -273,7 +277,7 @@ function StepNumbers({ betRows, setBetRows, rowErrors, setRowErrors, isTwoDType,
                         <div className="grid gap-2 sm:grid-cols-2">
                             <div>
                                 <label className="mb-1 block text-[0.74rem] text-[#8a9bb3]" htmlFor={`bet-number-${row.id}`}>
-                                    Number ({isTwoDType ? '01-99' : '1-999'})
+                                    {t('bets.numberRange', { range: isTwoDType ? '01-99' : '1-999' })}
                                 </label>
                                 <input
                                     id={`bet-number-${row.id}`}
@@ -295,7 +299,7 @@ function StepNumbers({ betRows, setBetRows, rowErrors, setRowErrors, isTwoDType,
 
                             <div>
                                 <label className="mb-1 block text-[0.74rem] text-[#8a9bb3]" htmlFor={`bet-amount-${row.id}`}>
-                                    Amount
+                                    {t('bets.amount')}
                                 </label>
                                 <input
                                     id={`bet-amount-${row.id}`}
@@ -322,8 +326,8 @@ function StepNumbers({ betRows, setBetRows, rowErrors, setRowErrors, isTwoDType,
                 <div className="flex">
                     <button
                         type="button"
-                        aria-label="Add number row"
-                        title="Add number row"
+                        aria-label={t('bets.addNumberRow')}
+                        title={t('bets.addNumberRow')}
                         className="inline-flex h-11 w-full cursor-pointer items-center justify-center rounded-xl border border-[rgb(59_130_246_/_35%)] bg-[rgb(59_130_246_/_10%)] text-[#93c5fd] transition-colors hover:border-[rgb(59_130_246_/_55%)] hover:bg-[rgb(59_130_246_/_16%)]"
                         onClick={() => setBetRows((prev) => [...prev, createEmptyRow()])}
                     >
@@ -337,8 +341,8 @@ function StepNumbers({ betRows, setBetRows, rowErrors, setRowErrors, isTwoDType,
             <div className="grid grid-cols-2 gap-2">
                 <button
                     type="button"
-                    aria-label="Previous step"
-                    title="Previous step"
+                    aria-label={t('bets.previousStep')}
+                    title={t('bets.previousStep')}
                     className={`${apiButton} my-[5px] min-h-[44px] w-full !justify-center text-center`}
                     onClick={onBack}
                 >
@@ -346,12 +350,12 @@ function StepNumbers({ betRows, setBetRows, rowErrors, setRowErrors, isTwoDType,
                         <path d="M19 12H5" strokeLinecap="round" />
                         <path d="m11 6-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                    <span className="sr-only">Back</span>
+                    <span className="sr-only">{t('common.back')}</span>
                 </button>
                 <button
                     type="button"
-                    aria-label="Next step"
-                    title="Next step"
+                    aria-label={t('bets.nextStep')}
+                    title={t('bets.nextStep')}
                     className={`${apiButton} my-[5px] min-h-[44px] w-full !justify-center text-center`}
                     onClick={goToStepThree}
                 >
@@ -359,7 +363,7 @@ function StepNumbers({ betRows, setBetRows, rowErrors, setRowErrors, isTwoDType,
                         <path d="M5 12h14" strokeLinecap="round" />
                         <path d="m13 6 6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                    <span className="sr-only">Next</span>
+                    <span className="sr-only">{t('common.next')}</span>
                 </button>
             </div>
         </>
@@ -395,13 +399,14 @@ function StepPaySlip({
     bankInfo,
     onBack,
 }: StepPaySlipProps) {
+    const { t } = useTranslation()
     return (
         <>
             <section className="rounded-xl border border-[rgb(245_158_11_/_22%)] bg-[rgb(245_158_11_/_8%)] p-3.5">
                 <div className="mb-2.5">
-                    <h3 className="m-0 text-[0.9rem] font-semibold text-[#fef3c7]">Admin Accounts</h3>
+                    <h3 className="m-0 text-[0.9rem] font-semibold text-[#fef3c7]">{t('bets.adminAccounts')}</h3>
                     <p className="m-0 mt-1 text-[0.74rem] leading-[1.45] text-[#fcd34d]">
-                        Transfer {form.currency} to the account below, then upload the pay slip image.
+                        {t('bets.transferNote', { currency: form.currency })}
                     </p>
                 </div>
 
@@ -419,20 +424,20 @@ function StepPaySlip({
 
                             <dl className="mt-2 mb-0 grid gap-1.5">
                                 <div className="grid gap-0.5">
-                                    <dt className="text-[0.66rem] uppercase tracking-[0.06em] text-[#8a9bb3]">Account Holder</dt>
+                                    <dt className="text-[0.66rem] uppercase tracking-[0.06em] text-[#8a9bb3]">{t('bets.accountHolder')}</dt>
                                     <dd className="m-0 flex items-center justify-between gap-2">
                                         <span className="text-[0.8rem] text-[#f7f9ff]">{account.accountHolder}</span>
                                     </dd>
                                 </div>
 
                                 <div className="grid gap-0.5">
-                                    <dt className="text-[0.66rem] uppercase tracking-[0.06em] text-[#8a9bb3]">Account Number</dt>
+                                    <dt className="text-[0.66rem] uppercase tracking-[0.06em] text-[#8a9bb3]">{t('bets.accountNumber')}</dt>
                                     <dd className="m-0 flex items-center justify-between gap-2">
                                         <span className="text-[0.88rem] font-semibold tracking-[0.04em] text-[#fef3c7]">{account.accountNumber}</span>
                                         <button
                                             type="button"
-                                            aria-label={copiedAccountKey === `${account.id}-number` ? 'Copied account number' : 'Copy account number'}
-                                            title={copiedAccountKey === `${account.id}-number` ? 'Copied' : 'Copy account number'}
+                                            aria-label={copiedAccountKey === `${account.id}-number` ? t('bets.copiedAccountNumber') : t('bets.copyAccountNumber')}
+                                            title={copiedAccountKey === `${account.id}-number` ? t('bets.copiedAccountNumber') : t('bets.copyAccountNumber')}
                                             className={`inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border bg-white/6 transition-colors ${copiedAccountKey === `${account.id}-number`
                                                 ? 'border-[rgb(0_230_118_/_45%)] text-[#86efac]'
                                                 : 'border-white/15 text-[#cbd5e1] hover:border-[rgb(59_130_246_/_45%)] hover:text-[#93c5fd]'
@@ -459,7 +464,7 @@ function StepPaySlip({
 
                 {paymentAccounts.length === 0 && (
                     <p className="m-0 rounded-lg border border-white/12 bg-white/6 px-2.5 py-2 text-[0.76rem] text-[#fcd34d]">
-                        No admin account configured for {form.currency}.
+                        {t('bets.noAdminAccount', { currency: form.currency })}
                     </p>
                 )}
             </section>
@@ -467,12 +472,12 @@ function StepPaySlip({
             {/* Payout Account */}
             <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                    <span className="text-[0.78rem] font-semibold uppercase tracking-[0.06em] text-[#8a9bb3]">Payout Account</span>
+                    <span className="text-[0.78rem] font-semibold uppercase tracking-[0.06em] text-[#8a9bb3]">{t('bets.payoutAccount')}</span>
                     <Link
                         to="/user/bank-info"
                         className="text-[0.72rem] font-medium text-[#93c5fd] hover:text-[#60a5fa] transition-colors"
                     >
-                        {bankInfo == null ? 'Set up now →' : 'Manage →'}
+                        {bankInfo == null ? t('bets.setUpNow') : t('bets.manage')}
                     </Link>
                 </div>
 
@@ -480,8 +485,8 @@ function StepPaySlip({
                     <div className="flex items-center gap-3 rounded-xl border border-dashed border-[rgb(245_158_11_/_35%)] bg-[rgb(245_158_11_/_6%)] px-3.5 py-3">
                         <span className="material-symbols-outlined text-[#fcd34d] text-[1.1rem] shrink-0">account_balance</span>
                         <div>
-                            <p className="m-0 text-[0.78rem] font-medium text-[#fef3c7]">No payout account linked</p>
-                            <p className="m-0 mt-0.5 text-[0.7rem] text-[#fcd34d]">Add a bank account so winnings can be transferred to you.</p>
+                            <p className="m-0 text-[0.78rem] font-medium text-[#fef3c7]">{t('bets.noPayoutAccount')}</p>
+                            <p className="m-0 mt-0.5 text-[0.7rem] text-[#fcd34d]">{t('bets.addBankAccount')}</p>
                         </div>
                     </div>
                 ) : (
@@ -489,29 +494,29 @@ function StepPaySlip({
                         <div className="flex items-center gap-2">
                             <span className="material-symbols-outlined text-[#00e676] text-[1.1rem] shrink-0">account_balance</span>
                             <span className="text-[0.82rem] font-semibold text-[#f7f9ff]">{bankInfo.bank_name}</span>
-                            <span className="ml-auto text-[0.66rem] uppercase tracking-widest text-[#00e676]/60 bg-[rgb(0_230_118_/_8%)] px-2 py-0.5 rounded-full">Verified</span>
+                            <span className="ml-auto text-[0.66rem] uppercase tracking-widest text-[#00e676]/60 bg-[rgb(0_230_118_/_8%)] px-2 py-0.5 rounded-full">{t('bets.verified')}</span>
                         </div>
                         <dl className="grid grid-cols-2 gap-x-4 gap-y-1.5 m-0">
                             <div>
-                                <dt className="text-[0.65rem] uppercase tracking-[0.06em] text-[#8a9bb3]">Account Holder</dt>
+                                <dt className="text-[0.65rem] uppercase tracking-[0.06em] text-[#8a9bb3]">{t('bets.accountHolder')}</dt>
                                 <dd className="m-0 mt-0.5 text-[0.8rem] text-[#f7f9ff]">{bankInfo.account_name}</dd>
                             </div>
                             <div>
-                                <dt className="text-[0.65rem] uppercase tracking-[0.06em] text-[#8a9bb3]">Account Number</dt>
+                                <dt className="text-[0.65rem] uppercase tracking-[0.06em] text-[#8a9bb3]">{t('bets.accountNumber')}</dt>
                                 <dd className="m-0 mt-0.5 text-[0.8rem] font-semibold tracking-[0.04em] text-[#e2e8f0]">{bankInfo.account_number}</dd>
                             </div>
                         </dl>
-                        <p className="m-0 text-[0.68rem] text-[#8a9bb3]">Winnings will be transferred to this account after results are confirmed.</p>
+                        <p className="m-0 text-[0.68rem] text-[#8a9bb3]">{t('bets.winningsTransferred')}</p>
                         <div className="flex items-start gap-2 mt-2 pt-2 border-t border-white/8">
                             <span className="material-symbols-outlined text-[#fcd34d] text-[1rem] shrink-0 mt-px">warning</span>
-                            <p className="m-0 text-[0.68rem] text-[#fcd34d] leading-relaxed">Please double-check your account details are correct. Incorrect bank info may result in delayed or failed payouts.</p>
+                            <p className="m-0 text-[0.68rem] text-[#fcd34d] leading-relaxed">{t('bets.doubleCheck')}</p>
                         </div>
                     </div>
                 )}
             </div>
 
             <label className="block space-y-1.8">
-                <span className="text-[0.78rem] font-semibold uppercase tracking-[0.06em] text-[#8a9bb3]">Pay Slip Image</span>
+                <span className="text-[0.78rem] font-semibold uppercase tracking-[0.06em] text-[#8a9bb3]">{t('bets.paySlipImage')}</span>
                 <input
                     ref={fileInputRef}
                     className="h-11 w-full rounded-xl border border-dashed border-white/20 bg-[rgb(5_10_31_/_68%)] px-4 py-2 text-[#f7f9ff] file:mr-3 file:rounded-lg file:border-0 file:bg-[rgb(59_130_246_/_18%)] file:px-2.5 file:py-1 file:text-[0.76rem] file:font-semibold file:text-[#93c5fd]"
@@ -523,9 +528,9 @@ function StepPaySlip({
                     }}
                     required
                 />
-                <p className="m-0 text-[0.72rem] text-[#8a9bb3]">Upload JPG/PNG/WEBP up to 10MB.</p>
+                <p className="m-0 text-[0.72rem] text-[#8a9bb3]">{t('bets.uploadImageHint')}</p>
                 {form.pay_slip_image != null && (
-                    <p className="m-0 text-[0.74rem] text-[#93c5fd]">Selected: {form.pay_slip_image.name}</p>
+                    <p className="m-0 text-[0.74rem] text-[#93c5fd]">{t('bets.selected', { name: form.pay_slip_image.name })}</p>
                 )}
             </label>
 
@@ -533,7 +538,7 @@ function StepPaySlip({
             <label className="block space-y-1.5">
                 <div className="flex items-center justify-between">
                     <span className="text-[0.78rem] font-semibold uppercase tracking-[0.06em] text-[#8a9bb3]">
-                        Last 2 Digits of Transaction ID
+                        {t('bets.transactionIdLastTwo')}
                     </span>
                     <span className={`text-[0.7rem] font-semibold tabular-nums ${form.transaction_id_last_two_digits.length === 2 ? 'text-[#00e676]' : 'text-[#8a9bb3]'}`}>
                         {form.transaction_id_last_two_digits.length}/2
@@ -545,7 +550,7 @@ function StepPaySlip({
                     inputMode="numeric"
                     maxLength={2}
                     pattern="[0-9]{2}"
-                    placeholder="e.g. 47"
+                    placeholder={t('bets.transactionIdExample')}
                     required
                     value={form.transaction_id_last_two_digits}
                     onChange={(event) => {
@@ -554,20 +559,20 @@ function StepPaySlip({
                     }}
                 />
                 <p className="m-0 text-[0.72rem] text-[#8a9bb3]">
-                    Enter the last two digits of your bank transfer reference number. This helps us verify your payment.
+                    {t('bets.transactionIdHint')}
                 </p>
             </label>
 
             <div className="my-3 rounded-xl border border-white/12 bg-[rgb(7_15_37_/_70%)] p-3.5">
                 <div className="mb-2 flex items-center justify-between gap-2 text-[0.82rem]">
-                    <span className="text-[#8a9bb3]">Estimated Total</span>
+                    <span className="text-[#8a9bb3]">{t('bets.estimatedTotal')}</span>
                     <strong className="text-[#f7f9ff]">{formatAmount(validAmountTotal, form.currency)}</strong>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                     <button
                         type="button"
-                        aria-label="Previous step"
-                        title="Previous step"
+                        aria-label={t('bets.previousStep')}
+                        title={t('bets.previousStep')}
                         className={`${apiButton} my-[5px] min-h-[44px] w-full !justify-center text-center`}
                         onClick={onBack}
                     >
@@ -575,17 +580,17 @@ function StepPaySlip({
                             <path d="M19 12H5" strokeLinecap="round" />
                             <path d="m11 6-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
-                        <span className="sr-only">Back</span>
+                        <span className="sr-only">{t('common.back')}</span>
                     </button>
                     <button
                         type="submit"
-                        aria-label="Submit bet"
-                        title="Submit bet"
+                        aria-label={t('bets.submitBet')}
+                        title={t('bets.submitBet')}
                         className="h-16 w-full bg-gradient-to-r from-[#00e676] to-[#2ac48b] rounded-2xl flex items-center justify-between px-6 shadow-[0_12px_24px_rgba(0,230,118,0.3)] hover:scale-[1.02] active:scale-95 transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60 group"
                         disabled={!canCreateForActiveType || isSubmitting}
                     >
                         <span className="font-semibold text-[0.9rem] text-[#003824] tracking-tight uppercase">
-                            {isSubmitting ? 'Submitting…' : 'Confirm Wager'}
+                            {isSubmitting ? t('bets.submitting') : t('bets.confirmWager')}
                         </span>
                         <div className="w-9 h-9 rounded-full bg-black/10 flex items-center justify-center group-hover:translate-x-1 transition-transform">
                             {isSubmitting ? (
@@ -677,6 +682,7 @@ export function BetCreateCard({
     setMessage,
     onSubmit,
 }: BetCreateCardProps) {
+    const { t } = useTranslation()
     return (
         <section
             className="relative overflow-hidden rounded-2xl p-4 border border-white/5 shadow-2xl bg-[rgba(35,41,60,0.4)] backdrop-blur-xl"
@@ -689,25 +695,25 @@ export function BetCreateCard({
 
             <div className="relative mb-3 flex items-start justify-between gap-2">
                 <div>
-                    <h2 className="m-0 text-[1.12rem]">Place Your Bet</h2>
+                    <h2 className="m-0 text-[1.12rem]">{t('bets.placeYourBet')}</h2>
                     <p className="m-0 mt-1 text-[0.8rem] text-[#8a9bb3]">{activeBetTypeCaption}</p>
                 </div>
                 <span className={`inline-flex rounded-full border px-2 py-1 text-[0.68rem] font-semibold tracking-[0.04em] ${typePillClassName}`}>
-                    {activeBetTypeLabel} Market
+                    {t('bets.market', { label: activeBetTypeLabel })}
                 </span>
             </div>
 
             <div className="relative mb-3 grid grid-cols-3 gap-1.5 rounded-xl border border-white/10 bg-[rgb(4_10_31_/_44%)] p-2">
                 <div className="rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 text-center">
-                    <p className="m-0 text-[0.66rem] uppercase tracking-[0.06em] text-[#8a9bb3]">Rows</p>
+                    <p className="m-0 text-[0.66rem] uppercase tracking-[0.06em] text-[#8a9bb3]">{t('bets.rows')}</p>
                     <p className="m-0 mt-0.5 text-[0.86rem] font-semibold text-[#f7f9ff]">{betRows.length}</p>
                 </div>
                 <div className="rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 text-center">
-                    <p className="m-0 text-[0.66rem] uppercase tracking-[0.06em] text-[#8a9bb3]">Currency</p>
+                    <p className="m-0 text-[0.66rem] uppercase tracking-[0.06em] text-[#8a9bb3]">{t('bets.currency')}</p>
                     <p className="m-0 mt-0.5 text-[0.86rem] font-semibold text-[#f7f9ff]">{form.currency}</p>
                 </div>
                 <div className="rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 text-center">
-                    <p className="m-0 text-[0.66rem] uppercase tracking-[0.06em] text-[#8a9bb3]">Total</p>
+                    <p className="m-0 text-[0.66rem] uppercase tracking-[0.06em] text-[#8a9bb3]">{t('bets.total')}</p>
                     <p className="m-0 mt-0.5 text-[0.86rem] font-semibold text-[#f7f9ff]">{formatAmount(validAmountTotal, form.currency)}</p>
                 </div>
             </div>

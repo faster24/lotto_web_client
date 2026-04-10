@@ -1,15 +1,27 @@
 import { Outlet, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { routeMap } from '@/app/routeMap'
 import { TabShell } from '@/components/primitives/TabShell'
 
 export function MobileFrameShell() {
+  const { t } = useTranslation()
   const { pathname } = useLocation()
   const activeTabId =
     routeMap.tabs.find((tab) => {
       const tabPath = `/${tab.path}`
-
       return pathname === tabPath || pathname.startsWith(`${tabPath}/`)
     })?.id ?? ''
+
+  const tabLabelMap: Record<string, string> = {
+    home: t('tabs.home'),
+    bets: t('tabs.bets'),
+    setting: t('tabs.setting'),
+  }
+
+  const translatedTabs = routeMap.tabs.map((tab) => ({
+    ...tab,
+    label: tabLabelMap[tab.id] ?? tab.label,
+  }))
 
   return (
     <div
@@ -30,7 +42,7 @@ export function MobileFrameShell() {
 
       <div className="pointer-events-none fixed bottom-[calc(clamp(0.75rem,2.1vh,1.4rem)+env(safe-area-inset-bottom))] left-1/2 z-[999] w-[min(calc(100vw-1.5rem),calc(26.5rem-1.25rem))] -translate-x-1/2">
         <div className="pointer-events-auto">
-          <TabShell items={routeMap.tabs} activeId={activeTabId} />
+          <TabShell items={translatedTabs} activeId={activeTabId} />
         </div>
       </div>
     </div>
