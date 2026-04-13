@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next' // <-- Import useTranslation
 import { listThreeDResults } from '@/api/client'
 import type { ThreeDResult } from '@/api/types'
 import { ApiStatePanel } from '@/components/api/ApiStatePanel'
 import { apiCard, apiHeader, apiScreen, screenRoot, screenScroll } from '@/styles/tw'
 
 export function ThreeDResultsPage() {
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [items, setItems] = useState<ThreeDResult[]>([])
@@ -15,30 +17,41 @@ export function ThreeDResultsPage() {
         const response = await listThreeDResults()
         setItems(response.data.three_d_results)
       } catch {
-        setError('Unable to load 3D results.')
+        setError(t('results.loadThreeDError'))
       } finally {
         setLoading(false)
       }
     })()
-  }, [])
+  }, [t])
 
   return (
     <div className={`${screenRoot} ${apiScreen}`} data-testid="three-d-results-page">
       <header className={apiHeader}>
-        <p className="m-0 text-[0.72rem] uppercase tracking-[0.1em] text-[#93c5fd]">Result</p>
-        <h1 className="mt-1 mb-0 text-[clamp(1.48rem,5vw,1.9rem)] [font-family:'Noe_Display','Iowan_Old_Style','Palatino_Linotype',serif]">3D Results</h1>
-        <p className="mt-1.5 mb-0 text-[0.86rem] leading-[1.45] text-[#8a9bb3]">History endpoint from `/three-d-results`.</p>
+        <p className="m-0 text-[0.72rem] uppercase tracking-[0.1em] text-[#93c5fd]">
+          {t('results.resultEyebrow')}
+        </p>
+        <h1 className="mt-1 mb-0 text-[clamp(1.48rem,5vw,1.9rem)] [font-family:'Noe_Display','Iowan_Old_Style','Palatino_Linotype',serif]">
+          {t('results.threeDResultsTitle')}
+        </h1>
+        <p className="mt-1.5 mb-0 text-[0.86rem] leading-[1.45] text-[#8a9bb3]">
+          {t('results.threeDHistoryDesc')}
+        </p>
       </header>
 
       <main className={screenScroll}>
-        <ApiStatePanel loading={loading} error={error} empty={items.length === 0} emptyMessage="No 3D results." />
+        <ApiStatePanel
+          loading={loading}
+          error={error}
+          empty={items.length === 0}
+          emptyMessage={t('results.noThreeDResults')}
+        />
 
         {items.length > 0 && (
           <section className={apiCard}>
             <ul className="grid list-none gap-2 p-0 m-0">
               {items.map((item) => (
-                <li key={item.id} className="rounded-xl border border-white/8 bg-white/3 p-2.5">
-                  <p>{item.stock_date} · {item.threed}</p>
+                <li key={item.id} className="rounded-xl border border-white/8 bg-white/3 p-2.5 text-[#e2e8f0]">
+                  <p className="m-0">{item.stock_date} · <strong className="text-[#93c5fd]">{item.threed}</strong></p>
                 </li>
               ))}
             </ul>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next' // <-- Add this import
 import { listAcceptedPayments } from '@/api/client'
 import type { Bet } from '@/api/types'
 import { ApiStatePanel } from '@/components/api/ApiStatePanel'
@@ -18,6 +19,7 @@ function formatDateTime(iso: string) {
 }
 
 export function TransactionRecordPage() {
+  const { t } = useTranslation() // <-- Initialize hook
   const [bets, setBets] = useState<Bet[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -25,19 +27,21 @@ export function TransactionRecordPage() {
   useEffect(() => {
     listAcceptedPayments()
       .then((res) => setBets(res.data.accepted_payments))
-      .catch(() => setError('Unable to load transactions. Please try again.'))
+      .catch(() => setError(t('gambling.loadError'))) // <-- Translated error message
       .finally(() => setLoading(false))
-  }, [])
+  }, [t])
 
   return (
     <div className={`${screenRoot} ${apiScreen}`} data-testid="gambling-transaction-record-page">
       <header className={apiHeader}>
-        <p className="m-0 text-[0.72rem] uppercase tracking-[0.1em] text-[#93c5fd]">Ledger</p>
+        <p className="m-0 text-[0.72rem] uppercase tracking-[0.1em] text-[#93c5fd]">
+          {t('gambling.ledger')}
+        </p>
         <h1 className="mt-1 mb-0 text-[clamp(1.48rem,5vw,1.9rem)] [font-family:'Noe_Display','Iowan_Old_Style','Palatino_Linotype',serif]">
-          Accepted Payments
+          {t('gambling.acceptedPaymentsTitle')}
         </h1>
         <p className="mt-1.5 mb-0 text-[0.86rem] leading-[1.45] text-[#8a9bb3]">
-          Confirmed bet payments accepted by the system.
+          {t('gambling.acceptedPaymentsDesc')}
         </p>
       </header>
 
@@ -46,7 +50,7 @@ export function TransactionRecordPage() {
           loading={loading}
           error={error}
           empty={!loading && error == null && bets.length === 0}
-          emptyMessage="No accepted payments yet."
+          emptyMessage={t('gambling.noAcceptedPayments')} // <-- Translated empty message
         />
 
         {bets.length > 0 && (
@@ -62,13 +66,15 @@ export function TransactionRecordPage() {
                     {bet.bet_type}
                   </span>
                   <span className="text-[0.72rem] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border bg-[#00e676]/12 text-[#00e676] border-[#00e676]/25">
-                    Accepted
+                    {t('gambling.accepted')} {/* <-- Translated status */}
                   </span>
                 </div>
 
                 {/* Amount */}
                 <div className="mb-2">
-                  <p className="m-0 text-[0.7rem] uppercase tracking-widest text-[#8a9bb3]">Total Wager</p>
+                  <p className="m-0 text-[0.7rem] uppercase tracking-widest text-[#8a9bb3]">
+                    {t('gambling.totalWager')} {/* <-- Translated title */}
+                  </p>
                   <p className="m-0 text-[1.1rem] font-bold text-[#f7f9ff]">
                     {bet.total_amount} <span className="text-[0.8rem] font-normal text-[#8a9bb3]">{bet.currency}</span>
                   </p>

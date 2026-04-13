@@ -48,7 +48,7 @@ export function RegisterPage() {
 
         try {
             const response = await registerUser(form)
-            setSuccess(`${response.message}. Redirecting...`)
+            setSuccess(`${response.message}. ${t('auth.redirecting')}`)
             window.setTimeout(() => {
                 void navigate(postAuthPath, { replace: true })
             }, 500)

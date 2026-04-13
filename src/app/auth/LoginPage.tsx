@@ -28,6 +28,7 @@ export function LoginPage() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState<string | null>(null)
+
     const fromState = (location.state as { from?: string } | null)?.from
     const postAuthPath = typeof fromState === 'string' && fromState.startsWith('/') && !fromState.startsWith('//') ? fromState : '/tabs/home'
 
@@ -39,7 +40,7 @@ export function LoginPage() {
 
         try {
             const response = await loginUser(form)
-            setSuccess(`${response.message}. Redirecting...`)
+            setSuccess(`${response.message}. ${t('auth.redirecting')}`)
             window.setTimeout(() => {
                 void navigate(postAuthPath, { replace: true })
             }, 500)

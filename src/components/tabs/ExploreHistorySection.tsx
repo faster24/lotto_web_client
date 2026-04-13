@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 type ResultEntry = {
     period: string
@@ -19,16 +20,17 @@ type ExploreHistorySectionProps = {
 }
 
 const RESULT_TABS = [
-    { to: '/results/2d', label: '2D Results', description: 'Two-digit draws' },
-    { to: '/results/3d', label: '3D Results', description: 'Three-digit draws' },
-]
+    { to: '/results/2d', labelKey: 'results.twoDResults', descKey: 'results.twoDDraws' },
+    { to: '/results/3d', labelKey: 'results.threeDResults', descKey: 'results.threeDDraws' },
+] as const
 
 export function ExploreHistorySection({ historyDays, loading, error }: ExploreHistorySectionProps) {
     const { pathname } = useLocation()
+    const { t } = useTranslation()
 
     return (
         <section className="explore-history" aria-labelledby="explore-history-heading">
-            <h2 id="explore-history-heading">Recent History</h2>
+            <h2 id="explore-history-heading">{t('results.recentHistory')}</h2>
 
             <div role="tablist" aria-label="Result type" className="flex gap-2">
                 {RESULT_TABS.map((tab) => {
@@ -47,9 +49,9 @@ export function ExploreHistorySection({ historyDays, loading, error }: ExploreHi
                             ].join(' ')}
                         >
                             <span className={`text-[0.8rem] font-semibold leading-none ${isActive ? 'text-[#93c5fd]' : 'text-[#c9d4e8]'}`}>
-                                {tab.label}
+                                {t(tab.labelKey)}
                             </span>
-                            <span className="text-[0.68rem] leading-none text-[#8a9bb3]">{tab.description}</span>
+                            <span className="text-[0.68rem] leading-none text-[#8a9bb3]">{t(tab.descKey)}</span>
                         </Link>
                     )
                 })}
@@ -57,7 +59,7 @@ export function ExploreHistorySection({ historyDays, loading, error }: ExploreHi
 
             {loading && (
                 <p className="m-0 rounded-xl border border-white/12 bg-white/5 p-2.5 text-[0.86rem] text-[#93c5fd]">
-                    Loading data...
+                    {t('common.loading')}
                 </p>
             )}
 
@@ -75,8 +77,8 @@ export function ExploreHistorySection({ historyDays, loading, error }: ExploreHi
                     >
                         inbox
                     </span>
-                    <p className="m-0 text-[0.95rem] font-semibold text-[#4a5d7a]">No data here</p>
-                    <p className="m-0 text-[0.78rem] leading-[1.5] text-[#3a4d66] max-w-[220px]">No 2D results available yet.</p>
+                    <p className="m-0 text-[0.95rem] font-semibold text-[#4a5d7a]">{t('results.noDataHere')}</p>
+                    <p className="m-0 text-[0.78rem] leading-[1.5] text-[#3a4d66] max-w-[220px]">{t('results.no2DResults')}</p>
                 </div>
             )}
 

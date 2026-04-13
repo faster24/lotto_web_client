@@ -21,4 +21,3 @@ export const betTypeCatalog: BetTypeCatalogItem[] = [
     payloadBetType: '3D',
   },
 ]
-

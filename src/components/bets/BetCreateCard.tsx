@@ -44,13 +44,12 @@ function StepIndicator({ currentStep }: StepIndicatorProps) {
                 return (
                     <div
                         key={step.id}
-                        className={`flex-1 py-2.5 rounded-lg text-center text-[0.72rem] font-bold uppercase tracking-wider transition-colors ${
-                            isDone
-                                ? 'bg-[rgb(0_230_118_/_12%)] text-[#00e676]'
-                                : isActive
+                        className={`flex-1 py-2.5 rounded-lg text-center text-[0.72rem] font-bold uppercase tracking-wider transition-colors ${isDone
+                            ? 'bg-[rgb(0_230_118_/_12%)] text-[#00e676]'
+                            : isActive
                                 ? 'bg-[rgb(23_29_48)] text-[#f7f9ff] shadow-sm'
                                 : 'text-[#8a9bb3] hover:bg-white/5'
-                        }`}
+                            }`}
                     >
                         {step.label}
                     </div>
