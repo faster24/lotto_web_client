@@ -34,7 +34,7 @@ export type LoginInput = {
 }
 
 export type WalletBankInfo = {
-    bank_name: 'KBZ' | 'AYA' | 'CB' | 'UAB' | 'YOMA' | 'OTHER'
+    bank_name: 'KBZ' | 'AYA' | 'CB' | 'UAB' | 'YOMA' | 'SCB' | 'KBANK' | 'BBL' | 'KTB' | 'BAY' | 'TTB' | 'GSB'
     account_name: string
     account_number: string
 }
