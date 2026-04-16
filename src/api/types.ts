@@ -33,6 +33,18 @@ export type LoginInput = {
     password: string
 }
 
+export type AdminBankSetting = {
+    id: number
+    bank_name: string
+    account_holder_name: string
+    account_number: string
+    is_active: boolean
+    is_primary: boolean
+    currency: 'THB' | 'MMK'
+    created_at: string
+    updated_at: string
+}
+
 export type WalletBankInfo = {
     bank_name: 'KBZ' | 'AYA' | 'CB' | 'UAB' | 'YOMA' | 'SCB' | 'KBANK' | 'BBL' | 'KTB' | 'BAY' | 'TTB' | 'GSB'
     account_name: string

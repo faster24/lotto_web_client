@@ -1,4 +1,5 @@
 import {
+  mockAdminBankSettings,
   mockAnnouncements,
   mockBankInfo,
   mockBets,
@@ -11,6 +12,7 @@ import {
   setMockUser,
 } from './mockData'
 import type {
+  AdminBankSetting,
   Announcement,
   ApiMode,
   ApiResult,
@@ -37,6 +39,7 @@ const TWOD_RESULTS_LIVE_ENABLED = (import.meta.env.VITE_TWOD_RESULTS_LIVE_ENABLE
 const PAYOUT_LIVE_ENABLED = (import.meta.env.VITE_PAYOUT_LIVE_ENABLED as string | undefined) !== 'false'
 const ACCEPTED_PAYMENTS_LIVE_ENABLED = (import.meta.env.VITE_ACCEPTED_PAYMENTS_LIVE_ENABLED as string | undefined) !== 'false'
 const ODD_SETTINGS_LIVE_ENABLED = (import.meta.env.VITE_ODD_SETTINGS_LIVE_ENABLED as string | undefined) !== 'false'
+const BANK_SETTINGS_LIVE_ENABLED = (import.meta.env.VITE_BANK_SETTINGS_LIVE_ENABLED as string | undefined) !== 'false'
 const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'http://localhost:8000/api/v1').replace(/\/+$/, '')
 
 const wait = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms))
@@ -521,6 +524,21 @@ export async function listAcceptedPayments() {
 
   await wait(NETWORK_DELAY_MS)
   return ok<{ accepted_payments: Bet[] }>('Accepted payments', { accepted_payments: mockBets })
+}
+
+export async function listBankSettings() {
+  if (BANK_SETTINGS_LIVE_ENABLED) {
+    return authedRequest<ApiResult<{ admin_bank_settings: AdminBankSetting[] }>>(
+      'GET',
+      '/admin/bank-settings',
+      null,
+      'Failed to load bank settings.',
+      () => ok<{ admin_bank_settings: AdminBankSetting[] }>('No bank settings', { admin_bank_settings: [] }),
+    )
+  }
+
+  await wait(NETWORK_DELAY_MS)
+  return ok<{ admin_bank_settings: AdminBankSetting[] }>('Bank settings', { admin_bank_settings: mockAdminBankSettings })
 }
 
 async function createBetMock(input: BetCreateInput) {

@@ -1,6 +1,6 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react'
-import { createBet } from '@/api/client'
-import type { BetCreateInput } from '@/api/types'
+import { createBet, listBankSettings } from '@/api/client'
+import type { AdminBankSetting, BetCreateInput } from '@/api/types'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -52,40 +52,15 @@ export const CURRENCY_OPTIONS: CurrencyOption[] = [
     { code: 'THB', name: 'Thai Baht', flagClass: 'fi-th' },
 ]
 
-export const ADMIN_PAYMENT_ACCOUNTS: AdminPaymentAccount[] = [
-    {
-        id: 'kbz-main',
-        currency: 'MMK',
-        bankName: 'KBZ Bank',
-        accountHolder: 'Zarmani108 Trading Co., Ltd',
-        accountNumber: '027123456789001',
-        note: 'Primary collection account',
-    },
-    {
-        id: 'aya-alt-mmk',
-        currency: 'MMK',
-        bankName: 'AYA Bank',
-        accountHolder: 'Zarmani108 Trading Co., Ltd',
-        accountNumber: '011987654321008',
-        note: 'Use if KBZ transfer is unavailable',
-    },
-    {
-        id: 'kbank-thb',
-        currency: 'THB',
-        bankName: 'Kasikornbank',
-        accountHolder: 'Zarmani108 Trading Thailand',
-        accountNumber: '014-2-78901-7',
-        note: 'Thai Baht transfer account',
-    },
-    {
-        id: 'scb-thb',
-        currency: 'THB',
-        bankName: 'Siam Commercial Bank',
-        accountHolder: 'Zarmani108 Trading Co., Ltd',
-        accountNumber: '405-889-1034',
-        note: 'Alternative THB account',
-    },
-]
+function mapBankSetting(setting: AdminBankSetting): AdminPaymentAccount {
+    return {
+        id: String(setting.id),
+        currency: setting.currency,
+        bankName: setting.bank_name,
+        accountHolder: setting.account_holder_name,
+        accountNumber: setting.account_number,
+    }
+}
 
 const initialForm: BetCreateFormState = {
     pay_slip_image: null,
@@ -124,11 +99,25 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
     const currencySelectRef = useRef<HTMLDivElement | null>(null)
     const currencyButtonRef = useRef<HTMLButtonElement | null>(null)
 
+    const [allBankSettings, setAllBankSettings] = useState<AdminPaymentAccount[]>([])
+    const [bankSettingsLoading, setBankSettingsLoading] = useState(true)
+
+    useEffect(() => {
+        void (async () => {
+            try {
+                const response = await listBankSettings()
+                setAllBankSettings(response.data.admin_bank_settings.filter(s => s.is_active).map(mapBankSetting))
+            } finally {
+                setBankSettingsLoading(false)
+            }
+        })()
+    }, [])
+
     const isTwoDType = activePayloadBetType === '2D'
     const isThreeDType = activePayloadBetType === '3D'
     const canCreateForActiveType = activePayloadBetType != null
     const selectedCurrency = CURRENCY_OPTIONS.find((item) => item.code === form.currency) ?? CURRENCY_OPTIONS[0]!
-    const paymentAccounts = ADMIN_PAYMENT_ACCOUNTS.filter((account) => account.currency === form.currency)
+    const paymentAccounts = allBankSettings.filter((account) => account.currency === form.currency)
 
     const validAmountTotal = betRows.reduce((sum, row) => {
         const parsed = Number(row.amount)
@@ -322,6 +311,7 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
         canCreateForActiveType,
         validAmountTotal,
         paymentAccounts,
+        bankSettingsLoading,
         typePillClassName,
         // feedback
         message,

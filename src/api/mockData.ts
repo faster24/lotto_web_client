@@ -1,4 +1,4 @@
-import type { Announcement, Bet, OddSetting, ThreeDResult, TwoDResult, User, WalletBankInfo } from './types'
+import type { AdminBankSetting, Announcement, Bet, OddSetting, ThreeDResult, TwoDResult, User, WalletBankInfo } from './types'
 
 export let mockUser: User = {
     id: 609763,
@@ -16,6 +16,53 @@ export let mockUser: User = {
 export function setMockUser(next: User) {
     mockUser = next
 }
+
+export const mockAdminBankSettings: AdminBankSetting[] = [
+    {
+        id: 1,
+        bank_name: 'KBZ Bank',
+        account_holder_name: 'Zarmani108 Trading Co., Ltd',
+        account_number: '027123456789001',
+        is_active: true,
+        is_primary: true,
+        currency: 'MMK',
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
+    },
+    {
+        id: 2,
+        bank_name: 'AYA Bank',
+        account_holder_name: 'Zarmani108 Trading Co., Ltd',
+        account_number: '011987654321008',
+        is_active: true,
+        is_primary: false,
+        currency: 'MMK',
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
+    },
+    {
+        id: 3,
+        bank_name: 'Kasikornbank',
+        account_holder_name: 'Zarmani108 Trading Thailand',
+        account_number: '014-2-78901-7',
+        is_active: true,
+        is_primary: true,
+        currency: 'THB',
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
+    },
+    {
+        id: 4,
+        bank_name: 'Siam Commercial Bank',
+        account_holder_name: 'Zarmani108 Trading Co., Ltd',
+        account_number: '405-889-1034',
+        is_active: true,
+        is_primary: false,
+        currency: 'THB',
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
+    },
+]
 
 export let mockBankInfo: WalletBankInfo | null = {
     bank_name: 'KBZ',
