@@ -35,14 +35,17 @@ export function ProfileWalletCard() {
         return t('user.unknownUser')
     }, [user, t])
 
-    const uid = user != null ? String(user.id) : '-'
+    const fullUid = user != null ? (user.uuid ?? String(user.id)) : null
+    const trimmedUid = fullUid != null
+        ? (fullUid.includes('-') ? fullUid.split('-')[0] + '...' : fullUid)
+        : '-'
     const avatarText = displayName.slice(0, 2).toUpperCase()
 
     const copyUid = async () => {
-        if (user == null) return
+        if (fullUid == null) return
 
         try {
-            await navigator.clipboard?.writeText(String(user.id))
+            await navigator.clipboard?.writeText(fullUid)
         } catch (error) {
             void error
         }
@@ -76,20 +79,29 @@ export function ProfileWalletCard() {
                         {displayName}
                     </h2>
 
-                    {/* UID pill */}
-                    <button
-                        type="button"
-                        className="mt-2 flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[0.65rem] font-bold uppercase tracking-widest text-[#00e676] transition hover:bg-white/10 disabled:opacity-60 disabled:cursor-not-allowed"
-                        onClick={() => void copyUid()}
-                        disabled={user == null}
-                    >
-                        <span>UID: {uid}</span>
-                        {copied ? (
-                            <span className="material-symbols-outlined text-[0.9rem]">check</span>
-                        ) : (
-                            <span className="material-symbols-outlined text-[0.9rem]">content_copy</span>
+                    {/* UID + role row */}
+                    <div className="mt-2 flex items-center gap-2 flex-wrap">
+                        <button
+                            type="button"
+                            className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[0.65rem] font-bold uppercase tracking-widest text-[#00e676] transition hover:bg-white/10 disabled:opacity-60 disabled:cursor-not-allowed"
+                            onClick={() => void copyUid()}
+                            disabled={user == null}
+                        >
+                            <span>ID: {trimmedUid}</span>
+                            {copied ? (
+                                <span className="material-symbols-outlined text-[0.9rem]">check</span>
+                            ) : (
+                                <span className="material-symbols-outlined text-[0.9rem]">content_copy</span>
+                            )}
+                        </button>
+
+                        {user?.role != null && (
+                            <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[0.62rem] font-bold uppercase tracking-widest ${user.role === 'vip' ? 'border-[#fbbf24]/30 bg-[#fbbf24]/10 text-[#fbbf24]' : 'border-[#93c5fd]/25 bg-[#93c5fd]/8 text-[#93c5fd]'}`}>
+                                {user.role === 'vip' && <span className="material-symbols-outlined text-[0.75rem] leading-none mr-1">workspace_premium</span>}
+                                {user.role.toUpperCase()}
+                            </span>
                         )}
-                    </button>
+                    </div>
                 </div>
             </div>
         </section>

@@ -7,8 +7,9 @@ import { DepositHistoryPage } from '@/app/gambling/DepositHistoryPage'
 import { GamblingHistoryPage } from '@/app/gambling/GamblingHistoryPage'
 import { TransactionRecordPage } from '@/app/gambling/TransactionRecordPage'
 import { WithdrawalHistoryPage } from '@/app/gambling/WithdrawalHistoryPage'
-import { AnnouncementsPage } from '@/app/announcements/AnnouncementsPage'
-import { AnnouncementDetailPage } from '@/app/announcements/AnnouncementDetailPage'
+// v1: announcements not used
+// import { AnnouncementsPage } from '@/app/announcements/AnnouncementsPage'
+// import { AnnouncementDetailPage } from '@/app/announcements/AnnouncementDetailPage'
 import { BetDetailPage } from '@/app/bets/BetDetailPage'
 import { BetsPage } from '@/app/bets/BetsPage'
 import { OddSettingDetailPage } from '@/app/odd-settings/OddSettingDetailPage'
@@ -124,9 +125,10 @@ function resolveRouteElement(section: AppSectionId, routeId: string) {
     return <BetsPage />
   }
 
-  if (section === 'user-api' && routeId === 'announcements') {
-    return <AnnouncementsPage />
-  }
+  // v1: announcements not used
+  // if (section === 'user-api' && routeId === 'announcements') {
+  //   return <AnnouncementsPage />
+  // }
 
   if (section === 'user-api' && routeId === 'odd-settings') {
     return <OddSettingsPage />
@@ -169,7 +171,8 @@ export function AppRouter() {
           <Route path="wallet-profile/about" element={<Navigate replace to="/privacy-policy" />} />
           <Route path="wallet-profile/privacy-policy" element={<Navigate replace to="/privacy-policy" />} />
           <Route path="bets/:betId" element={<BetDetailPage />} />
-          <Route path="announcements/:id" element={<AnnouncementDetailPage />} />
+          {/* v1: announcements not used */}
+          {/* <Route path="announcements/:id" element={<AnnouncementDetailPage />} /> */}
           <Route path="odd-settings/:id" element={<OddSettingDetailPage />} />
 
           <Route path="*" element={<Navigate replace to={`/${routeMap.tabs[0].path}`} />} />

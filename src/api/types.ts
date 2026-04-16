@@ -4,6 +4,7 @@ export type UserRole = 'user' | 'vip'
 
 export type User = {
     id: number
+    uuid?: string
     username: string | null
     name: string | null
     email: string

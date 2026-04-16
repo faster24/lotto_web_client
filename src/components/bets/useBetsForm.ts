@@ -42,6 +42,11 @@ export type AdminPaymentAccount = {
 
 export const TARGET_OPEN_TIME_OPTIONS: BetCreateInput['target_opentime'][] = ['12:01:00', '16:30:00']
 
+export const TARGET_OPEN_TIME_LABELS: Record<string, string> = {
+    '12:01:00': '12:01 PM',
+    '16:30:00': '4:30 PM',
+}
+
 export const CURRENCY_OPTIONS: CurrencyOption[] = [
     { code: 'MMK', name: 'Myanmar Kyat', flagClass: 'fi-mm' },
     { code: 'THB', name: 'Thai Baht', flagClass: 'fi-th' },

@@ -203,10 +203,12 @@ const th = {
     accountNumber: 'หมายเลขบัญชี',
     createBankInfo: 'สร้างข้อมูลธนาคาร',
     updateBankInfo: 'อัปเดตข้อมูลธนาคาร',
-    clearBankInfo: 'ล้างข้อมูลธนาคาร',
+    updateConfirmTitle: 'อัปเดตข้อมูลธนาคาร?',
+    updateConfirmBody: 'ข้อมูลธนาคารสามารถอัปเดตได้เพียงครั้งเดียวต่อเดือน กรุณาตรวจสอบให้ถูกต้องก่อนยืนยัน',
+    updateConfirmYes: 'ใช่ อัปเดต',
+    updateConfirmCancel: 'ยกเลิก',
     loadError: 'ไม่สามารถโหลดข้อมูลธนาคาร',
     submitError: 'คำขอล้มเหลว กรุณาลองอีกครั้ง',
-    clearError: 'การล้างข้อมูลล้มเหลว',
   },
 
   results: {
@@ -227,11 +229,18 @@ const th = {
   },
 
   odds: {
-    eyebrow: 'อัตรา',
+    eyebrow: 'อัตราและการจ่าย',
     title: 'ตั้งค่าอัตรา',
-    desc: 'ข้อมูลจาก `/odd-settings`',
+    desc: 'อัตราปัจจุบันแยกตามประเภทการเดิมพันและระดับบัญชี',
     empty: 'ไม่มีการตั้งค่าอัตรา',
     loadError: 'ไม่สามารถโหลดการตั้งค่าอัตรา',
+    twod: 'อัตรา 2D',
+    threed: 'อัตรา 3D',
+    userOdd: 'ผู้ใช้',
+    vipOdd: 'VIP',
+    perUnit: 'ต่อ 1 หน่วย',
+    active: 'ใช้งาน',
+    inactive: 'ไม่ใช้งาน',
   },
 
   about: {

@@ -12,13 +12,14 @@ type ServiceItem = {
 }
 
 const serviceItems: ServiceItem[] = [
-  {
-    id: 'announcements',
-    titleKey: 'settings.announcements',
-    path: '/announcements',
-    icon: 'campaign',
-    pulse: true,
-  },
+  // v1: announcements not used
+  // {
+  //   id: 'announcements',
+  //   titleKey: 'settings.announcements',
+  //   path: '/announcements',
+  //   icon: 'campaign',
+  //   pulse: true,
+  // },
   {
     id: 'about',
     titleKey: 'settings.about',

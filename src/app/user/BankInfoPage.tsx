@@ -1,6 +1,6 @@
 import { type FormEvent, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { clearMyBankInfo, createMyBankInfo, getMyBankInfo, updateMyBankInfo } from '@/api/client'
+import { createMyBankInfo, getMyBankInfo, updateMyBankInfo } from '@/api/client'
 import type { WalletBankInfo } from '@/api/types'
 import { ApiStatePanel } from '@/components/api/ApiStatePanel'
 import { apiCard, apiHeader, apiScreen, screenRoot, screenScroll } from '@/styles/tw'
@@ -18,6 +18,7 @@ export function BankInfoPage() {
   const [bankInfo, setBankInfo] = useState<WalletBankInfo | null>(null)
   const [form, setForm] = useState<WalletBankInfo>(emptyForm)
   const [message, setMessage] = useState<string | null>(null)
+  const [showConfirm, setShowConfirm] = useState(false)
 
   useEffect(() => {
     void (async () => {
@@ -33,8 +34,17 @@ export function BankInfoPage() {
     })()
   }, [t])
 
-  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (bankInfo != null) {
+      setShowConfirm(true)
+    } else {
+      void doSubmit()
+    }
+  }
+
+  const doSubmit = async () => {
+    setShowConfirm(false)
     setMessage(null)
 
     try {
@@ -44,19 +54,6 @@ export function BankInfoPage() {
       setMessage(response.message)
     } catch {
       setMessage(t('wallet.submitError'))
-    }
-  }
-
-  const onClear = async () => {
-    setMessage(null)
-
-    try {
-      const response = await clearMyBankInfo()
-      setBankInfo(null)
-      setForm(emptyForm)
-      setMessage(response.message)
-    } catch {
-      setMessage(t('wallet.clearError'))
     }
   }
 
@@ -143,21 +140,41 @@ export function BankInfoPage() {
                   {bankInfo == null ? t('wallet.createBankInfo') : t('wallet.updateBankInfo')}
                 </button>
 
-                {bankInfo != null && (
-                  <button
-                    type="button"
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[rgb(239_68_68_/_30%)] bg-[rgb(239_68_68_/_7%)] px-4 py-3 text-[0.95rem] font-semibold text-[#fca5a5] transition-colors hover:border-[rgb(239_68_68_/_50%)] hover:bg-[rgb(239_68_68_/_13%)] active:scale-[0.98]"
-                    onClick={() => void onClear()}
-                  >
-                    <span className="material-symbols-outlined text-[1.05rem] leading-none">delete</span>
-                    {t('wallet.clearBankInfo')}
-                  </button>
-                )}
               </div>
             </form>
           </section>
         )}
       </main>
+
+      {/* Update confirmation modal */}
+      {showConfirm && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm px-4 pb-6">
+          <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-[rgb(8_14_40)] p-5 shadow-2xl">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="material-symbols-outlined text-[1.3rem] text-[#f59e0b]">warning</span>
+              <h3 className="m-0 text-[1rem] font-semibold text-[#e2e8f0]">{t('wallet.updateConfirmTitle')}</h3>
+            </div>
+            <p className="m-0 mb-5 text-[0.84rem] leading-[1.55] text-[#8a9bb3]">{t('wallet.updateConfirmBody')}</p>
+            <div className="grid gap-2.5">
+              <button
+                type="button"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,rgb(59_130_246),rgb(99_102_241))] px-4 py-3 text-[0.95rem] font-semibold text-white shadow-[0_2px_14px_rgb(59_130_246_/_30%)] transition-all hover:brightness-110 active:scale-[0.98]"
+                onClick={() => void doSubmit()}
+              >
+                <span className="material-symbols-outlined text-[1.05rem] leading-none">save</span>
+                {t('wallet.updateConfirmYes')}
+              </button>
+              <button
+                type="button"
+                className="inline-flex w-full items-center justify-center rounded-xl border border-white/10 bg-white/4 px-4 py-3 text-[0.95rem] font-semibold text-[#8a9bb3] transition-colors hover:bg-white/8 active:scale-[0.98]"
+                onClick={() => { setShowConfirm(false) }}
+              >
+                {t('wallet.updateConfirmCancel')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

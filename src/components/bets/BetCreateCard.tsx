@@ -6,6 +6,7 @@ import { apiButton } from '@/styles/tw'
 import {
     CURRENCY_OPTIONS,
     TARGET_OPEN_TIME_OPTIONS,
+    TARGET_OPEN_TIME_LABELS,
     createEmptyRow,
     formatAmount,
     type BetCreateFormState,
@@ -204,7 +205,7 @@ function StepSetup({
                         }}
                     >
                         {TARGET_OPEN_TIME_OPTIONS.map((value) => (
-                            <option key={value} value={value}>{value}</option>
+                            <option key={value} value={value}>{TARGET_OPEN_TIME_LABELS[value] ?? value}</option>
                         ))}
                     </select>
                 </label>

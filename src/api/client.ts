@@ -36,6 +36,7 @@ const BET_LIST_LIVE_ENABLED = (import.meta.env.VITE_BET_LIST_LIVE_ENABLED as str
 const TWOD_RESULTS_LIVE_ENABLED = (import.meta.env.VITE_TWOD_RESULTS_LIVE_ENABLED as string | undefined) !== 'false'
 const PAYOUT_LIVE_ENABLED = (import.meta.env.VITE_PAYOUT_LIVE_ENABLED as string | undefined) !== 'false'
 const ACCEPTED_PAYMENTS_LIVE_ENABLED = (import.meta.env.VITE_ACCEPTED_PAYMENTS_LIVE_ENABLED as string | undefined) !== 'false'
+const ODD_SETTINGS_LIVE_ENABLED = (import.meta.env.VITE_ODD_SETTINGS_LIVE_ENABLED as string | undefined) !== 'false'
 const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'http://localhost:8000/api/v1').replace(/\/+$/, '')
 
 const wait = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms))
@@ -480,16 +481,6 @@ export async function updateMyBankInfo(input: WalletBankInfo) {
   return ok<{ bank_info: WalletBankInfo }>('Bank info updated', { bank_info: input })
 }
 
-export async function clearMyBankInfo() {
-  if (WALLET_LIVE_ENABLED) {
-    return authedRequest<ApiResult<null>>('DELETE', '/me/bank-info', null, 'Failed to clear bank info.')
-  }
-
-  await wait(NETWORK_DELAY_MS)
-  setMockBankInfo(null)
-  return ok('Bank info cleared', null)
-}
-
 export async function listBets() {
   if (BET_LIST_LIVE_ENABLED) {
     return authedRequest<ApiResult<{ bets: Bet[] }>>(
@@ -679,18 +670,22 @@ export async function getAnnouncementById(id: number) {
 }
 
 export async function listOddSettings() {
-  ensureMockMode()
-  await wait(NETWORK_DELAY_MS)
+  if (ODD_SETTINGS_LIVE_ENABLED) {
+    return authedRequest<ApiResult<{ odd_settings: OddSetting[] }>>('GET', '/odd-settings', null, 'Failed to load odd settings.')
+  }
 
+  await wait(NETWORK_DELAY_MS)
   return ok<{ odd_settings: OddSetting[] }>('Odd settings list', {
     odd_settings: mockOddSettings,
   })
 }
 
 export async function getOddSettingById(id: number) {
-  ensureMockMode()
-  await wait(NETWORK_DELAY_MS)
+  if (ODD_SETTINGS_LIVE_ENABLED) {
+    return authedRequest<ApiResult<{ odd_setting: OddSetting | null }>>('GET', `/odd-settings/${id}`, null, 'Failed to load odd setting.')
+  }
 
+  await wait(NETWORK_DELAY_MS)
   const oddSetting = mockOddSettings.find((item) => item.id === id) ?? null
   return ok<{ odd_setting: OddSetting | null }>('Odd setting detail', {
     odd_setting: oddSetting,

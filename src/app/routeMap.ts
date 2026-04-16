@@ -151,13 +151,14 @@ export const routeMap: Record<AppSectionId, AppRouteDefinition[]> = {
       label: 'Bets',
       description: 'List and create bets using /bets.',
     },
-    {
-      id: 'announcements',
-      section: 'user-api',
-      path: 'announcements',
-      label: 'Announcements',
-      description: 'Notices feed from /announcements.',
-    },
+    // v1: announcements not used
+    // {
+    //   id: 'announcements',
+    //   section: 'user-api',
+    //   path: 'announcements',
+    //   label: 'Announcements',
+    //   description: 'Notices feed from /announcements.',
+    // },
     {
       id: 'odd-settings',
       section: 'user-api',
