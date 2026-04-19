@@ -1,4 +1,5 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { createBet, listBankSettings } from '@/api/client'
 import type { AdminBankSetting, BetCreateInput } from '@/api/types'
 
@@ -86,6 +87,7 @@ export function formatAmount(value: number, currency: BetCreateInput['currency']
 // ── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetCreateInput['bet_type'] | undefined) {
+    const navigate = useNavigate()
     const [form, setForm] = useState<BetCreateFormState>(initialForm)
     const [betRows, setBetRows] = useState<BetNumberRow[]>([createEmptyRow()])
     const [rowErrors, setRowErrors] = useState<Record<string, BetRowError>>({})
@@ -162,11 +164,11 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
             } else {
                 const value = Number(number)
                 if (isTwoD) {
-                    if (number.length !== 2 || value < 1 || value > 99) {
-                        rowError.number = 'Number must be between 01 and 99.'
+                    if (number.length !== 2 || value < 0 || value > 99) {
+                        rowError.number = 'Number must be between 00 and 99.'
                     }
-                } else if (number.length > 3 || value < 1 || value > 999) {
-                    rowError.number = 'Number must be between 1 and 999.'
+                } else if (number.length > 3 || value < 0 || value > 999) {
+                    rowError.number = 'Number must be between 0 and 999.'
                 }
             }
 
@@ -226,15 +228,7 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
                 bet_numbers: normalized,
             })
 
-            setMessage(response.message)
-            setForm((prev) => ({ ...prev, pay_slip_image: null, bet_type: activePayloadBetType }))
-            setBetRows([createEmptyRow()])
-            setRowErrors({})
-            setCurrentStep(1)
-
-            if (fileInputRef.current != null) {
-                fileInputRef.current.value = ''
-            }
+            navigate('/bets')
         } catch (caughtError) {
             setMessage(caughtError instanceof Error ? caughtError.message : 'Create bet failed.')
         } finally {

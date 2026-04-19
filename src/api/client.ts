@@ -528,13 +528,15 @@ export async function listAcceptedPayments() {
 
 export async function listBankSettings() {
   if (BANK_SETTINGS_LIVE_ENABLED) {
-    return authedRequest<ApiResult<{ admin_bank_settings: AdminBankSetting[] }>>(
+    const result = await authedRequest<ApiResult<Record<string, AdminBankSetting[]>>>(
       'GET',
-      '/admin/bank-settings',
+      '/bank-settings',
       null,
       'Failed to load bank settings.',
-      () => ok<{ admin_bank_settings: AdminBankSetting[] }>('No bank settings', { admin_bank_settings: [] }),
+      () => ok<Record<string, AdminBankSetting[]>>('No bank settings', { admin_bank_settings: [] }),
     )
+    const settings = result.data.admin_bank_settings ?? result.data.bank_settings ?? []
+    return ok<{ admin_bank_settings: AdminBankSetting[] }>(result.message, { admin_bank_settings: settings })
   }
 
   await wait(NETWORK_DELAY_MS)

@@ -286,7 +286,7 @@ function StepSetup({
 
 // ── SmartGenerateCard ────────────────────────────────────────────────────────
 
-type GeneratorKey = 'reverse' | 'double' | 'nakkhat' | 'power' | 'brother' | 'khway'
+type GeneratorKey = 'reverse' | 'double' | 'nakkhat' | 'power' | 'brother' | 'khway' | 'a-par'
 
 const NAKKHAT_PAIRS: [string, string][] = [
     ['07', '70'], ['18', '81'], ['24', '42'], ['35', '53'], ['69', '96'],
@@ -309,6 +309,7 @@ type GeneratorDef = {
     fields: { number: boolean; amount: boolean; digits?: boolean }
     numberLabel?: string
     numberHint?: string
+    numberMaxLength?: number
 }
 
 type SmartGenerateCardProps = {
@@ -374,6 +375,16 @@ function SmartGenerateCard({ betRows, setBetRows, isTwoDType }: SmartGenerateCar
                 description: 'Permutation wheel',
                 fields: { number: false, amount: true, digits: true },
             },
+            {
+                key: 'a-par' as GeneratorKey,
+                icon: 'tag',
+                label: 'A-Par',
+                description: 'All 19 pairs with digit',
+                fields: { number: true, amount: true },
+                numberLabel: 'Digit (0–9)',
+                numberHint: 'Generates all 19 numbers containing this digit.',
+                numberMaxLength: 1,
+            },
         ] : []),
     ]
 
@@ -419,6 +430,24 @@ function SmartGenerateCard({ betRows, setBetRows, isTwoDType }: SmartGenerateCar
                 toAdd.push({ ...createEmptyRow(), number: rev, amount })
             }
             if (toAdd.length > 0) setBetRows((prev) => mergeRows(prev, toAdd))
+        }
+
+        if (activeGen === 'a-par') {
+            const digit = modalNumber.trim()
+            if (!/^\d$/.test(digit)) {
+                setModalError('Enter exactly 1 digit (0–9).')
+                return
+            }
+            const existing = new Set(betRows.map((r) => r.number))
+            const candidates = new Set<string>()
+            for (let i = 0; i <= 9; i++) {
+                candidates.add(`${digit}${i}`)
+                candidates.add(`${i}${digit}`)
+            }
+            const newRows = [...candidates]
+                .filter((n) => !existing.has(n))
+                .map((n) => ({ ...createEmptyRow(), number: n, amount }))
+            if (newRows.length > 0) setBetRows((prev) => mergeRows(prev, newRows))
         }
 
         const pairSets: Partial<Record<GeneratorKey, [string, string][]>> = {
@@ -534,12 +563,13 @@ function SmartGenerateCard({ betRows, setBetRows, isTwoDType }: SmartGenerateCar
                                     <input
                                         className="h-11 w-full rounded-xl border border-white/12 bg-[rgb(5_10_31_/_68%)] px-3 text-[#f7f9ff] text-center text-xl font-bold tracking-widest focus:border-[rgb(0_230_118_/_55%)] focus:outline-none"
                                         inputMode="numeric"
-                                        maxLength={maxDigits}
-                                        placeholder={isTwoDType ? '12' : '123'}
+                                        maxLength={activeDef.numberMaxLength ?? maxDigits}
+                                        placeholder={activeDef.numberMaxLength === 1 ? '5' : (isTwoDType ? '12' : '123')}
                                         value={modalNumber}
                                         onChange={(e) => {
                                             setModalError(null)
-                                            setModalNumber(e.currentTarget.value.replace(/\D/g, '').slice(0, maxDigits))
+                                            const limit = activeDef.numberMaxLength ?? maxDigits
+                                            setModalNumber(e.currentTarget.value.replace(/\D/g, '').slice(0, limit))
                                         }}
                                         autoFocus
                                     />
@@ -833,7 +863,7 @@ function StepNumbers({
                         <div className="grid gap-2 sm:grid-cols-2">
                             <div>
                                 <label className="mb-1 block text-[0.74rem] text-[#8a9bb3]" htmlFor={`bet-number-${row.id}`}>
-                                    {t('bets.numberRange', { range: isTwoDType ? '01-99' : '1-999' })}
+                                    {t('bets.numberRange', { range: isTwoDType ? '00-99' : '0-999' })}
                                 </label>
                                 <input
                                     id={`bet-number-${row.id}`}
