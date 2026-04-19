@@ -151,6 +151,20 @@ export const routeMap: Record<AppSectionId, AppRouteDefinition[]> = {
       label: 'Bets',
       description: 'List and create bets using /bets.',
     },
+    {
+      id: 'bets-2d',
+      section: 'user-api',
+      path: 'bets/2d',
+      label: 'Place 2D Bet',
+      description: '2D bet creation wizard.',
+    },
+    {
+      id: 'bets-3d',
+      section: 'user-api',
+      path: 'bets/3d',
+      label: 'Place 3D Bet',
+      description: '3D bet creation wizard.',
+    },
     // v1: announcements not used
     // {
     //   id: 'announcements',

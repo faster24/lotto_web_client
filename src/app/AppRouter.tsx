@@ -12,6 +12,7 @@ import { WithdrawalHistoryPage } from '@/app/gambling/WithdrawalHistoryPage'
 // import { AnnouncementDetailPage } from '@/app/announcements/AnnouncementDetailPage'
 import { BetDetailPage } from '@/app/bets/BetDetailPage'
 import { BetsPage } from '@/app/bets/BetsPage'
+import { PlaceBetPage } from '@/app/bets/PlaceBetPage'
 import { OddSettingDetailPage } from '@/app/odd-settings/OddSettingDetailPage'
 import { OddSettingsPage } from '@/app/odd-settings/OddSettingsPage'
 import { ThreeDLatestPage } from '@/app/results/ThreeDLatestPage'
@@ -123,6 +124,14 @@ function resolveRouteElement(section: AppSectionId, routeId: string) {
 
   if (section === 'user-api' && routeId === 'bets') {
     return <BetsPage />
+  }
+
+  if (section === 'user-api' && routeId === 'bets-2d') {
+    return <ProtectedRoute><PlaceBetPage betType="2D" /></ProtectedRoute>
+  }
+
+  if (section === 'user-api' && routeId === 'bets-3d') {
+    return <ProtectedRoute><PlaceBetPage betType="3D" /></ProtectedRoute>
   }
 
   // v1: announcements not used

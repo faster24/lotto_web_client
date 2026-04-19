@@ -1,4 +1,5 @@
 import type { RefObject } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { BetCreateInput, WalletBankInfo } from '@/api/types'
@@ -23,6 +24,102 @@ function CurrencyFlag({ code }: { code: BetCreateInput['currency'] }) {
     return <span aria-hidden="true" className={`fi ${option.flagClass} h-[14px] w-5 overflow-hidden rounded-[3px] border border-white/10`} />
 }
 
+// ── TargetOpenTimeSelector ───────────────────────────────────────────────────
+
+function secondsUntil(openTime: string): number {
+    const now = new Date()
+    const parts = openTime.split(':')
+    const h = parseInt(parts[0] ?? '0', 10)
+    const m = parseInt(parts[1] ?? '0', 10)
+    const s = parseInt(parts[2] ?? '0', 10)
+    const target = new Date(now)
+    target.setHours(h, m, s, 0)
+    return Math.max(0, Math.floor((target.getTime() - now.getTime()) / 1000))
+}
+
+function formatCountdown(totalSeconds: number): string {
+    if (totalSeconds === 0) return 'Closed today'
+    const h = Math.floor(totalSeconds / 3600)
+    const m = Math.floor((totalSeconds % 3600) / 60)
+    const s = totalSeconds % 60
+    if (h > 0) return `${h}h ${m}m ${s}s`
+    if (m > 0) return `${m}m ${s}s`
+    return `${s}s`
+}
+
+type TargetOpenTimeSelectorProps = {
+    form: BetCreateFormState
+    setForm: React.Dispatch<React.SetStateAction<BetCreateFormState>>
+}
+
+function TargetOpenTimeSelector({ form, setForm }: TargetOpenTimeSelectorProps) {
+    const { t } = useTranslation()
+    const [open, setOpen] = useState(false)
+    const [countdown, setCountdown] = useState(() => secondsUntil(form.target_opentime))
+
+    useEffect(() => {
+        const id = window.setInterval(() => {
+            setCountdown(secondsUntil(form.target_opentime))
+        }, 1000)
+        return () => window.clearInterval(id)
+    }, [form.target_opentime])
+
+    const selectedLabel = TARGET_OPEN_TIME_LABELS[form.target_opentime] ?? form.target_opentime
+
+    return (
+        <div className="mb-5">
+            <p className="text-[0.6rem] font-bold text-white/40 uppercase tracking-widest mb-2 px-1">
+                {t('bets.targetOpenTime')}
+            </p>
+            <div
+                className="bg-[#1f2634] rounded-xl p-4 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all border border-transparent hover:border-[#51e1a5]/20"
+                onClick={() => setOpen((v) => !v)}
+            >
+                <div className="flex items-center gap-3">
+                    <span className="material-symbols-outlined text-[#51e1a5] text-[1.25rem]">schedule</span>
+                    <div>
+                        <p className="text-sm font-bold text-white">{selectedLabel}</p>
+                        <p className="text-[0.6rem] text-white/40 font-medium uppercase tracking-tight mt-0.5">
+                            Closing in {formatCountdown(countdown)}
+                        </p>
+                    </div>
+                </div>
+                <span className="material-symbols-outlined text-white/40 text-[1.1rem]">
+                    {open ? 'expand_less' : 'expand_more'}
+                </span>
+            </div>
+
+            {open && (
+                <div className="mt-2 flex flex-col gap-2">
+                    {TARGET_OPEN_TIME_OPTIONS.map((value) => {
+                        const isActive = form.target_opentime === value
+                        return (
+                            <button
+                                key={value}
+                                type="button"
+                                className={`rounded-xl p-3 flex items-center justify-between transition-all active:scale-[0.98] ${
+                                    isActive
+                                        ? 'bg-[#51e1a5]/10 border border-[#51e1a5]/20 text-[#51e1a5]'
+                                        : 'bg-[#19202d] border border-transparent text-white/60 hover:text-white'
+                                }`}
+                                onClick={() => {
+                                    setForm((prev) => ({ ...prev, target_opentime: value as BetCreateInput['target_opentime'] }))
+                                    setOpen(false)
+                                }}
+                            >
+                                <span className="text-sm font-bold">{TARGET_OPEN_TIME_LABELS[value] ?? value}</span>
+                                {isActive && (
+                                    <span className="material-symbols-outlined text-[#51e1a5] text-[1rem]">check</span>
+                                )}
+                            </button>
+                        )
+                    })}
+                </div>
+            )}
+        </div>
+    )
+}
+
 // ── StepIndicator ────────────────────────────────────────────────────────────
 
 type StepIndicatorProps = {
@@ -38,19 +135,19 @@ function StepIndicator({ currentStep }: StepIndicatorProps) {
     ]
 
     return (
-        <div className="mb-3 flex bg-[rgb(4_10_31_/_60%)] rounded-xl p-1.5 gap-1 border border-white/5" aria-label={t('bets.createStepsLabel')}>
+        <div className="mb-6 flex bg-[#0e131e] p-1.5 rounded-2xl gap-1" aria-label={t('bets.createStepsLabel')}>
             {steps.map((step) => {
                 const isActive = currentStep === step.id
                 const isDone = currentStep > step.id
                 return (
                     <div
                         key={step.id}
-                        className={`flex-1 py-2.5 rounded-lg text-center text-[0.72rem] font-bold uppercase tracking-wider transition-colors ${
+                        className={`flex-1 py-3 rounded-xl text-center text-[0.72rem] font-bold uppercase tracking-wider transition-all ${
                             isDone
-                                ? 'bg-[rgb(0_230_118_/_12%)] text-[#00e676]'
+                                ? 'bg-[#19202d] text-[#51e1a5] shadow-[0_0_10px_rgba(81,225,165,0.15)]'
                                 : isActive
-                                ? 'bg-[rgb(23_29_48)] text-[#f7f9ff] shadow-sm'
-                                : 'text-[#8a9bb3] hover:bg-white/5'
+                                ? 'bg-[#19202d] text-[#51e1a5] shadow-[0_0_10px_rgba(81,225,165,0.15)]'
+                                : 'text-white/30 hover:text-white/50'
                         }`}
                     >
                         {step.label}
@@ -95,162 +192,625 @@ function StepSetup({
     const { t } = useTranslation()
     return (
         <>
-            <div className="grid gap-3 sm:grid-cols-2">
-                <div className="block space-y-1.5" ref={currencySelectRef}>
-                    <span className="block text-[0.78rem] font-semibold uppercase tracking-[0.06em] text-[#8a9bb3]">{t('bets.currency')}</span>
-                    <button
-                        ref={currencyButtonRef}
-                        type="button"
-                        aria-haspopup="listbox"
-                        aria-expanded={isCurrencyOpen}
-                        aria-controls="currency-options"
-                        className="flex h-11 w-full items-center justify-between rounded-xl border border-white/12 bg-[rgb(5_10_31_/_68%)] px-3 text-[#f7f9ff] transition-colors focus:border-[rgb(59_130_246_/_60%)] focus:outline-none"
-                        onClick={() => setIsCurrencyOpen((prev) => !prev)}
+            <div className="mb-1" ref={currencySelectRef}>
+                <p className="text-[0.6rem] font-bold text-white/40 uppercase tracking-widest mb-2 px-1">
+                    {t('bets.currency')}
+                </p>
+                <button
+                    ref={currencyButtonRef}
+                    type="button"
+                    aria-haspopup="listbox"
+                    aria-expanded={isCurrencyOpen}
+                    aria-controls="currency-options"
+                    className="w-full bg-[#1f2634] rounded-xl p-4 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all border border-transparent hover:border-[#51e1a5]/20 focus:outline-none"
+                    onClick={() => setIsCurrencyOpen((prev) => !prev)}
+                    onKeyDown={(event) => {
+                        if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault()
+                            setIsCurrencyOpen(true)
+                        }
+                    }}
+                >
+                    <div className="flex items-center gap-3">
+                        <span className="material-symbols-outlined text-[#51e1a5] text-[1.25rem]">payments</span>
+                        <div className="text-left">
+                            <p className="text-sm font-bold text-white">{selectedCurrency.code}</p>
+                        </div>
+                    </div>
+                    <span className="material-symbols-outlined text-white/40 text-[1.1rem]">
+                        {isCurrencyOpen ? 'expand_less' : 'expand_more'}
+                    </span>
+                </button>
+
+                {isCurrencyOpen && (
+                    <ul
+                        id="currency-options"
+                        role="listbox"
+                        aria-label={t('bets.currencyOptions')}
+                        className="mt-2 flex flex-col gap-2"
                         onKeyDown={(event) => {
-                            if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter' || event.key === ' ') {
-                                event.preventDefault()
-                                setIsCurrencyOpen(true)
-                            }
+                            if (event.key === 'ArrowDown') { event.preventDefault(); setHighlightedCurrencyIndex((prev) => Math.min(prev + 1, CURRENCY_OPTIONS.length - 1)); return }
+                            if (event.key === 'ArrowUp') { event.preventDefault(); setHighlightedCurrencyIndex((prev) => Math.max(prev - 1, 0)); return }
+                            if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); const active = CURRENCY_OPTIONS[highlightedCurrencyIndex]; if (active != null) selectCurrency(active.code); return }
+                            if (event.key === 'Escape') { event.preventDefault(); setIsCurrencyOpen(false); currencyButtonRef.current?.focus() }
                         }}
                     >
-                        <span className="flex items-center gap-2">
-                            <CurrencyFlag code={selectedCurrency.code} />
-                            <span className="text-[0.86rem] font-semibold text-[#e2e8f0]">{selectedCurrency.code}</span>
-                        </span>
-                        <svg viewBox="0 0 24 24" aria-hidden="true" className={`h-4 w-4 text-[#8a9bb3] transition-transform ${isCurrencyOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                    </button>
-
-                    {isCurrencyOpen && (
-                        <ul
-                            id="currency-options"
-                            role="listbox"
-                            aria-label={t('bets.currencyOptions')}
-                            aria-activedescendant={`currency-option-${CURRENCY_OPTIONS[highlightedCurrencyIndex]?.code ?? selectedCurrency.code}`}
-                            className="mt-1.5 max-h-44 overflow-y-auto rounded-xl border border-white/12 bg-[rgb(5_10_31_/_96%)] p-1"
-                            onKeyDown={(event) => {
-                                if (event.key === 'ArrowDown') {
-                                    event.preventDefault()
-                                    setHighlightedCurrencyIndex((prev) => Math.min(prev + 1, CURRENCY_OPTIONS.length - 1))
-                                    return
-                                }
-                                if (event.key === 'ArrowUp') {
-                                    event.preventDefault()
-                                    setHighlightedCurrencyIndex((prev) => Math.max(prev - 1, 0))
-                                    return
-                                }
-                                if (event.key === 'Home') {
-                                    event.preventDefault()
-                                    setHighlightedCurrencyIndex(0)
-                                    return
-                                }
-                                if (event.key === 'End') {
-                                    event.preventDefault()
-                                    setHighlightedCurrencyIndex(CURRENCY_OPTIONS.length - 1)
-                                    return
-                                }
-                                if (event.key === 'Enter' || event.key === ' ') {
-                                    event.preventDefault()
-                                    const active = CURRENCY_OPTIONS[highlightedCurrencyIndex]
-                                    if (active != null) selectCurrency(active.code)
-                                    return
-                                }
-                                if (event.key === 'Escape') {
-                                    event.preventDefault()
-                                    setIsCurrencyOpen(false)
-                                    currencyButtonRef.current?.focus()
-                                }
-                            }}
-                        >
-                            {CURRENCY_OPTIONS.map((option, index) => {
-                                const isSelected = form.currency === option.code
-                                const isHighlighted = index === highlightedCurrencyIndex
-                                return (
-                                    <li key={option.code}>
-                                        <button
-                                            id={`currency-option-${option.code}`}
-                                            type="button"
-                                            role="option"
-                                            aria-selected={isSelected}
-                                            className={`flex min-h-[44px] w-full items-center justify-between rounded-lg px-2.5 py-2 text-left transition-colors ${isHighlighted ? 'bg-[rgb(59_130_246_/_20%)] text-[#f7f9ff]' : 'text-[#cbd5e1] hover:bg-white/7'}`}
-                                            onMouseEnter={() => setHighlightedCurrencyIndex(index)}
-                                            onClick={() => selectCurrency(option.code)}
-                                        >
-                                            <span className="flex items-center gap-2">
-                                                <CurrencyFlag code={option.code} />
-                                                <span className="text-[0.84rem] font-medium">{option.code}</span>
-                                            </span>
-                                            {isSelected && (
-                                                <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 text-[#86efac]" fill="none" stroke="currentColor" strokeWidth="2">
-                                                    <path d="m5 12 4 4 10-10" strokeLinecap="round" strokeLinejoin="round" />
-                                                </svg>
-                                            )}
-                                        </button>
-                                    </li>
-                                )
-                            })}
-                        </ul>
-                    )}
-                </div>
-
-                <label className="block space-y-1.5">
-                    <span className="text-[0.78rem] font-semibold uppercase tracking-[0.06em] text-[#8a9bb3]">{t('bets.targetOpenTime')}</span>
-                    <select
-                        className="h-11 w-full rounded-xl border border-white/12 bg-[rgb(5_10_31_/_68%)] px-3 text-[#f7f9ff] transition-colors focus:border-[rgb(59_130_246_/_60%)] focus:outline-none"
-                        value={form.target_opentime}
-                        onChange={(event) => {
-                            const value = event.currentTarget.value as BetCreateInput['target_opentime']
-                            setForm((prev) => ({ ...prev, target_opentime: value }))
-                        }}
-                    >
-                        {TARGET_OPEN_TIME_OPTIONS.map((value) => (
-                            <option key={value} value={value}>{TARGET_OPEN_TIME_LABELS[value] ?? value}</option>
-                        ))}
-                    </select>
-                </label>
+                        {CURRENCY_OPTIONS.map((option, index) => {
+                            const isSelected = form.currency === option.code
+                            const isHighlighted = index === highlightedCurrencyIndex
+                            return (
+                                <li key={option.code}>
+                                    <button
+                                        id={`currency-option-${option.code}`}
+                                        type="button"
+                                        role="option"
+                                        aria-selected={isSelected}
+                                        className={`w-full rounded-xl p-3 flex items-center justify-between transition-all active:scale-[0.98] ${
+                                            isSelected || isHighlighted
+                                                ? 'bg-[#51e1a5]/10 border border-[#51e1a5]/20 text-[#51e1a5]'
+                                                : 'bg-[#19202d] border border-transparent text-white/60 hover:text-white'
+                                        }`}
+                                        onMouseEnter={() => setHighlightedCurrencyIndex(index)}
+                                        onClick={() => selectCurrency(option.code)}
+                                    >
+                                        <span className="flex items-center gap-2">
+                                            <CurrencyFlag code={option.code} />
+                                            <span className="text-sm font-bold">{option.code}</span>
+                                        </span>
+                                        {isSelected && (
+                                            <span className="material-symbols-outlined text-[#51e1a5] text-[1rem]">check</span>
+                                        )}
+                                    </button>
+                                </li>
+                            )
+                        })}
+                    </ul>
+                )}
             </div>
 
             <button
                 type="button"
                 aria-label={t('bets.nextStep')}
-                title={t('bets.nextStep')}
-                className={`${apiButton} my-[5px] min-h-[44px] w-full !justify-center text-center`}
+                className="h-14 w-full bg-gradient-to-r from-[#00e676] to-[#2ac48b] rounded-2xl flex items-center justify-between px-6 shadow-[0_12px_24px_rgba(0,230,118,0.3)] active:scale-95 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
                 onClick={goToStepTwo}
                 disabled={!canCreateForActiveType}
             >
-                <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.2">
-                    <path d="M5 12h14" strokeLinecap="round" />
-                    <path d="m13 6 6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <span className="sr-only">{t('common.next')}</span>
+                <span className="font-semibold text-[0.9rem] text-[#003824] tracking-tight uppercase">{t('common.next')}</span>
+                <div className="w-9 h-9 rounded-full bg-black/10 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-[#003824] text-[20px]">arrow_forward</span>
+                </div>
             </button>
         </>
+    )
+}
+
+// ── SmartGenerateCard ────────────────────────────────────────────────────────
+
+type GeneratorKey = 'reverse' | 'double' | 'nakkhat' | 'power' | 'brother' | 'khway'
+
+const NAKKHAT_PAIRS: [string, string][] = [
+    ['07', '70'], ['18', '81'], ['24', '42'], ['35', '53'], ['69', '96'],
+]
+
+const POWER_PAIRS: [string, string][] = [
+    ['05', '50'], ['16', '61'], ['27', '72'], ['38', '83'], ['49', '94'],
+]
+
+const BROTHER_PAIRS: [string, string][] = [
+    ['01', '10'], ['12', '21'], ['23', '32'], ['34', '43'], ['45', '54'],
+    ['56', '65'], ['67', '76'], ['78', '87'], ['89', '98'], ['90', '09'],
+]
+
+type GeneratorDef = {
+    key: GeneratorKey
+    icon: string
+    label: string
+    description: string
+    fields: { number: boolean; amount: boolean; digits?: boolean }
+    numberLabel?: string
+    numberHint?: string
+}
+
+type SmartGenerateCardProps = {
+    betRows: BetNumberRow[]
+    setBetRows: React.Dispatch<React.SetStateAction<BetNumberRow[]>>
+    isTwoDType: boolean
+}
+
+function SmartGenerateCard({ betRows, setBetRows, isTwoDType }: SmartGenerateCardProps) {
+    const [open, setOpen] = useState(false)
+    const [activeGen, setActiveGen] = useState<GeneratorKey | null>(null)
+    const [modalNumber, setModalNumber] = useState('')
+    const [modalAmount, setModalAmount] = useState('')
+    const [modalError, setModalError] = useState<string | null>(null)
+    const [modalDigits, setModalDigits] = useState<Set<string>>(new Set())
+    const [modalIncludeDoubles, setModalIncludeDoubles] = useState(false)
+
+    const maxDigits = isTwoDType ? 2 : 3
+
+    const generators: GeneratorDef[] = [
+        {
+            key: 'reverse',
+            icon: 'sync_alt',
+            label: 'Reverse',
+            description: 'Add a number + its mirror',
+            fields: { number: true, amount: true },
+            numberLabel: `Number (${isTwoDType ? '01–99' : '1–999'})`,
+            numberHint: 'Both the number and its reverse will be added.',
+        },
+        {
+            key: 'double',
+            icon: 'filter_2',
+            label: 'Double',
+            description: isTwoDType ? 'All doubles 00–99' : 'All doubles 000–999',
+            fields: { number: false, amount: true },
+        },
+        ...(isTwoDType ? [
+            {
+                key: 'nakkhat' as GeneratorKey,
+                icon: 'stars',
+                label: 'Nakkhat',
+                description: '10 lucky pairs',
+                fields: { number: false, amount: true },
+            },
+            {
+                key: 'power' as GeneratorKey,
+                icon: 'bolt',
+                label: 'Power',
+                description: '10 pairs diff. of 5',
+                fields: { number: false, amount: true },
+            },
+            {
+                key: 'brother' as GeneratorKey,
+                icon: 'group',
+                label: 'Brother',
+                description: '20 consecutive pairs',
+                fields: { number: false, amount: true },
+            },
+            {
+                key: 'khway' as GeneratorKey,
+                icon: 'casino',
+                label: 'Khway',
+                description: 'Permutation wheel',
+                fields: { number: false, amount: true, digits: true },
+            },
+        ] : []),
+    ]
+
+    const openModal = (key: GeneratorKey) => {
+        setActiveGen(key)
+        setModalNumber('')
+        setModalAmount('')
+        setModalError(null)
+        setModalDigits(new Set())
+        setModalIncludeDoubles(false)
+    }
+
+    const closeModal = () => {
+        setActiveGen(null)
+        setModalError(null)
+    }
+
+    const mergeRows = (prev: BetNumberRow[], newRows: BetNumberRow[]): BetNumberRow[] => {
+        const filled = prev.filter((r) => r.number !== '' || r.amount !== '')
+        return filled.length > 0 ? [...filled, ...newRows] : newRows
+    }
+
+    const confirm = () => {
+        setModalError(null)
+        const amount = modalAmount.trim()
+        const amountVal = Number(amount)
+        if (!/^\d+$/.test(amount) || !Number.isInteger(amountVal) || amountVal < 1) {
+            setModalError('Amount must be an integer ≥ 1.')
+            return
+        }
+
+        if (activeGen === 'reverse') {
+            const num = modalNumber.trim()
+            if (!/^\d+$/.test(num) || num.length < 2 || num.length > maxDigits) {
+                setModalError(isTwoDType ? 'Enter exactly 2 digits.' : 'Enter 2 or 3 digits.')
+                return
+            }
+            const rev = num.split('').reverse().join('')
+            const existing = new Set(betRows.map((r) => r.number))
+            const toAdd: BetNumberRow[] = []
+            if (!existing.has(num)) toAdd.push({ ...createEmptyRow(), number: num, amount })
+            if (rev !== num && !existing.has(rev) && !toAdd.some((r) => r.number === rev)) {
+                toAdd.push({ ...createEmptyRow(), number: rev, amount })
+            }
+            if (toAdd.length > 0) setBetRows((prev) => mergeRows(prev, toAdd))
+        }
+
+        const pairSets: Partial<Record<GeneratorKey, [string, string][]>> = {
+            nakkhat: NAKKHAT_PAIRS,
+            power: POWER_PAIRS,
+            brother: BROTHER_PAIRS,
+        }
+        const pairSet = activeGen != null ? pairSets[activeGen] : undefined
+        if (pairSet != null) {
+            const existing = new Set(betRows.map((r) => r.number))
+            const newRows = pairSet.flatMap(([a, b]) => [a, b])
+                .filter((n) => !existing.has(n))
+                .map((n) => ({ ...createEmptyRow(), number: n, amount }))
+            if (newRows.length > 0) setBetRows((prev) => mergeRows(prev, newRows))
+        }
+
+        if (activeGen === 'khway') {
+            if (modalDigits.size < 2) {
+                setModalError('Select at least 2 digits.')
+                return
+            }
+            const existing = new Set(betRows.map((r) => r.number))
+            const newRows: BetNumberRow[] = []
+            for (const a of modalDigits) {
+                for (const b of modalDigits) {
+                    if (a === b && !modalIncludeDoubles) continue
+                    const num = `${a}${b}`
+                    if (!existing.has(num)) newRows.push({ ...createEmptyRow(), number: num, amount })
+                }
+            }
+            if (newRows.length > 0) setBetRows((prev) => mergeRows(prev, newRows))
+        }
+
+        if (activeGen === 'double') {
+            const digits = isTwoDType ? 2 : 3
+            const doubles = Array.from({ length: 10 }, (_, i) => String(i).repeat(digits))
+            const existing = new Set(betRows.map((r) => r.number))
+            const newRows = doubles
+                .filter((n) => !existing.has(n))
+                .map((n) => ({ ...createEmptyRow(), number: n, amount }))
+            if (newRows.length > 0) setBetRows((prev) => mergeRows(prev, newRows))
+        }
+
+        closeModal()
+    }
+
+    const activeDef = generators.find((g) => g.key === activeGen)
+
+    return (
+        <>
+            <div className="rounded-xl border border-[#51e1a5]/15 bg-[#51e1a5]/4 overflow-hidden">
+                <button
+                    type="button"
+                    className="w-full flex items-center justify-between px-4 py-3 active:bg-[#51e1a5]/8 transition-colors"
+                    onClick={() => setOpen((v) => !v)}
+                >
+                    <div className="flex items-center gap-2.5">
+                        <span className="material-symbols-outlined text-[#51e1a5] text-[1.1rem]">auto_awesome</span>
+                        <div className="text-left">
+                            <p className="text-[0.75rem] font-bold text-[#51e1a5] uppercase tracking-widest leading-none">Smart Generate</p>
+                            <p className="text-[0.62rem] text-white/35 mt-0.5 leading-none">Auto-fill number patterns</p>
+                        </div>
+                    </div>
+                    <span className="material-symbols-outlined text-white/30 text-[1rem]">
+                        {open ? 'expand_less' : 'expand_more'}
+                    </span>
+                </button>
+
+                {open && (
+                    <div className="px-3 pb-3 pt-1 grid grid-cols-3 gap-2 border-t border-[#51e1a5]/10">
+                        {generators.map((gen) => (
+                            <button
+                                key={gen.key}
+                                type="button"
+                                className="flex flex-col items-center justify-center gap-1.5 h-16 w-full rounded-xl bg-[#19202d] border border-[#51e1a5]/20 text-[#51e1a5] hover:bg-[#51e1a5]/10 active:scale-95 transition-all"
+                                onClick={() => openModal(gen.key)}
+                            >
+                                <span className="material-symbols-outlined text-[1.1rem]">{gen.icon}</span>
+                                <p className="text-[0.72rem] font-bold uppercase tracking-wide leading-none">{gen.label}</p>
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Modal */}
+            {activeGen != null && activeDef != null && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center px-4" onClick={closeModal}>
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+                    <div
+                        className="relative w-full max-w-[22rem] bg-[#19202d] rounded-2xl border border-white/10 p-5 space-y-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Header */}
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2.5">
+                                <span className="material-symbols-outlined text-[#51e1a5] text-[1.2rem]">{activeDef.icon}</span>
+                                <div>
+                                    <p className="text-[0.78rem] font-bold text-white uppercase tracking-wide leading-none">{activeDef.label}</p>
+                                    <p className="text-[0.62rem] text-white/40 mt-0.5 leading-none">{activeDef.description}</p>
+                                </div>
+                            </div>
+                            <button type="button" className="text-white/40 hover:text-white transition-colors" onClick={closeModal}>
+                                <span className="material-symbols-outlined text-[1.2rem]">close</span>
+                            </button>
+                        </div>
+
+                        {/* Fields */}
+                        <div className="space-y-3">
+                            {activeDef.fields.number && (
+                                <div>
+                                    <label className="block text-[0.72rem] text-[#8a9bb3] mb-1.5">{activeDef.numberLabel}</label>
+                                    <input
+                                        className="h-11 w-full rounded-xl border border-white/12 bg-[rgb(5_10_31_/_68%)] px-3 text-[#f7f9ff] text-center text-xl font-bold tracking-widest focus:border-[rgb(0_230_118_/_55%)] focus:outline-none"
+                                        inputMode="numeric"
+                                        maxLength={maxDigits}
+                                        placeholder={isTwoDType ? '12' : '123'}
+                                        value={modalNumber}
+                                        onChange={(e) => {
+                                            setModalError(null)
+                                            setModalNumber(e.currentTarget.value.replace(/\D/g, '').slice(0, maxDigits))
+                                        }}
+                                        autoFocus
+                                    />
+                                    {activeDef.numberHint != null && (
+                                        <p className="mt-1 text-[0.62rem] text-white/35">{activeDef.numberHint}</p>
+                                    )}
+                                </div>
+                            )}
+
+                            {activeDef.fields.digits === true && (
+                                <>
+                                    <div>
+                                        <label className="block text-[0.72rem] text-[#8a9bb3] mb-2">Select digits</label>
+                                        <div className="grid grid-cols-5 gap-2">
+                                            {Array.from({ length: 10 }, (_, i) => String(i)).map((d) => (
+                                                <button
+                                                    key={d}
+                                                    type="button"
+                                                    className={`h-10 rounded-xl border font-bold text-sm transition-all active:scale-95 ${
+                                                        modalDigits.has(d)
+                                                            ? 'bg-[#51e1a5]/15 border-[#51e1a5]/40 text-[#51e1a5]'
+                                                            : 'bg-[#19202d] border-white/12 text-white/50 hover:text-white'
+                                                    }`}
+                                                    onClick={() => {
+                                                        setModalError(null)
+                                                        setModalDigits((prev) => {
+                                                            const next = new Set(prev)
+                                                            next.has(d) ? next.delete(d) : next.add(d)
+                                                            return next
+                                                        })
+                                                    }}
+                                                >
+                                                    {d}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <label className="flex items-center gap-2.5 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            className="w-4 h-4 accent-[#51e1a5]"
+                                            checked={modalIncludeDoubles}
+                                            onChange={(e) => setModalIncludeDoubles(e.currentTarget.checked)}
+                                        />
+                                        <span className="text-[0.72rem] text-white/60">Include doubles (11, 22…)</span>
+                                    </label>
+
+                                    {modalDigits.size >= 2 && (
+                                        <p className="text-[0.65rem] text-[#51e1a5]">
+                                            Will generate {modalDigits.size * (modalIncludeDoubles ? modalDigits.size : modalDigits.size - 1)} numbers
+                                        </p>
+                                    )}
+                                </>
+                            )}
+
+                            <div>
+                                <label className="block text-[0.72rem] text-[#8a9bb3] mb-1.5">Amount per number</label>
+                                <input
+                                    className="h-11 w-full rounded-xl border border-white/12 bg-[rgb(5_10_31_/_68%)] px-3 text-[#f7f9ff] text-center text-xl font-bold tracking-widest focus:border-[rgb(0_230_118_/_55%)] focus:outline-none"
+                                    type="number"
+                                    min={1}
+                                    step={1}
+                                    placeholder="100"
+                                    value={modalAmount}
+                                    onChange={(e) => {
+                                        setModalError(null)
+                                        setModalAmount(e.currentTarget.value)
+                                    }}
+                                    autoFocus={!activeDef.fields.number && !activeDef.fields.digits}
+                                />
+                            </div>
+                        </div>
+
+                        {modalError != null && (
+                            <p className="text-[0.72rem] text-[#ff9b93]">{modalError}</p>
+                        )}
+
+                        {/* Actions */}
+                        <div className="flex gap-2 pt-1">
+                            <button
+                                type="button"
+                                className="flex-1 h-12 rounded-xl border border-white/12 bg-white/4 text-white/60 text-[0.8rem] font-semibold hover:text-white transition-colors"
+                                onClick={closeModal}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                className="flex-1 h-12 rounded-xl bg-gradient-to-r from-[#00e676] to-[#2ac48b] text-[#003824] text-[0.8rem] font-bold uppercase tracking-wide shadow-[0_8px_16px_rgba(0,230,118,0.25)] active:scale-95 transition-all"
+                                onClick={confirm}
+                            >
+                                Generate
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
+    )
+}
+
+// ── BetNumbersSummary ─────────────────────────────────────────────────────────
+
+type BetNumbersSummaryProps = {
+    betRows: BetNumberRow[]
+    validAmountTotal: number
+    currency: BetCreateInput['currency']
+}
+
+function BetNumbersSummary({ betRows, validAmountTotal, currency }: BetNumbersSummaryProps) {
+    const filled = betRows.filter((r) => r.number !== '')
+    if (filled.length === 0) return null
+
+    return (
+        <div className="mt-3 rounded-xl border border-white/10 bg-[#0e131e] p-3">
+            <div className="flex items-center justify-between mb-2.5">
+                <p className="text-[0.65rem] font-bold text-white/40 uppercase tracking-widest">Bet Summary</p>
+                <p className="text-[0.65rem] font-semibold text-[#51e1a5]">
+                    {filled.length} numbers · {validAmountTotal.toLocaleString()} {currency}
+                </p>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+                {filled.map((row) => {
+                    const amountVal = Number(row.amount)
+                    const validAmount = /^\d+$/.test(row.amount.trim()) && Number.isInteger(amountVal) && amountVal >= 1
+                    return (
+                        <span
+                            key={row.id}
+                            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[0.72rem] font-bold tabular-nums ${
+                                validAmount
+                                    ? 'bg-[#51e1a5]/8 border border-[#51e1a5]/20 text-[#51e1a5]'
+                                    : 'bg-amber-500/8 border border-amber-500/20 text-amber-400'
+                            }`}
+                        >
+                            {row.number}
+                            {row.amount !== '' && (
+                                <span className="font-normal opacity-50">·{row.amount}</span>
+                            )}
+                        </span>
+                    )
+                })}
+            </div>
+        </div>
     )
 }
 
 // ── StepNumbers (Step 2) ─────────────────────────────────────────────────────
 
 type StepNumbersProps = {
+    form: BetCreateFormState
+    setForm: React.Dispatch<React.SetStateAction<BetCreateFormState>>
     betRows: BetNumberRow[]
     setBetRows: React.Dispatch<React.SetStateAction<BetNumberRow[]>>
     rowErrors: Record<string, BetRowError>
     setRowErrors: React.Dispatch<React.SetStateAction<Record<string, BetRowError>>>
+    isCurrencyOpen: boolean
+    setIsCurrencyOpen: React.Dispatch<React.SetStateAction<boolean>>
+    highlightedCurrencyIndex: number
+    setHighlightedCurrencyIndex: React.Dispatch<React.SetStateAction<number>>
+    selectedCurrency: CurrencyOption
+    currencySelectRef: RefObject<HTMLDivElement | null>
+    currencyButtonRef: RefObject<HTMLButtonElement | null>
+    selectCurrency: (code: BetCreateInput['currency']) => void
     isTwoDType: boolean
+    validAmountTotal: number
     goToStepThree: () => void
-    onBack: () => void
 }
 
-function StepNumbers({ betRows, setBetRows, rowErrors, setRowErrors, isTwoDType, goToStepThree, onBack }: StepNumbersProps) {
+function StepNumbers({
+    form, setForm,
+    betRows, setBetRows,
+    rowErrors, setRowErrors,
+    isCurrencyOpen, setIsCurrencyOpen,
+    highlightedCurrencyIndex, setHighlightedCurrencyIndex,
+    selectedCurrency, currencySelectRef, currencyButtonRef, selectCurrency,
+    isTwoDType, validAmountTotal, goToStepThree,
+}: StepNumbersProps) {
     const { t } = useTranslation()
     return (
         <>
-            <fieldset className="m-0 space-y-2.5 rounded-xl border border-white/12 bg-white/3 p-2.5 sm:p-3">
+            <TargetOpenTimeSelector form={form} setForm={setForm} />
+
+            <div className="mb-1" ref={currencySelectRef}>
+                <p className="text-[0.6rem] font-bold text-white/40 uppercase tracking-widest mb-2 px-1">
+                    {t('bets.currency')}
+                </p>
+                <button
+                    ref={currencyButtonRef}
+                    type="button"
+                    aria-haspopup="listbox"
+                    aria-expanded={isCurrencyOpen}
+                    aria-controls="currency-options"
+                    className="w-full bg-[#1f2634] rounded-xl p-4 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all border border-transparent hover:border-[#51e1a5]/20 focus:outline-none"
+                    onClick={() => setIsCurrencyOpen((prev) => !prev)}
+                    onKeyDown={(event) => {
+                        if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault()
+                            setIsCurrencyOpen(true)
+                        }
+                    }}
+                >
+                    <div className="flex items-center gap-3">
+                        <span className="material-symbols-outlined text-[#51e1a5] text-[1.25rem]">payments</span>
+                        <p className="text-sm font-bold text-white">{selectedCurrency.code}</p>
+                    </div>
+                    <span className="material-symbols-outlined text-white/40 text-[1.1rem]">
+                        {isCurrencyOpen ? 'expand_less' : 'expand_more'}
+                    </span>
+                </button>
+                {isCurrencyOpen && (
+                    <ul id="currency-options" role="listbox" aria-label={t('bets.currencyOptions')} className="mt-2 flex flex-col gap-2"
+                        onKeyDown={(event) => {
+                            if (event.key === 'ArrowDown') { event.preventDefault(); setHighlightedCurrencyIndex((prev) => Math.min(prev + 1, CURRENCY_OPTIONS.length - 1)); return }
+                            if (event.key === 'ArrowUp') { event.preventDefault(); setHighlightedCurrencyIndex((prev) => Math.max(prev - 1, 0)); return }
+                            if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); const active = CURRENCY_OPTIONS[highlightedCurrencyIndex]; if (active != null) selectCurrency(active.code); return }
+                            if (event.key === 'Escape') { event.preventDefault(); setIsCurrencyOpen(false); currencyButtonRef.current?.focus() }
+                        }}
+                    >
+                        {CURRENCY_OPTIONS.map((option, index) => {
+                            const isSelected = form.currency === option.code
+                            const isHighlighted = index === highlightedCurrencyIndex
+                            return (
+                                <li key={option.code}>
+                                    <button
+                                        id={`currency-option-${option.code}`}
+                                        type="button"
+                                        role="option"
+                                        aria-selected={isSelected}
+                                        className={`w-full rounded-xl p-3 flex items-center justify-between transition-all active:scale-[0.98] ${isSelected || isHighlighted ? 'bg-[#51e1a5]/10 border border-[#51e1a5]/20 text-[#51e1a5]' : 'bg-[#19202d] border border-transparent text-white/60 hover:text-white'}`}
+                                        onMouseEnter={() => setHighlightedCurrencyIndex(index)}
+                                        onClick={() => selectCurrency(option.code)}
+                                    >
+                                        <span className="flex items-center gap-2">
+                                            <CurrencyFlag code={option.code} />
+                                            <span className="text-sm font-bold">{option.code}</span>
+                                        </span>
+                                        {isSelected && <span className="material-symbols-outlined text-[#51e1a5] text-[1rem]">check</span>}
+                                    </button>
+                                </li>
+                            )
+                        })}
+                    </ul>
+                )}
+            </div>
+
+            <div className="pt-3">
+                <SmartGenerateCard betRows={betRows} setBetRows={setBetRows} isTwoDType={isTwoDType} />
+            </div>
+
+            <BetNumbersSummary betRows={betRows} validAmountTotal={validAmountTotal} currency={form.currency} />
+
+            <fieldset className="m-0 mt-3 rounded-xl border border-white/12 bg-white/3 p-2.5 sm:p-3">
                 <legend className="px-1 text-[0.78rem] font-semibold uppercase tracking-[0.06em] text-[#8a9bb3]">{t('bets.betNumbers')}</legend>
 
+                <div className="max-h-72 overflow-y-auto space-y-2.5 pr-0.5">
                 {betRows.map((row) => (
                     <div key={row.id} className="rounded-xl border border-white/12 bg-[rgb(5_10_31_/_56%)] p-2.5">
-                        <div className="mb-2 flex items-center justify-end gap-2">
+                        <div className="mb-2 flex items-center justify-between gap-2">
+                            {(() => {
+                                const amt = Number(row.amount)
+                                const valid = /^\d+$/.test(row.amount.trim()) && Number.isInteger(amt) && amt >= 1
+                                return (
+                                    <div>
+                                        <p className="text-[0.6rem] text-white/30 uppercase tracking-widest leading-none">Potential Win</p>
+                                        <p className={`text-[0.8rem] font-bold tabular-nums mt-0.5 leading-none ${valid ? 'text-[#51e1a5]' : 'text-white/20'}`}>
+                                            {valid ? `x ${(amt * 80).toLocaleString()}` : '—'}
+                                        </p>
+                                    </div>
+                                )
+                            })()}
                             <button
                                 type="button"
                                 aria-label={t('bets.removeNumberRow')}
@@ -266,12 +826,7 @@ function StepNumbers({ betRows, setBetRows, rowErrors, setRowErrors, isTwoDType,
                                 }}
                                 disabled={betRows.length === 1}
                             >
-                                <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M4 7h16" strokeLinecap="round" />
-                                    <path d="M9 7V5h6v2" strokeLinecap="round" />
-                                    <path d="M8 10v8M12 10v8M16 10v8" strokeLinecap="round" />
-                                    <path d="M6 7l1 13h10l1-13" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
+                                <span className="material-symbols-outlined text-[1.1rem]">close</span>
                             </button>
                         </div>
 
@@ -323,50 +878,43 @@ function StepNumbers({ betRows, setBetRows, rowErrors, setRowErrors, isTwoDType,
                         </div>
                     </div>
                 ))}
+                </div>
 
-                <div className="flex">
+                <div className="flex items-center justify-between mt-2.5">
+                    <button
+                        type="button"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-red-500/25 bg-red-500/8 text-red-400 text-[0.75rem] font-semibold uppercase tracking-wide hover:bg-red-500/15 active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                        disabled={betRows.length === 1 && betRows[0]?.number === '' && betRows[0]?.amount === ''}
+                        onClick={() => {
+                            setBetRows([createEmptyRow()])
+                            setRowErrors({})
+                        }}
+                    >
+                        <span className="material-symbols-outlined text-[1.1rem]">delete_sweep</span>
+                        Clear All
+                    </button>
                     <button
                         type="button"
                         aria-label={t('bets.addNumberRow')}
-                        title={t('bets.addNumberRow')}
-                        className="inline-flex h-11 w-full cursor-pointer items-center justify-center rounded-xl border border-[rgb(59_130_246_/_35%)] bg-[rgb(59_130_246_/_10%)] text-[#93c5fd] transition-colors hover:border-[rgb(59_130_246_/_55%)] hover:bg-[rgb(59_130_246_/_16%)]"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-[#51e1a5]/30 bg-[#51e1a5]/8 text-[#51e1a5] text-[0.75rem] font-semibold uppercase tracking-wide hover:bg-[#51e1a5]/15 active:scale-95 transition-all"
                         onClick={() => setBetRows((prev) => [...prev, createEmptyRow()])}
                     >
-                        <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.2">
-                            <path d="M12 5v14M5 12h14" strokeLinecap="round" />
-                        </svg>
+                        <span className="material-symbols-outlined text-[1.1rem]">add</span>
                     </button>
                 </div>
             </fieldset>
 
-            <div className="grid grid-cols-2 gap-2">
-                <button
-                    type="button"
-                    aria-label={t('bets.previousStep')}
-                    title={t('bets.previousStep')}
-                    className={`${apiButton} my-[5px] min-h-[44px] w-full !justify-center text-center`}
-                    onClick={onBack}
-                >
-                    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.2">
-                        <path d="M19 12H5" strokeLinecap="round" />
-                        <path d="m11 6-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    <span className="sr-only">{t('common.back')}</span>
-                </button>
-                <button
-                    type="button"
-                    aria-label={t('bets.nextStep')}
-                    title={t('bets.nextStep')}
-                    className={`${apiButton} my-[5px] min-h-[44px] w-full !justify-center text-center`}
-                    onClick={goToStepThree}
-                >
-                    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.2">
-                        <path d="M5 12h14" strokeLinecap="round" />
-                        <path d="m13 6 6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    <span className="sr-only">{t('common.next')}</span>
-                </button>
-            </div>
+            <button
+                type="button"
+                aria-label={t('bets.nextStep')}
+                className="mt-4 h-14 w-full bg-gradient-to-r from-[#00e676] to-[#2ac48b] rounded-2xl flex items-center justify-between px-6 shadow-[0_12px_24px_rgba(0,230,118,0.3)] active:scale-95 transition-all duration-300"
+                onClick={goToStepThree}
+            >
+                <span className="font-semibold text-[0.9rem] text-[#003824] tracking-tight uppercase">{t('common.next')}</span>
+                <div className="w-9 h-9 rounded-full bg-black/10 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-[#003824] text-[20px]">arrow_forward</span>
+                </div>
+            </button>
         </>
     )
 }
@@ -574,14 +1122,11 @@ function StepPaySlip({
                         type="button"
                         aria-label={t('bets.previousStep')}
                         title={t('bets.previousStep')}
-                        className={`${apiButton} my-[5px] min-h-[44px] w-full !justify-center text-center`}
+                        className={`${apiButton} h-14 w-full !justify-between px-6`}
                         onClick={onBack}
                     >
-                        <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.2">
-                            <path d="M19 12H5" strokeLinecap="round" />
-                            <path d="m11 6-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                        <span className="sr-only">{t('common.back')}</span>
+                        <span className="material-symbols-outlined text-[1.1rem]">arrow_back</span>
+                        <span className="font-semibold text-[0.9rem] uppercase tracking-tight">{t('common.back')}</span>
                     </button>
                     <button
                         type="submit"
@@ -704,30 +1249,16 @@ export function BetCreateCard({
                 </span>
             </div>
 
-            <div className="relative mb-3 grid grid-cols-3 gap-1.5 rounded-xl border border-white/10 bg-[rgb(4_10_31_/_44%)] p-2">
-                <div className="rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 text-center">
-                    <p className="m-0 text-[0.66rem] uppercase tracking-[0.06em] text-[#8a9bb3]">{t('bets.rows')}</p>
-                    <p className="m-0 mt-0.5 text-[0.86rem] font-semibold text-[#f7f9ff]">{betRows.length}</p>
-                </div>
-                <div className="rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 text-center">
-                    <p className="m-0 text-[0.66rem] uppercase tracking-[0.06em] text-[#8a9bb3]">{t('bets.currency')}</p>
-                    <p className="m-0 mt-0.5 text-[0.86rem] font-semibold text-[#f7f9ff]">{form.currency}</p>
-                </div>
-                <div className="rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 text-center">
-                    <p className="m-0 text-[0.66rem] uppercase tracking-[0.06em] text-[#8a9bb3]">{t('bets.total')}</p>
-                    <p className="m-0 mt-0.5 text-[0.86rem] font-semibold text-[#f7f9ff]">{formatAmount(validAmountTotal, form.currency)}</p>
-                </div>
-            </div>
-
-            <StepIndicator
-                currentStep={currentStep}
-            />
 
             <form className="space-y-4" onSubmit={(event) => void onSubmit(event)}>
-                {currentStep === 1 && (
-                    <StepSetup
+                {currentStep === 2 && (
+                    <StepNumbers
                         form={form}
                         setForm={setForm}
+                        betRows={betRows}
+                        setBetRows={setBetRows}
+                        rowErrors={rowErrors}
+                        setRowErrors={setRowErrors}
                         isCurrencyOpen={isCurrencyOpen}
                         setIsCurrencyOpen={setIsCurrencyOpen}
                         highlightedCurrencyIndex={highlightedCurrencyIndex}
@@ -736,23 +1267,9 @@ export function BetCreateCard({
                         currencySelectRef={currencySelectRef}
                         currencyButtonRef={currencyButtonRef}
                         selectCurrency={selectCurrency}
-                        canCreateForActiveType={canCreateForActiveType}
-                        goToStepTwo={goToStepTwo}
-                    />
-                )}
-
-                {currentStep === 2 && (
-                    <StepNumbers
-                        betRows={betRows}
-                        setBetRows={setBetRows}
-                        rowErrors={rowErrors}
-                        setRowErrors={setRowErrors}
                         isTwoDType={isTwoDType}
+                        validAmountTotal={validAmountTotal}
                         goToStepThree={goToStepThree}
-                        onBack={() => {
-                            setMessage(null)
-                            setCurrentStep(1)
-                        }}
                     />
                 )}
 

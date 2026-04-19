@@ -91,7 +91,7 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
     const [rowErrors, setRowErrors] = useState<Record<string, BetRowError>>({})
     const [message, setMessage] = useState<string | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1)
+    const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(2)
     const [isCurrencyOpen, setIsCurrencyOpen] = useState(false)
     const [highlightedCurrencyIndex, setHighlightedCurrencyIndex] = useState(0)
     const [copiedAccountKey, setCopiedAccountKey] = useState<string | null>(null)

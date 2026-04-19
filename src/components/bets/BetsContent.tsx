@@ -4,14 +4,17 @@ import type { BetCreateInput, WalletBankInfo } from '@/api/types'
 import { getMyBankInfo } from '@/api/client'
 import { betTypeCatalog } from './betTypeCatalog'
 import { useBetsForm, createEmptyRow } from './useBetsForm'
-import { BetTypeSwitcher } from './BetTypeSwitcher'
 import { BetCreateCard } from './BetCreateCard'
 import { BetMessageModal } from './BetMessageModal'
 
-export function BetsContent() {
+type Props = {
+    initialBetTypeId?: string
+}
+
+export function BetsContent({ initialBetTypeId }: Props) {
     const { t } = useTranslation()
     const defaultType = betTypeCatalog[0]
-    const [activeBetTypeId, setActiveBetTypeId] = useState(defaultType?.id ?? '2D')
+    const [activeBetTypeId, setActiveBetTypeId] = useState(initialBetTypeId ?? defaultType?.id ?? '2D')
     const [bankInfo, setBankInfo] = useState<WalletBankInfo | null>(null)
 
     useEffect(() => {
@@ -42,11 +45,6 @@ export function BetsContent() {
 
     return (
         <>
-            <BetTypeSwitcher
-                activeBetTypeId={activeBetTypeId}
-                onSelect={handleTypeSelect}
-            />
-
             <BetCreateCard
                 activeBetTypeId={activeBetTypeId}
                 activeBetTypeLabel={activeBetType?.label ?? ''}
