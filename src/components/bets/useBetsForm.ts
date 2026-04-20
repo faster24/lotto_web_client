@@ -219,7 +219,7 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
 
         try {
             setIsSubmitting(true)
-            const response = await createBet({
+            await createBet({
                 pay_slip_image: form.pay_slip_image,
                 bet_type: activePayloadBetType,
                 currency: form.currency,

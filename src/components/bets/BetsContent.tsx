@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import type { BetCreateInput, WalletBankInfo } from '@/api/types'
+import type { WalletBankInfo } from '@/api/types'
 import { getMyBankInfo } from '@/api/client'
 import { betTypeCatalog } from './betTypeCatalog'
-import { useBetsForm, createEmptyRow } from './useBetsForm'
+import { useBetsForm } from './useBetsForm'
 import { BetCreateCard } from './BetCreateCard'
 import { BetMessageModal } from './BetMessageModal'
 
@@ -12,9 +11,8 @@ type Props = {
 }
 
 export function BetsContent({ initialBetTypeId }: Props) {
-    const { t } = useTranslation()
     const defaultType = betTypeCatalog[0]
-    const [activeBetTypeId, setActiveBetTypeId] = useState(initialBetTypeId ?? defaultType?.id ?? '2D')
+    const [activeBetTypeId] = useState(initialBetTypeId ?? defaultType?.id ?? '2D')
     const [bankInfo, setBankInfo] = useState<WalletBankInfo | null>(null)
 
     useEffect(() => {
@@ -27,21 +25,6 @@ export function BetsContent({ initialBetTypeId }: Props) {
     const activePayloadBetType = activeBetType?.payloadBetType
 
     const form = useBetsForm(activeBetTypeId, activePayloadBetType)
-
-    const handleTypeSelect = (id: string, payloadBetType: BetCreateInput['bet_type'] | undefined) => {
-        setActiveBetTypeId(id)
-
-        if (payloadBetType == null) {
-            form.setMessage(t('bets.unavailable'))
-            return
-        }
-
-        form.setForm((prev) => ({ ...prev, bet_type: payloadBetType }))
-        form.setRowErrors({})
-        form.setMessage(null)
-        form.setCurrentStep(1)
-        form.setBetRows([createEmptyRow()])
-    }
 
     return (
         <>
