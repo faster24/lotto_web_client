@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const LIVE_API_URL = '/live-proxy'
-const FIVE_MINUTES_MS = 5 * 60 * 1000
+const FIVE_MINUTES_MS = 60 * 1000
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
