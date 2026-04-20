@@ -26,6 +26,16 @@ function generatePat(digit: string): string[] {
     return Array.from({ length: 10 }, (_, i) => `${i}${digit}`)
 }
 
+function generateBreak(target: string): string[] {
+    const t = parseInt(target, 10)
+    const results: string[] = []
+    for (let i = 0; i < 100; i++) {
+        const n = i.toString().padStart(2, '0')
+        if ((parseInt(n[0]!, 10) + parseInt(n[1]!, 10)) % 10 === t) results.push(n)
+    }
+    return results
+}
+
 // r not surrounded by Myanmar (U+1000–U+109F), Thai (U+0E00–U+0E7F), or Latin letters
 const NON_LETTER_BOUNDARY = '[^a-zA-Z\u1000-\u109F\u0E00-\u0E7F]'
 const REVERSE_RE = new RegExp(
@@ -87,7 +97,17 @@ export function parsePastedBets(text: string, defaultAmount: string): BetNumberR
             continue
         }
 
-        // 2a. Pat rule: <digit> + ပတ်/pat → 10 numbers where digit is the tail
+        // 2a. Break rule: <digit> + break/bk/b/ဘရိတ်/ဘရိပ် → 10 numbers whose digit-sum mod 10 = target
+        const breakMatch =
+            line.match(/(\d)\s*(?:ဘရိတ်|ဘရိပ်)/u) ??
+            line.match(/(\d)\s*(?:break|bk|b)(?:[^a-zA-Z]|$)/i)
+        if (breakMatch != null) {
+            const digit = breakMatch[1]!
+            for (const n of generateBreak(digit)) add(n, lineAmount)
+            continue
+        }
+
+        // 2b. Pat rule: <digit> + ပတ်/pat → 10 numbers where digit is the tail
         const patMatch =
             line.match(/(\d)\s*(?:ပတ်|ပိတ်|ပါတ်)/u) ??
             line.match(/(\d)\s*pat(?:[^a-zA-Z]|$)/i)
