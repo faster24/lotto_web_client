@@ -1,5 +1,5 @@
 import type { RefObject } from 'react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { BetCreateInput, WalletBankInfo } from '@/api/types'
@@ -16,6 +16,7 @@ import {
     type AdminPaymentAccount,
     type CurrencyOption,
 } from './useBetsForm'
+import { parsePastedBets } from './parsePastedBets'
 
 // ── CurrencyFlag ─────────────────────────────────────────────────────────────
 
@@ -123,7 +124,7 @@ function TargetOpenTimeSelector({ form, setForm }: TargetOpenTimeSelectorProps) 
 
 // ── SmartGenerateCard ────────────────────────────────────────────────────────
 
-type GeneratorKey = 'reverse' | 'double' | 'nakkhat' | 'power' | 'brother' | 'khway' | 'a-par'
+type GeneratorKey = 'reverse' | 'double' | 'nakkhat' | 'power' | 'brother' | 'khway' | 'a-par' | 'paste'
 
 const NAKKHAT_PAIRS: [string, string][] = [
     ['07', '70'], ['18', '81'], ['24', '42'], ['35', '53'], ['69', '96'],
@@ -163,6 +164,8 @@ function SmartGenerateCard({ betRows, setBetRows, isTwoDType }: SmartGenerateCar
     const [modalError, setModalError] = useState<string | null>(null)
     const [modalDigits, setModalDigits] = useState<Set<string>>(new Set())
     const [modalIncludeDoubles, setModalIncludeDoubles] = useState(false)
+    const [pasteText, setPasteText] = useState('')
+    const pasteTextareaRef = useRef<HTMLTextAreaElement>(null)
 
     const maxDigits = isTwoDType ? 2 : 3
 
@@ -222,6 +225,13 @@ function SmartGenerateCard({ betRows, setBetRows, isTwoDType }: SmartGenerateCar
                 numberHint: 'Generates all 19 numbers containing this digit.',
                 numberMaxLength: 1,
             },
+            {
+                key: 'paste' as GeneratorKey,
+                icon: 'content_paste',
+                label: 'Paste',
+                description: 'Parse pasted bet text',
+                fields: { number: false, amount: false },
+            },
         ] : []),
     ]
 
@@ -232,11 +242,14 @@ function SmartGenerateCard({ betRows, setBetRows, isTwoDType }: SmartGenerateCar
         setModalError(null)
         setModalDigits(new Set())
         setModalIncludeDoubles(false)
+        setPasteText('')
+        if (key === 'paste') { setModalAmount('100'); setTimeout(() => pasteTextareaRef.current?.focus(), 50) }
     }
 
     const closeModal = () => {
         setActiveGen(null)
         setModalError(null)
+        setPasteText('')
     }
 
     const mergeRows = (prev: BetNumberRow[], newRows: BetNumberRow[]): BetNumberRow[] => {
@@ -246,6 +259,23 @@ function SmartGenerateCard({ betRows, setBetRows, isTwoDType }: SmartGenerateCar
 
     const confirm = () => {
         setModalError(null)
+
+        if (activeGen === 'paste') {
+            const amt = modalAmount.trim()
+            if (!/^\d+$/.test(amt) || Number(amt) < 1) {
+                setModalError('Enter a valid default amount (integer ≥ 1).')
+                return
+            }
+            const rows = parsePastedBets(pasteText, amt)
+            if (rows.length === 0) {
+                setModalError('No valid 2-digit numbers found.')
+                return
+            }
+            setBetRows((prev) => mergeRows(prev, rows))
+            closeModal()
+            return
+        }
+
         const amount = modalAmount.trim()
         const amountVal = Number(amount)
         if (!/^\d+$/.test(amount) || !Number.isInteger(amountVal) || amountVal < 1) {
@@ -394,7 +424,44 @@ function SmartGenerateCard({ betRows, setBetRows, isTwoDType }: SmartGenerateCar
 
                         {/* Fields */}
                         <div className="space-y-3">
-                            {activeDef.fields.number && (
+                            {activeGen === 'paste' && (
+                                <>
+                                    <div>
+                                        <label className="block text-[0.72rem] text-[#8a9bb3] mb-1.5">Default Amount</label>
+                                        <input
+                                            className="h-11 w-full rounded-xl border border-white/12 bg-[rgb(5_10_31_/_68%)] px-3 text-[#f7f9ff] text-center text-xl font-bold tracking-widest focus:border-[rgb(0_230_118_/_55%)] focus:outline-none"
+                                            type="number"
+                                            min={1}
+                                            step={1}
+                                            placeholder="500"
+                                            value={modalAmount}
+                                            onChange={(e) => { setModalError(null); setModalAmount(e.currentTarget.value) }}
+                                            autoFocus
+                                        />
+                                        <p className="mt-1 text-[0.62rem] text-white/35">Used when no amount is found on a line.</p>
+                                    </div>
+                                    <div>
+                                        <label className="block text-[0.72rem] text-[#8a9bb3] mb-1.5">Bet Text</label>
+                                        <textarea
+                                            ref={pasteTextareaRef}
+                                            rows={6}
+                                            className="w-full rounded-xl border border-white/12 bg-[rgb(5_10_31_/_68%)] px-3 py-2.5 text-[#f7f9ff] text-sm leading-relaxed resize-none focus:border-[rgb(0_230_118_/_55%)] focus:outline-none"
+                                            placeholder={`12.24.56 = 500\n12.25 = r600\n1ပါ 500\nပါဝါ 1000\nနက်ခတ် 500`}
+                                            value={pasteText}
+                                            onChange={(e) => { setModalError(null); setPasteText(e.currentTarget.value) }}
+                                        />
+                                    </div>
+                                    {pasteText.trim() && (
+                                        (() => {
+                                            const count = parsePastedBets(pasteText, modalAmount.trim() || '0').length
+                                            return count > 0 ? (
+                                                <p className="text-[0.72rem] text-[#51e1a5]">{count} bet row{count !== 1 ? 's' : ''} ready</p>
+                                            ) : null
+                                        })()
+                                    )}
+                                </>
+                            )}
+                            {activeGen !== 'paste' && activeDef.fields.number && (
                                 <div>
                                     <label className="block text-[0.72rem] text-[#8a9bb3] mb-1.5">{activeDef.numberLabel}</label>
                                     <input
@@ -416,7 +483,7 @@ function SmartGenerateCard({ betRows, setBetRows, isTwoDType }: SmartGenerateCar
                                 </div>
                             )}
 
-                            {activeDef.fields.digits === true && (
+                            {activeGen !== 'paste' && activeDef.fields.digits === true && (
                                 <>
                                     <div>
                                         <label className="block text-[0.72rem] text-[#8a9bb3] mb-2">Select digits</label>
@@ -463,22 +530,24 @@ function SmartGenerateCard({ betRows, setBetRows, isTwoDType }: SmartGenerateCar
                                 </>
                             )}
 
-                            <div>
-                                <label className="block text-[0.72rem] text-[#8a9bb3] mb-1.5">Amount per number</label>
-                                <input
-                                    className="h-11 w-full rounded-xl border border-white/12 bg-[rgb(5_10_31_/_68%)] px-3 text-[#f7f9ff] text-center text-xl font-bold tracking-widest focus:border-[rgb(0_230_118_/_55%)] focus:outline-none"
-                                    type="number"
-                                    min={1}
-                                    step={1}
-                                    placeholder="100"
-                                    value={modalAmount}
-                                    onChange={(e) => {
-                                        setModalError(null)
-                                        setModalAmount(e.currentTarget.value)
-                                    }}
-                                    autoFocus={!activeDef.fields.number && !activeDef.fields.digits}
-                                />
-                            </div>
+                            {activeGen !== 'paste' && (
+                                <div>
+                                    <label className="block text-[0.72rem] text-[#8a9bb3] mb-1.5">Amount per number</label>
+                                    <input
+                                        className="h-11 w-full rounded-xl border border-white/12 bg-[rgb(5_10_31_/_68%)] px-3 text-[#f7f9ff] text-center text-xl font-bold tracking-widest focus:border-[rgb(0_230_118_/_55%)] focus:outline-none"
+                                        type="number"
+                                        min={1}
+                                        step={1}
+                                        placeholder="100"
+                                        value={modalAmount}
+                                        onChange={(e) => {
+                                            setModalError(null)
+                                            setModalAmount(e.currentTarget.value)
+                                        }}
+                                        autoFocus={!activeDef.fields.number && !activeDef.fields.digits}
+                                    />
+                                </div>
+                            )}
                         </div>
 
                         {modalError != null && (
@@ -499,7 +568,7 @@ function SmartGenerateCard({ betRows, setBetRows, isTwoDType }: SmartGenerateCar
                                 className="flex-1 h-12 rounded-xl bg-gradient-to-r from-[#00e676] to-[#2ac48b] text-[#003824] text-[0.8rem] font-bold uppercase tracking-wide shadow-[0_8px_16px_rgba(0,230,118,0.25)] active:scale-95 transition-all"
                                 onClick={confirm}
                             >
-                                Generate
+                                {activeGen === 'paste' ? 'Apply' : 'Generate'}
                             </button>
                         </div>
                     </div>
@@ -508,6 +577,7 @@ function SmartGenerateCard({ betRows, setBetRows, isTwoDType }: SmartGenerateCar
         </>
     )
 }
+
 
 // ── BetNumbersSummary ─────────────────────────────────────────────────────────
 
