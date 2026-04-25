@@ -2,7 +2,7 @@ import type { RefObject } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import type { BetCreateInput, WalletBankInfo } from '@/api/types'
+import type { BetCreateInput, BetTargetOpenTime, WalletBankInfo } from '@/api/types'
 import { apiButton } from '@/styles/tw'
 import {
     CURRENCY_OPTIONS,
