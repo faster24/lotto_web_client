@@ -1,7 +1,7 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createBet, listBankSettings } from '@/api/client'
-import type { AdminBankSetting, BetCreateInput } from '@/api/types'
+import type { AdminBankSetting, BetCreateInput, BetTargetOpenTime } from '@/api/types'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -9,7 +9,7 @@ export type BetCreateFormState = {
     pay_slip_image: File | null
     bet_type: BetCreateInput['bet_type']
     currency: BetCreateInput['currency']
-    target_opentime: BetCreateInput['target_opentime']
+    target_opentime: BetTargetOpenTime
     transaction_id_last_two_digits: string
 }
 
@@ -41,7 +41,7 @@ export type AdminPaymentAccount = {
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
-export const TARGET_OPEN_TIME_OPTIONS: BetCreateInput['target_opentime'][] = ['12:01:00', '16:30:00']
+export const TARGET_OPEN_TIME_OPTIONS: BetTargetOpenTime[] = ['12:01:00', '16:30:00']
 
 export const TARGET_OPEN_TIME_LABELS: Record<string, string> = {
     '12:01:00': '12:01 PM',

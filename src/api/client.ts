@@ -583,7 +583,7 @@ async function createBetMock(input: BetCreateInput) {
     bet_result_status: 'OPEN',
     payout_status: 'PENDING',
     stock_date: new Date().toISOString().slice(0, 10),
-    target_opentime: input.target_opentime,
+    target_opentime: input.target_opentime ?? '12:01:00',
     bet_numbers: normalizedNumbers,
     placed_at: new Date().toISOString(),
     paid_out_at: null,
