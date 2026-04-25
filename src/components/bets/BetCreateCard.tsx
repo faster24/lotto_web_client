@@ -658,7 +658,7 @@ function StepNumbers({
     const { t } = useTranslation()
     return (
         <>
-            <TargetOpenTimeSelector form={form} setForm={setForm} />
+            {isTwoDType && <TargetOpenTimeSelector form={form} setForm={setForm} />}
 
             <div className="mb-1" ref={currencySelectRef}>
                 <p className="text-[0.6rem] font-bold text-white/40 uppercase tracking-widest mb-2 px-1">

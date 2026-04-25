@@ -223,7 +223,7 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
                 pay_slip_image: form.pay_slip_image,
                 bet_type: activePayloadBetType,
                 currency: form.currency,
-                target_opentime: form.target_opentime,
+                ...(activePayloadBetType === '2D' ? { target_opentime: form.target_opentime } : {}),
                 transaction_id_last_two_digits: form.transaction_id_last_two_digits,
                 bet_numbers: normalized,
             })

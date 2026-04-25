@@ -630,7 +630,7 @@ export async function createBet(input: BetCreateInput) {
   payload.append('pay_slip_image', input.pay_slip_image)
   payload.append('bet_type', input.bet_type)
   payload.append('currency', input.currency)
-  payload.append('target_opentime', input.target_opentime)
+  if (input.target_opentime != null) payload.append('target_opentime', input.target_opentime)
   payload.append('transaction_id_last_two_digits', input.transaction_id_last_two_digits)
 
   normalizedNumbers.forEach((row, index) => {
