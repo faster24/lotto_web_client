@@ -5,7 +5,8 @@ import type { Bet } from '@/api/types'
 import { ApiStatePanel } from '@/components/api/ApiStatePanel'
 import { screenRoot, screenScroll, apiScreen, apiHeader } from '@/styles/tw'
 
-function formatOpenTime(time: string) {
+function formatOpenTime(time: string | null | undefined) {
+  if (!time) return null
   const [h, m] = time.split(':')
   const hour = parseInt(h ?? '0', 10)
   const suffix = hour >= 12 ? 'PM' : 'AM'
@@ -96,10 +97,12 @@ export function GamblingHistoryPage() {
                   {/* Meta */}
                   <div className="flex items-center justify-between mt-1">
                     <p className="m-0 text-[0.7rem] text-[#8a9bb3]">{bet.stock_date}</p>
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#00e676]/10 border border-[#00e676]/20 text-[0.72rem] font-semibold text-[#00e676]">
-                      <span className="material-symbols-outlined text-[0.85rem] leading-none">schedule</span>
-                      {formatOpenTime(bet.target_opentime)}
-                    </span>
+                    {formatOpenTime(bet.target_opentime) && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#00e676]/10 border border-[#00e676]/20 text-[0.72rem] font-semibold text-[#00e676]">
+                        <span className="material-symbols-outlined text-[0.85rem] leading-none">schedule</span>
+                        {formatOpenTime(bet.target_opentime)}
+                      </span>
+                    )}
                   </div>
                 </li>
               )

@@ -70,7 +70,7 @@ export type Bet = {
     payout_status: 'PENDING' | 'PAID_OUT' | 'REFUNDED'
     paid_out_at: string | null
     stock_date: string
-    target_opentime: BetTargetOpenTime
+    target_opentime: BetTargetOpenTime | null
     bet_numbers: BetNumberInput[]
     placed_at: string
 }
