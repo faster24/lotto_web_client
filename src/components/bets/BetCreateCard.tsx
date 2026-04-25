@@ -104,7 +104,7 @@ function TargetOpenTimeSelector({ form, setForm }: TargetOpenTimeSelectorProps) 
                                         : 'bg-[#19202d] border border-transparent text-white/60 hover:text-white'
                                 }`}
                                 onClick={() => {
-                                    setForm((prev) => ({ ...prev, target_opentime: value as BetCreateInput['target_opentime'] }))
+                                    setForm((prev) => ({ ...prev, target_opentime: value as BetTargetOpenTime }))
                                     setOpen(false)
                                 }}
                             >
