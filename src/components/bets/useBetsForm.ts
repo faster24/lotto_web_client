@@ -228,7 +228,8 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
                 bet_numbers: normalized,
             })
 
-            navigate('/bets')
+            setMessage('Bet placed successfully!')
+            navigate('/gambling/gambling-history')
         } catch (caughtError) {
             setMessage(caughtError instanceof Error ? caughtError.message : 'Create bet failed.')
         } finally {

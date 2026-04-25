@@ -34,7 +34,7 @@ function secondsUntil(openTime: string): number {
     const m = parseInt(parts[1] ?? '0', 10)
     const s = parseInt(parts[2] ?? '0', 10)
     const target = new Date(now)
-    target.setHours(h, m, s, 0)
+    target.setHours(h, m + 30, s, 0)
     return Math.max(0, Math.floor((target.getTime() - now.getTime()) / 1000))
 }
 
