@@ -64,6 +64,18 @@ function extractAmount(line: string): string | null {
     return matches[matches.length - 1]!
 }
 
+// Detects `NNNrMM` / `NNNrMMM` format where original numbers get N and reversed get M.
+// Left side must be 3+ digits to distinguish from 2-digit bet numbers.
+function extractSplitReverseAmounts(line: string): { forward: string; reverse: string } | null {
+    const m = line.match(/\b(\d{3,})[rR](\d+)\b/)
+    if (!m) return null
+    return { forward: m[1]!, reverse: m[2]! }
+}
+
+function stripSplitReverseToken(line: string): string {
+    return line.replace(/\b\d{3,}[rR]\d+\b/g, ' ')
+}
+
 export function parsePastedBets(text: string, defaultAmount: string): BetNumberRow[] {
     const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0)
     const results: BetNumberRow[] = []
@@ -128,15 +140,27 @@ export function parsePastedBets(text: string, defaultAmount: string): BetNumberR
         }
 
         // 3. Standard: 2-digit bet numbers + optional reverse
-        const isReverse = hasReverseMarker(line)
-        const cleaned = stripReverseMarkers(line)
-        const nums = [...new Set(cleaned.match(/\b\d{2}\b/g) ?? [])]
+        const splitReverse = extractSplitReverseAmounts(line)
 
-        for (const num of nums) {
-            add(num, lineAmount)
-            if (isReverse) {
+        if (splitReverse) {
+            const { forward: forwardAmount, reverse: reverseAmount } = splitReverse
+            const workLine = stripSplitReverseToken(line)
+            const nums = [...new Set(workLine.match(/\b\d{2}\b/g) ?? [])]
+            for (const num of nums) {
+                add(num, forwardAmount)
                 const rev = reverseNum(num)
-                if (rev !== num) add(rev, lineAmount)
+                if (rev !== num) add(rev, reverseAmount)
+            }
+        } else {
+            const isReverse = hasReverseMarker(line)
+            const cleaned = stripReverseMarkers(line)
+            const nums = [...new Set(cleaned.match(/\b\d{2}\b/g) ?? [])]
+            for (const num of nums) {
+                add(num, lineAmount)
+                if (isReverse) {
+                    const rev = reverseNum(num)
+                    if (rev !== num) add(rev, lineAmount)
+                }
             }
         }
     }
