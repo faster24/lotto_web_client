@@ -6,6 +6,7 @@ const BROTHER_NUMS = [
     '01', '10', '12', '21', '23', '32', '34', '43', '45', '54',
     '56', '65', '67', '76', '78', '87', '89', '98', '90', '09',
 ]
+const DOUBLE_NUMS = Array.from({ length: 10 }, (_, i) => `${i}${i}`)
 
 function reverseNum(n: string): string {
     return n[1]! + n[0]!
@@ -106,6 +107,10 @@ export function parsePastedBets(text: string, defaultAmount: string): BetNumberR
         }
         if (/ညီကို|ညီအစ်ကို/.test(line)) {
             for (const n of BROTHER_NUMS) add(n, lineAmount)
+            continue
+        }
+        if (/အပူး|ပူး|\bdouble\b|\bD\b/i.test(line)) {
+            for (const n of DOUBLE_NUMS) add(n, lineAmount)
             continue
         }
 

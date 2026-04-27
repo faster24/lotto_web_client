@@ -8,6 +8,8 @@ import {
     CURRENCY_OPTIONS,
     TARGET_OPEN_TIME_OPTIONS,
     TARGET_OPEN_TIME_LABELS,
+    MMT_OFFSET_MS,
+    mmtTotalMinutes,
     createEmptyRow,
     formatAmount,
     type BetCreateFormState,
@@ -28,14 +30,21 @@ function CurrencyFlag({ code }: { code: BetCreateInput['currency'] }) {
 // ── TargetOpenTimeSelector ───────────────────────────────────────────────────
 
 function secondsUntil(openTime: string): number {
-    const now = new Date()
     const parts = openTime.split(':')
     const h = parseInt(parts[0] ?? '0', 10)
     const m = parseInt(parts[1] ?? '0', 10)
     const s = parseInt(parts[2] ?? '0', 10)
-    const target = new Date(now)
-    target.setHours(h, m + 30, s, 0)
-    return Math.max(0, Math.floor((target.getTime() - now.getTime()) / 1000))
+    const mmtNow = new Date(Date.now() + MMT_OFFSET_MS)
+    const mmtTarget = new Date(Date.now() + MMT_OFFSET_MS)
+    mmtTarget.setUTCHours(h, m + 30, s, 0)
+    return Math.max(0, Math.floor((mmtTarget.getTime() - mmtNow.getTime()) / 1000))
+}
+
+function isSessionExpired(openTime: string): boolean {
+    const parts = openTime.split(':')
+    const h = parseInt(parts[0] ?? '0', 10)
+    const m = parseInt(parts[1] ?? '0', 10)
+    return mmtTotalMinutes() >= h * 60 + m
 }
 
 function formatCountdown(totalSeconds: number): string {
@@ -65,6 +74,26 @@ function TargetOpenTimeSelector({ form, setForm }: TargetOpenTimeSelectorProps) 
         return () => window.clearInterval(id)
     }, [form.target_opentime])
 
+    if (isSessionExpired('16:30:00')) {
+        return (
+            <div className="mb-5">
+                <p className="text-[0.6rem] font-bold text-white/40 uppercase tracking-widest mb-2 px-1">
+                    {t('bets.targetOpenTime')}
+                </p>
+                <div className="bg-[#1f2634] rounded-xl p-4 flex items-center gap-3 border border-red-500/20">
+                    <span className="material-symbols-outlined text-red-400 text-[1.25rem]">lock</span>
+                    <div>
+                        <p className="text-sm font-bold text-red-400">Betting closed for today</p>
+                        <p className="text-[0.6rem] text-white/40 font-medium uppercase tracking-tight mt-0.5">
+                            Opens tomorrow at 12:01 PM (MMT)
+                        </p>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    const availableOptions = TARGET_OPEN_TIME_OPTIONS.filter((v) => !isSessionExpired(v))
     const selectedLabel = TARGET_OPEN_TIME_LABELS[form.target_opentime] ?? form.target_opentime
 
     return (
@@ -92,7 +121,7 @@ function TargetOpenTimeSelector({ form, setForm }: TargetOpenTimeSelectorProps) 
 
             {open && (
                 <div className="mt-2 flex flex-col gap-2">
-                    {TARGET_OPEN_TIME_OPTIONS.map((value) => {
+                    {availableOptions.map((value) => {
                         const isActive = form.target_opentime === value
                         return (
                             <button

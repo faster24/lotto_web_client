@@ -3,6 +3,19 @@ import { useNavigate } from 'react-router-dom'
 import { createBet, listBankSettings } from '@/api/client'
 import type { AdminBankSetting, BetCreateInput, BetTargetOpenTime } from '@/api/types'
 
+// ── MMT Timezone Helpers ─────────────────────────────────────────────────────
+
+export const MMT_OFFSET_MS = (6 * 60 + 30) * 60 * 1000 // UTC+6:30
+
+export function mmtTotalMinutes(): number {
+    const d = new Date(Date.now() + MMT_OFFSET_MS)
+    return d.getUTCHours() * 60 + d.getUTCMinutes()
+}
+
+function getInitialOpenTime(): BetTargetOpenTime {
+    return mmtTotalMinutes() < 12 * 60 + 1 ? '12:01:00' : '16:30:00'
+}
+
 // ── Types ────────────────────────────────────────────────────────────────────
 
 export type BetCreateFormState = {
@@ -67,7 +80,7 @@ const initialForm: BetCreateFormState = {
     pay_slip_image: null,
     bet_type: '2D',
     currency: 'MMK',
-    target_opentime: '12:01:00',
+    target_opentime: getInitialOpenTime(),
     transaction_id_last_two_digits: '',
 }
 
