@@ -10,7 +10,7 @@ type SessionResult = {
 }
 
 const LIVE_API_URL = '/live-proxy'
-const FIVE_MINUTES_MS = 15 * 1000
+const FIVE_MINUTES_MS = 10 * 1000
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null
@@ -99,6 +99,15 @@ export function LiveNumberCard() {
     const [lastUpdatedTimeText, setLastUpdatedTimeText] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [sessionStats, setSessionStats] = useState<SessionResult[]>([])
+    const [numberVisible, setNumberVisible] = useState(true)
+
+    useEffect(() => {
+        const id = setInterval(() => {
+            setNumberVisible(false)
+            setTimeout(() => setNumberVisible(true), 400)
+        }, 2000)
+        return () => clearInterval(id)
+    }, [])
 
     useEffect(() => {
         let mounted = true
@@ -166,7 +175,7 @@ export function LiveNumberCard() {
                                 <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
                                 <span className="text-[10px] tracking-[0.2em] uppercase font-bold text-[#51e1a5]">{t('home.live')}</span>
                             </div>
-                            <p className="text-7xl font-bold tracking-tight text-white drop-shadow-lg">{liveNumber}</p>
+                            <p className={`text-7xl font-bold tracking-tight text-white drop-shadow-lg transition-opacity duration-400 ${numberVisible ? 'opacity-100' : 'opacity-0'}`}>{liveNumber}</p>
                             <p className="text-[10px] text-white/60">{lastUpdatedLabel}</p>
                         </div>
                     </div>
@@ -181,7 +190,7 @@ export function LiveNumberCard() {
             <section className="grid grid-cols-2 gap-3" aria-label={t('home.current2D')}>
                 <div className="bg-[rgba(35,41,60,0.4)] backdrop-blur border border-[#3c4a3c]/20 rounded-xl p-5 flex flex-col items-center shadow-[0_0_20px_rgba(81,225,165,0.1)]">
                     <span className="text-[10px] uppercase tracking-widest text-[#51e1a5] mb-2">{t('home.current2D')}</span>
-                    <span className="text-4xl font-bold text-white">{liveNumber}</span>
+                    <span className={`text-4xl font-bold text-white transition-opacity duration-400 ${numberVisible ? 'opacity-100' : 'opacity-0'}`}>{liveNumber}</span>
                 </div>
                 <div className="bg-[rgba(35,41,60,0.4)] backdrop-blur border border-[#3c4a3c]/20 rounded-xl p-5 flex flex-col items-center shadow-[0_0_20px_rgba(81,225,165,0.1)]">
                     <span className="text-[10px] uppercase tracking-widest text-[#51e1a5] mb-2">{t('home.current3D')}</span>
