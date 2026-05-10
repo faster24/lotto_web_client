@@ -19,6 +19,7 @@ import {
     type CurrencyOption,
 } from './useBetsForm'
 import { parsePastedBets } from './parsePastedBets'
+import { parsePastedBets3D } from './parsePastedBets3D'
 
 // ── CurrencyFlag ─────────────────────────────────────────────────────────────
 
@@ -261,7 +262,15 @@ function SmartGenerateCard({ betRows, setBetRows, isTwoDType }: SmartGenerateCar
                 description: 'Parse pasted bet text',
                 fields: { number: false, amount: false },
             },
-        ] : []),
+        ] : [
+            {
+                key: 'paste' as GeneratorKey,
+                icon: 'content_paste',
+                label: 'Paste',
+                description: 'Parse pasted 3D bets (Direct & Box)',
+                fields: { number: false, amount: false },
+            },
+        ]),
     ]
 
     const openModal = (key: GeneratorKey) => {
@@ -295,9 +304,15 @@ function SmartGenerateCard({ betRows, setBetRows, isTwoDType }: SmartGenerateCar
                 setModalError('Enter a valid default amount (integer ≥ 1).')
                 return
             }
-            const rows = parsePastedBets(pasteText, amt)
+            const rows = isTwoDType
+                ? parsePastedBets(pasteText, amt)
+                : parsePastedBets3D(pasteText, amt)
             if (rows.length === 0) {
-                setModalError('No valid 2-digit numbers found.')
+                setModalError(
+                    isTwoDType
+                        ? 'No valid 2-digit numbers found.'
+                        : 'No valid 3-digit numbers found. Each line must start with a 3-digit number.',
+                )
                 return
             }
             setBetRows((prev) => mergeRows(prev, rows))
@@ -475,14 +490,14 @@ function SmartGenerateCard({ betRows, setBetRows, isTwoDType }: SmartGenerateCar
                                             ref={pasteTextareaRef}
                                             rows={6}
                                             className="w-full rounded-xl border border-white/12 bg-[rgb(5_10_31_/_68%)] px-3 py-2.5 text-[#f7f9ff] text-sm leading-relaxed resize-none focus:border-[rgb(0_230_118_/_55%)] focus:outline-none"
-                                            placeholder={`12.24.56 = 500\n12.25 = r600\n1ပါ 500\nပါဝါ 1000\nနက်ခတ် 500`}
+                                            placeholder={isTwoDType ? `12.24.56 = 500\n12.25 = r600\n1ပါ 500\nပါဝါ 1000\nနက်ခတ် 500` : `123=500/200\n456.300r100\n789-1000-500`}
                                             value={pasteText}
                                             onChange={(e) => { setModalError(null); setPasteText(e.currentTarget.value) }}
                                         />
                                     </div>
                                     {pasteText.trim() && (
                                         (() => {
-                                            const count = parsePastedBets(pasteText, modalAmount.trim() || '0').length
+                                            const count = (isTwoDType ? parsePastedBets : parsePastedBets3D)(pasteText, modalAmount.trim() || '0').length
                                             return count > 0 ? (
                                                 <p className="text-[0.72rem] text-[#51e1a5]">{count} bet row{count !== 1 ? 's' : ''} ready</p>
                                             ) : null
