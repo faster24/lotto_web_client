@@ -77,6 +77,14 @@ function sessionIcon(label: string): string {
 }
 
 const EXCLUDED_HOURS = new Set([11, 15])
+const MMT_OFFSET_MINUTES = 6 * 60 + 30 // UTC+6:30
+const EVENING_CUTOFF_MINUTES = 16 * 60 + 30
+
+function isAfterEveningCutoffMMT(): boolean {
+    const now = new Date()
+    const mmtMinutes = (now.getUTCHours() * 60 + now.getUTCMinutes() + MMT_OFFSET_MINUTES) % (24 * 60)
+    return mmtMinutes >= EVENING_CUTOFF_MINUTES
+}
 
 function readSessionStats(payload: unknown): SessionResult[] {
     if (!isRecord(payload) || !Array.isArray(payload.result)) return []
@@ -123,6 +131,14 @@ export function LiveNumberCard() {
                 const stats = readSessionStats(payload)
 
                 if (next == null) throw new Error('Unexpected live response shape')
+
+                // After 16:30 MMT, patch evening '--' with live.twod from the same response
+                if (isAfterEveningCutoffMMT()) {
+                    const eveningIdx = stats.findIndex((s) => s.label === 'Evening')
+                    if (eveningIdx !== -1 && stats[eveningIdx]!.value === '--') {
+                        stats[eveningIdx] = { ...stats[eveningIdx]!, value: next }
+                    }
+                }
 
                 if (!mounted) return
 
