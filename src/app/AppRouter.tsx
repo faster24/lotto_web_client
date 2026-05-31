@@ -3,9 +3,11 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-route
 import { LoginPage } from '@/app/auth/LoginPage'
 import { RegisterPage } from '@/app/auth/RegisterPage'
 import { hasAuthToken } from '@/api/client'
+import { DepositDetailPage } from '@/app/gambling/DepositDetailPage'
 import { DepositHistoryPage } from '@/app/gambling/DepositHistoryPage'
 import { GamblingHistoryPage } from '@/app/gambling/GamblingHistoryPage'
 import { TransactionRecordPage } from '@/app/gambling/TransactionRecordPage'
+import { WithdrawalDetailPage } from '@/app/gambling/WithdrawalDetailPage'
 import { WithdrawalHistoryPage } from '@/app/gambling/WithdrawalHistoryPage'
 // v1: announcements not used
 // import { AnnouncementsPage } from '@/app/announcements/AnnouncementsPage'
@@ -31,6 +33,9 @@ import { HelpCenterPage } from '@/app/wallet-profile/HelpCenterPage'
 import { LotteryPage } from '@/app/wallet-profile/LotteryPage'
 import { MoneyIncomePage } from '@/app/wallet-profile/MoneyIncomePage'
 import { NumberPlayPage } from '@/app/wallet-profile/NumberPlayPage'
+import { WalletCurrencySetupPage } from '@/app/wallet-profile/WalletCurrencySetupPage'
+import { WithdrawalPage } from '@/app/wallet-profile/WithdrawalPage'
+import { RequireWalletCurrency } from '@/components/wallet/WalletCurrencyGate'
 import { MobileFrameShell } from '@/layouts/MobileFrameShell'
 import { type AppRouteDefinition, type AppSectionId, allRoutes, routeMap } from './routeMap'
 import { SectionPlaceholderPage } from './SectionPlaceholderPage'
@@ -59,31 +64,39 @@ function resolveRouteElement(section: AppSectionId, routeId: string) {
   }
 
   if (section === 'tabs' && routeId === 'home') {
-    return <HomeTabPage />
+    return <ProtectedRoute><RequireWalletCurrency><HomeTabPage /></RequireWalletCurrency></ProtectedRoute>
   }
 
   if (section === 'tabs' && routeId === 'bets') {
-    return <ExploreTabPage />
+    return <ProtectedRoute><RequireWalletCurrency><ExploreTabPage /></RequireWalletCurrency></ProtectedRoute>
   }
 
   if (section === 'tabs' && routeId === 'setting') {
-    return <SettingTabPage />
+    return <ProtectedRoute><RequireWalletCurrency><SettingTabPage /></RequireWalletCurrency></ProtectedRoute>
   }
 
   if (section === 'gambling' && routeId === 'deposit-history') {
-    return <DepositHistoryPage />
+    return <ProtectedRoute><RequireWalletCurrency><DepositHistoryPage /></RequireWalletCurrency></ProtectedRoute>
   }
 
   if (section === 'gambling' && routeId === 'gambling-history') {
-    return <GamblingHistoryPage />
+    return <ProtectedRoute><RequireWalletCurrency><GamblingHistoryPage /></RequireWalletCurrency></ProtectedRoute>
   }
 
   if (section === 'gambling' && routeId === 'transaction-record') {
-    return <TransactionRecordPage />
+    return <ProtectedRoute><RequireWalletCurrency><TransactionRecordPage /></RequireWalletCurrency></ProtectedRoute>
   }
 
   if (section === 'gambling' && routeId === 'withdrawal-history') {
-    return <WithdrawalHistoryPage />
+    return <ProtectedRoute><RequireWalletCurrency><WithdrawalHistoryPage /></RequireWalletCurrency></ProtectedRoute>
+  }
+
+  if (section === 'gambling' && routeId === 'deposit-detail') {
+    return <ProtectedRoute><RequireWalletCurrency><DepositDetailPage /></RequireWalletCurrency></ProtectedRoute>
+  }
+
+  if (section === 'gambling' && routeId === 'withdrawal-detail') {
+    return <ProtectedRoute><RequireWalletCurrency><WithdrawalDetailPage /></RequireWalletCurrency></ProtectedRoute>
   }
 
   if (section === 'wallet-profile' && routeId === 'number-play') {
@@ -91,7 +104,15 @@ function resolveRouteElement(section: AppSectionId, routeId: string) {
   }
 
   if (section === 'wallet-profile' && routeId === 'deposit') {
-    return <DepositPage />
+    return <ProtectedRoute><RequireWalletCurrency><DepositPage /></RequireWalletCurrency></ProtectedRoute>
+  }
+
+  if (section === 'wallet-profile' && routeId === 'withdrawal') {
+    return <ProtectedRoute><RequireWalletCurrency><WithdrawalPage /></RequireWalletCurrency></ProtectedRoute>
+  }
+
+  if (section === 'wallet' && routeId === 'currency-setup') {
+    return <ProtectedRoute><WalletCurrencySetupPage /></ProtectedRoute>
   }
 
   if (section === 'wallet-profile' && routeId === 'money-income') {
@@ -127,11 +148,11 @@ function resolveRouteElement(section: AppSectionId, routeId: string) {
   }
 
   if (section === 'user-api' && routeId === 'bets-2d') {
-    return <ProtectedRoute><PlaceBetPage betType="2D" /></ProtectedRoute>
+    return <ProtectedRoute><RequireWalletCurrency><PlaceBetPage betType="2D" /></RequireWalletCurrency></ProtectedRoute>
   }
 
   if (section === 'user-api' && routeId === 'bets-3d') {
-    return <ProtectedRoute><PlaceBetPage betType="3D" /></ProtectedRoute>
+    return <ProtectedRoute><RequireWalletCurrency><PlaceBetPage betType="3D" /></RequireWalletCurrency></ProtectedRoute>
   }
 
   // v1: announcements not used

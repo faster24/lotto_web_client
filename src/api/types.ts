@@ -115,11 +115,9 @@ export type ThreeDResult = {
 }
 
 export type BetCreateInput = {
-    pay_slip_image: File
     bet_type: BetType
     currency: BetCurrency
     target_opentime?: BetTargetOpenTime
-    transaction_id_last_two_digits: string
     bet_numbers: BetNumberInput[]
 }
 
@@ -127,4 +125,126 @@ export type ApiResult<T> = {
     message: string
     data: T
     errors: Record<string, string[]> | null
+}
+
+// ── Wallet ────────────────────────────────────────────────────────────────────
+
+export type WalletCurrency = 'MMK' | 'THB'
+
+export type Wallet = {
+    id: number
+    user_id: number
+    balance: number
+    currency: WalletCurrency | null
+    currency_locked_at: string | null
+    bank_name: WalletBankInfo['bank_name'] | null
+    account_name: string | null
+    account_number: string | null
+    created_at: string
+    updated_at: string
+}
+
+export type WalletTransactionType =
+    | 'DEPOSIT'
+    | 'BET_PLACE'
+    | 'BET_REFUND'
+    | 'BET_WIN'
+    | 'WITHDRAWAL'
+    | 'WITHDRAWAL_REFUND'
+    | 'ADJUSTMENT'
+
+export type WalletTransactionDirection = 'CREDIT' | 'DEBIT'
+
+export type WalletTransaction = {
+    id: string
+    wallet_id: number
+    user_id: number
+    type: WalletTransactionType
+    direction: WalletTransactionDirection
+    amount: number
+    balance_after: number
+    currency: WalletCurrency
+    reference_type: string | null
+    reference_id: string | null
+    note: string | null
+    created_by_user_id: string
+    created_at: string
+    updated_at: string
+}
+
+// ── Deposits ──────────────────────────────────────────────────────────────────
+
+export type DepositStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
+
+export type Deposit = {
+    id: string
+    user_id: number
+    admin_bank_setting_id: number
+    currency: WalletCurrency
+    claimed_amount: number
+    approved_amount: number | null
+    transfer_note: string | null
+    status: DepositStatus
+    admin_note: string | null
+    rejection_reason: string | null
+    reviewed_by_user_id: string | null
+    reviewed_at: string | null
+    proof_of_payment: {
+        exists: boolean
+        download_url: string | null
+        file_name: string | null
+        mime_type: string | null
+        size: number | null
+    }
+    created_at: string
+    updated_at: string
+}
+
+// ── Withdrawals ───────────────────────────────────────────────────────────────
+
+export type WithdrawalStatus = 'PENDING' | 'COMPLETED' | 'REJECTED'
+
+export type WithdrawalBankSnapshot = {
+    bank_name: string
+    account_name: string
+    account_number: string
+}
+
+export type Withdrawal = {
+    id: string
+    user_id: number
+    currency: WalletCurrency
+    amount: number
+    status: WithdrawalStatus
+    bank_snapshot: WithdrawalBankSnapshot
+    admin_note: string | null
+    rejection_reason: string | null
+    reviewed_by_user_id: string | null
+    reviewed_at: string | null
+    payout_proof: {
+        exists: boolean
+        download_url: string | null
+        file_name: string | null
+        mime_type: string | null
+        size: number | null
+    }
+    created_at: string
+    updated_at: string
+}
+
+// ── Input types ───────────────────────────────────────────────────────────────
+
+export type SetWalletCurrencyInput = {
+    currency: WalletCurrency
+}
+
+export type CreateDepositInput = {
+    claimed_amount: number
+    transfer_note?: string
+    proof_image: File
+}
+
+export type CreateWithdrawalInput = {
+    currency: WalletCurrency
+    amount: number
 }

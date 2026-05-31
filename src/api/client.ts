@@ -3,13 +3,20 @@ import {
   mockAnnouncements,
   mockBankInfo,
   mockBets,
+  mockDeposits,
   mockOddSettings,
   mockThreeDResults,
+  mockTransactions,
   mockTwoDResults,
   mockUser,
+  mockWallet,
+  mockWithdrawals,
   setMockBankInfo,
   setMockBets,
+  setMockDeposits,
   setMockUser,
+  setMockWallet,
+  setMockWithdrawals,
 } from './mockData'
 import type {
   AdminBankSetting,
@@ -19,13 +26,21 @@ import type {
   AuthData,
   Bet,
   BetCreateInput,
+  CreateDepositInput,
+  CreateWithdrawalInput,
+  Deposit,
   LoginInput,
   OddSetting,
   RegisterInput,
+  SetWalletCurrencyInput,
   ThreeDResult,
   TwoDResult,
   User,
+  Wallet,
   WalletBankInfo,
+  WalletTransaction,
+  WalletTransactionType,
+  Withdrawal,
 } from './types'
 
 const API_MODE: ApiMode = 'mock'
@@ -40,6 +55,10 @@ const PAYOUT_LIVE_ENABLED = (import.meta.env.VITE_PAYOUT_LIVE_ENABLED as string 
 const ACCEPTED_PAYMENTS_LIVE_ENABLED = (import.meta.env.VITE_ACCEPTED_PAYMENTS_LIVE_ENABLED as string | undefined) !== 'false'
 const ODD_SETTINGS_LIVE_ENABLED = (import.meta.env.VITE_ODD_SETTINGS_LIVE_ENABLED as string | undefined) !== 'false'
 const BANK_SETTINGS_LIVE_ENABLED = (import.meta.env.VITE_BANK_SETTINGS_LIVE_ENABLED as string | undefined) !== 'false'
+const WALLET_CURRENCY_LIVE_ENABLED = (import.meta.env.VITE_WALLET_CURRENCY_LIVE_ENABLED as string | undefined) !== 'false'
+const DEPOSITS_LIVE_ENABLED = (import.meta.env.VITE_DEPOSITS_LIVE_ENABLED as string | undefined) !== 'false'
+const WITHDRAWALS_LIVE_ENABLED = (import.meta.env.VITE_WITHDRAWALS_LIVE_ENABLED as string | undefined) !== 'false'
+const WALLET_TRANSACTIONS_LIVE_ENABLED = (import.meta.env.VITE_WALLET_TRANSACTIONS_LIVE_ENABLED as string | undefined) !== 'false'
 const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'http://localhost:8000/api/v1').replace(/\/+$/, '')
 
 const wait = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms))
@@ -170,66 +189,6 @@ async function postAuthJson<TRequest, TResponse>(path: string, payload: TRequest
 
   if (!response.ok) {
     throw new Error(buildAuthErrorMessage(response.status, parsed, fallbackMessage))
-  }
-
-  return parsed as TResponse
-}
-
-function buildBetCreateErrorMessage(status: number, payload: unknown, fallbackMessage: string) {
-  const body = payload as
-    | {
-        message?: string
-        errors?: Record<string, string[]>
-      }
-    | undefined
-  const validationMessages = collectValidationMessages(body?.errors)
-
-  if (validationMessages.length > 0) {
-    return validationMessages.join(' ')
-  }
-
-  if (typeof body?.message === 'string' && body.message.trim().length > 0) {
-    return body.message.trim()
-  }
-
-  if (status === 401) {
-    return 'You are not authenticated. Please log in again.'
-  }
-
-  if (status === 422) {
-    return 'Please review your bet form and try again.'
-  }
-
-  return fallbackMessage
-}
-
-async function postBetFormData<TResponse>(path: string, payload: FormData, fallbackMessage: string) {
-  const token = getAuthToken()
-  let response: Response
-
-  try {
-    response = await fetch(buildApiUrl(path), {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        ...(token != null ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: payload,
-    })
-  } catch {
-    throw new Error('Unable to connect to server. Please try again.')
-  }
-
-  let parsed: unknown = null
-
-  try {
-    parsed = await response.json()
-  } catch {
-    parsed = null
-  }
-
-  if (!response.ok) {
-    throw new Error(buildBetCreateErrorMessage(response.status, parsed, fallbackMessage))
   }
 
   return parsed as TResponse
@@ -547,10 +506,6 @@ async function createBetMock(input: BetCreateInput) {
   ensureMockMode()
   await wait(NETWORK_DELAY_MS)
 
-  if (!(input.pay_slip_image instanceof File)) {
-    throw new Error('Pay slip image is required.')
-  }
-
   if (input.bet_numbers.length === 0) {
     throw new Error('At least one bet number is required.')
   }
@@ -591,14 +546,13 @@ async function createBetMock(input: BetCreateInput) {
 
   mockBets.unshift(newBet)
 
+  // Deduct from mock wallet balance
+  setMockWallet({ ...mockWallet, balance: mockWallet.balance - totalAmount })
+
   return ok<{ bet: Bet }>('Bet created', { bet: newBet })
 }
 
 export async function createBet(input: BetCreateInput) {
-  if (!(input.pay_slip_image instanceof File)) {
-    throw new Error('Pay slip image is required.')
-  }
-
   if (input.bet_numbers.length === 0) {
     throw new Error('At least one bet number is required.')
   }
@@ -620,25 +574,21 @@ export async function createBet(input: BetCreateInput) {
     }
   })
 
-  const shouldUseLiveCreate = BET_CREATE_LIVE_ENABLED
-
-  if (!shouldUseLiveCreate) {
+  if (!BET_CREATE_LIVE_ENABLED) {
     return createBetMock(input)
   }
 
-  const payload = new FormData()
-  payload.append('pay_slip_image', input.pay_slip_image)
-  payload.append('bet_type', input.bet_type)
-  payload.append('currency', input.currency)
-  if (input.target_opentime != null) payload.append('target_opentime', input.target_opentime)
-  payload.append('transaction_id_last_two_digits', input.transaction_id_last_two_digits)
-
-  normalizedNumbers.forEach((row, index) => {
-    payload.append(`bet_numbers[${index}][number]`, row.number)
-    payload.append(`bet_numbers[${index}][amount]`, String(row.amount))
-  })
-
-  const response = await postBetFormData<ApiResult<{ bet: Bet }>>('/bets', payload, 'Create bet failed.')
+  const response = await authedRequest<ApiResult<{ bet: Bet }>>(
+    'POST',
+    '/bets',
+    {
+      bet_type: input.bet_type,
+      currency: input.currency,
+      ...(input.target_opentime != null ? { target_opentime: input.target_opentime } : {}),
+      bet_numbers: normalizedNumbers,
+    },
+    'Create bet failed.',
+  )
 
   if (response.data?.bet == null) {
     throw new Error('Invalid bet create response from server.')
@@ -763,4 +713,257 @@ export async function getLatestThreeDResult() {
   return ok<{ three_d_result: ThreeDResult | null }>('Latest 3D result', {
     three_d_result: mockThreeDResults[0] ?? null,
   })
+}
+
+// ── Wallet ────────────────────────────────────────────────────────────────────
+
+export async function getMyWallet(): Promise<ApiResult<{ wallet: Wallet }>> {
+  if (WALLET_CURRENCY_LIVE_ENABLED) {
+    return authedRequest<ApiResult<{ wallet: Wallet }>>('GET', '/me/wallet', null, 'Failed to load wallet.')
+  }
+
+  await wait(NETWORK_DELAY_MS)
+  return ok<{ wallet: Wallet }>('Wallet', { wallet: mockWallet })
+}
+
+export async function setWalletCurrency(input: SetWalletCurrencyInput): Promise<ApiResult<{ wallet: Wallet }>> {
+  if (WALLET_CURRENCY_LIVE_ENABLED) {
+    return authedRequest<ApiResult<{ wallet: Wallet }>>('PUT', '/me/wallet/currency', input, 'Failed to set wallet currency.')
+  }
+
+  await wait(NETWORK_DELAY_MS)
+  const next: Wallet = { ...mockWallet, currency: input.currency, currency_locked_at: new Date().toISOString() }
+  setMockWallet(next)
+  return ok<{ wallet: Wallet }>('Wallet currency set', { wallet: next })
+}
+
+export async function listWalletTransactions(params?: {
+  page?: number
+  page_size?: number
+  type?: WalletTransactionType
+}): Promise<ApiResult<{ transactions: WalletTransaction[] }>> {
+  if (WALLET_TRANSACTIONS_LIVE_ENABLED) {
+    const query = new URLSearchParams()
+    if (params?.page != null) query.set('page', String(params.page))
+    if (params?.page_size != null) query.set('page_size', String(params.page_size))
+    if (params?.type != null) query.set('type', params.type)
+    const path = `/me/wallet/transactions${query.toString() ? `?${query.toString()}` : ''}`
+    return authedRequest<ApiResult<{ transactions: WalletTransaction[] }>>('GET', path, null, 'Failed to load transactions.')
+  }
+
+  await wait(NETWORK_DELAY_MS)
+  const filtered = params?.type != null ? mockTransactions.filter((t) => t.type === params.type) : mockTransactions
+  return ok<{ transactions: WalletTransaction[] }>('Transactions', { transactions: filtered })
+}
+
+// ── Deposits ──────────────────────────────────────────────────────────────────
+
+async function postFormData<TResponse>(path: string, payload: FormData, fallbackMessage: string): Promise<TResponse> {
+  const token = getAuthToken()
+  let response: Response
+
+  try {
+    response = await fetch(buildApiUrl(path), {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        ...(token != null ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: payload,
+    })
+  } catch {
+    throw new Error('Unable to connect to server. Please try again.')
+  }
+
+  let parsed: unknown = null
+  try {
+    parsed = await response.json()
+  } catch {
+    parsed = null
+  }
+
+  if (!response.ok) {
+    throw new Error(buildWalletErrorMessage(response.status, parsed, fallbackMessage))
+  }
+
+  return parsed as TResponse
+}
+
+export async function createDeposit(input: CreateDepositInput): Promise<ApiResult<{ deposit: Deposit }>> {
+  if (DEPOSITS_LIVE_ENABLED) {
+    const payload = new FormData()
+    payload.append('claimed_amount', String(input.claimed_amount))
+    payload.append('proof_image', input.proof_image)
+    if (input.transfer_note != null) payload.append('transfer_note', input.transfer_note)
+    return postFormData<ApiResult<{ deposit: Deposit }>>('/deposits', payload, 'Create deposit failed.')
+  }
+
+  await wait(NETWORK_DELAY_MS)
+  const newDeposit: Deposit = {
+    id: `dep-${crypto.randomUUID()}`,
+    user_id: 1,
+    admin_bank_setting_id: 1,
+    currency: mockWallet.currency ?? 'MMK',
+    claimed_amount: input.claimed_amount,
+    approved_amount: null,
+    transfer_note: input.transfer_note ?? null,
+    status: 'PENDING',
+    admin_note: null,
+    rejection_reason: null,
+    reviewed_by_user_id: null,
+    reviewed_at: null,
+    proof_of_payment: { exists: true, download_url: null, file_name: input.proof_image.name, mime_type: input.proof_image.type, size: input.proof_image.size },
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+  setMockDeposits([newDeposit, ...mockDeposits])
+  return ok<{ deposit: Deposit }>('Deposit created', { deposit: newDeposit })
+}
+
+export async function listDeposits(params?: {
+  page?: number
+  page_size?: number
+}): Promise<ApiResult<{ deposits: Deposit[] }>> {
+  if (DEPOSITS_LIVE_ENABLED) {
+    const query = new URLSearchParams()
+    if (params?.page != null) query.set('page', String(params.page))
+    if (params?.page_size != null) query.set('page_size', String(params.page_size))
+    const path = `/me/deposits${query.toString() ? `?${query.toString()}` : ''}`
+    return authedRequest<ApiResult<{ deposits: Deposit[] }>>('GET', path, null, 'Failed to load deposits.')
+  }
+
+  await wait(NETWORK_DELAY_MS)
+  return ok<{ deposits: Deposit[] }>('Deposits', { deposits: mockDeposits })
+}
+
+export async function getDepositById(depositId: string): Promise<ApiResult<{ deposit: Deposit | null }>> {
+  if (DEPOSITS_LIVE_ENABLED) {
+    return authedRequest<ApiResult<{ deposit: Deposit | null }>>('GET', `/me/deposits/${depositId}`, null, 'Failed to load deposit.')
+  }
+
+  await wait(NETWORK_DELAY_MS)
+  const deposit = mockDeposits.find((d) => d.id === depositId) ?? null
+  return ok<{ deposit: Deposit | null }>('Deposit detail', { deposit })
+}
+
+export async function cancelDeposit(depositId: string): Promise<ApiResult<{ deposit: Deposit }>> {
+  if (DEPOSITS_LIVE_ENABLED) {
+    return authedRequest<ApiResult<{ deposit: Deposit }>>('DELETE', `/me/deposits/${depositId}`, null, 'Failed to cancel deposit.')
+  }
+
+  await wait(NETWORK_DELAY_MS)
+  const index = mockDeposits.findIndex((d) => d.id === depositId)
+  if (index === -1) throw new Error('Deposit not found.')
+  const cancelled = { ...mockDeposits[index]!, status: 'REJECTED' as const, updated_at: new Date().toISOString() }
+  const next = [...mockDeposits]
+  next[index] = cancelled
+  setMockDeposits(next)
+  return ok<{ deposit: Deposit }>('Deposit cancelled', { deposit: cancelled })
+}
+
+export async function downloadDepositProof(depositId: string): Promise<Blob> {
+  if (DEPOSITS_LIVE_ENABLED) {
+    const token = getAuthToken()
+    const response = await fetch(buildApiUrl(`/me/deposits/${depositId}/proof`), {
+      headers: {
+        ...(token != null ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    })
+    if (!response.ok) throw new Error('Failed to download deposit proof.')
+    return response.blob()
+  }
+
+  await wait(NETWORK_DELAY_MS)
+  return new Blob(['mock deposit proof'], { type: 'image/jpeg' })
+}
+
+// ── Withdrawals ───────────────────────────────────────────────────────────────
+
+export async function createWithdrawal(input: CreateWithdrawalInput): Promise<ApiResult<{ withdrawal: Withdrawal }>> {
+  if (WITHDRAWALS_LIVE_ENABLED) {
+    return authedRequest<ApiResult<{ withdrawal: Withdrawal }>>('POST', '/me/withdrawals', input, 'Create withdrawal failed.')
+  }
+
+  await wait(NETWORK_DELAY_MS)
+  const newWithdrawal: Withdrawal = {
+    id: `wth-${crypto.randomUUID()}`,
+    user_id: 1,
+    currency: input.currency,
+    amount: input.amount,
+    status: 'PENDING',
+    bank_snapshot: {
+      bank_name: mockWallet.bank_name ?? 'KBZ',
+      account_name: mockWallet.account_name ?? 'User',
+      account_number: mockWallet.account_number ?? '0000000000',
+    },
+    admin_note: null,
+    rejection_reason: null,
+    reviewed_by_user_id: null,
+    reviewed_at: null,
+    payout_proof: { exists: false, download_url: null, file_name: null, mime_type: null, size: null },
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+  setMockWithdrawals([newWithdrawal, ...mockWithdrawals])
+  setMockWallet({ ...mockWallet, balance: mockWallet.balance - input.amount })
+  return ok<{ withdrawal: Withdrawal }>('Withdrawal created', { withdrawal: newWithdrawal })
+}
+
+export async function listWithdrawals(params?: {
+  page?: number
+  page_size?: number
+}): Promise<ApiResult<{ withdrawals: Withdrawal[] }>> {
+  if (WITHDRAWALS_LIVE_ENABLED) {
+    const query = new URLSearchParams()
+    if (params?.page != null) query.set('page', String(params.page))
+    if (params?.page_size != null) query.set('page_size', String(params.page_size))
+    const path = `/me/withdrawals${query.toString() ? `?${query.toString()}` : ''}`
+    return authedRequest<ApiResult<{ withdrawals: Withdrawal[] }>>('GET', path, null, 'Failed to load withdrawals.')
+  }
+
+  await wait(NETWORK_DELAY_MS)
+  return ok<{ withdrawals: Withdrawal[] }>('Withdrawals', { withdrawals: mockWithdrawals })
+}
+
+export async function getWithdrawalById(withdrawalId: string): Promise<ApiResult<{ withdrawal: Withdrawal | null }>> {
+  if (WITHDRAWALS_LIVE_ENABLED) {
+    return authedRequest<ApiResult<{ withdrawal: Withdrawal | null }>>('GET', `/me/withdrawals/${withdrawalId}`, null, 'Failed to load withdrawal.')
+  }
+
+  await wait(NETWORK_DELAY_MS)
+  const withdrawal = mockWithdrawals.find((w) => w.id === withdrawalId) ?? null
+  return ok<{ withdrawal: Withdrawal | null }>('Withdrawal detail', { withdrawal })
+}
+
+export async function cancelWithdrawal(withdrawalId: string): Promise<ApiResult<{ withdrawal: Withdrawal }>> {
+  if (WITHDRAWALS_LIVE_ENABLED) {
+    return authedRequest<ApiResult<{ withdrawal: Withdrawal }>>('DELETE', `/me/withdrawals/${withdrawalId}`, null, 'Failed to cancel withdrawal.')
+  }
+
+  await wait(NETWORK_DELAY_MS)
+  const index = mockWithdrawals.findIndex((w) => w.id === withdrawalId)
+  if (index === -1) throw new Error('Withdrawal not found.')
+  const item = mockWithdrawals[index]!
+  const cancelled = { ...item, status: 'REJECTED' as const, updated_at: new Date().toISOString() }
+  const next = [...mockWithdrawals]
+  next[index] = cancelled
+  setMockWithdrawals(next)
+  setMockWallet({ ...mockWallet, balance: mockWallet.balance + item.amount })
+  return ok<{ withdrawal: Withdrawal }>('Withdrawal cancelled', { withdrawal: cancelled })
+}
+
+export async function downloadWithdrawalProof(withdrawalId: string): Promise<Blob> {
+  if (WITHDRAWALS_LIVE_ENABLED) {
+    const token = getAuthToken()
+    const response = await fetch(buildApiUrl(`/me/withdrawals/${withdrawalId}/proof`), {
+      headers: {
+        ...(token != null ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    })
+    if (!response.ok) throw new Error('Failed to download withdrawal proof.')
+    return response.blob()
+  }
+
+  await wait(NETWORK_DELAY_MS)
+  return new Blob(['mock withdrawal proof'], { type: 'image/jpeg' })
 }

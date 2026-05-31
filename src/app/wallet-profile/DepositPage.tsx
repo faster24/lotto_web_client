@@ -1,93 +1,126 @@
 import { useTranslation } from 'react-i18next'
+import { useDepositForm } from '@/components/deposit/useDepositForm'
+import { useWallet } from '@/contexts/WalletContext'
+import { apiHeader, apiScreen, screenRoot, screenScroll } from '@/styles/tw'
 import { WalletProfileRouteNav } from './WalletProfileRouteNav'
-
-type Channel = { id: string; nameKey: string; eta: string; fee: string }
-type RecentDeposit = { id: string; channel: string; submittedAt: string; amount: string; status: string }
-
-const channels: Channel[] = [
-  { id: 'kbz', nameKey: 'KBZ Pay', eta: '1-3 min', fee: 'No fee' },
-  { id: 'wave', nameKey: 'Wave Money', eta: 'Instant', fee: 'No fee' },
-  { id: 'bank', nameKey: 'Bank Slip', eta: '5-15 min', fee: 'Bank charge may apply' },
-]
-
-const recentDeposits: RecentDeposit[] = [
-  { id: 'dep-1', channel: 'KBZ Pay', submittedAt: 'Today, 12:18 PM', amount: '+120,000 MMK', status: 'Approved' },
-  { id: 'dep-2', channel: 'Wave Money', submittedAt: 'Yesterday, 08:02 PM', amount: '+60,000 MMK', status: 'Checking' },
-]
 
 export function DepositPage() {
   const { t } = useTranslation()
+  const { wallet } = useWallet()
+  const { form, setForm, isSubmitting, message, onSubmit, proofPreviewUrl, fileInputRef, onFileChange } = useDepositForm()
 
   return (
-    <div className="screen-root wallet-profile-screen" data-testid="wallet-profile-deposit-page">
-      <header className="wallet-profile-header">
-        <p className="wallet-profile-header__eyebrow">{t('deposit.eyebrow')}</p>
-        <h1>{t('deposit.title')}</h1>
-        <p className="wallet-profile-header__caption">{t('deposit.desc')}</p>
+    <div className={`${screenRoot} ${apiScreen}`} data-testid="wallet-profile-deposit-page">
+      <header className={apiHeader}>
+        <p className="m-0 text-[0.72rem] uppercase tracking-[0.1em] text-[#93c5fd]">{t('deposit.eyebrow')}</p>
+        <h1 className="mt-1 mb-0 text-[clamp(1.48rem,5vw,1.9rem)] [font-family:'Noe_Display','Iowan_Old_Style','Palatino_Linotype',serif]">
+          {t('deposit.title')}
+        </h1>
+        <p className="mt-1.5 mb-0 text-[0.86rem] leading-[1.45] text-[#8a9bb3]">{t('deposit.desc')}</p>
       </header>
 
-      <main className="screen-scroll wallet-profile-scroll">
+      <main className={screenScroll}>
         <WalletProfileRouteNav activeId="deposit" />
 
-        <section className="wallet-profile-card" aria-labelledby="deposit-channel-heading">
-          <div className="wallet-profile-card__head">
-            <h2 id="deposit-channel-heading">{t('deposit.chooseChannel')}</h2>
-            <p>{t('deposit.manualFlow')}</p>
+        {wallet != null && (
+          <div className="rounded-xl border border-white/10 bg-white/4 px-4 py-3 flex items-center gap-3">
+            <span className="material-symbols-outlined text-[#00e676] text-[1.1rem]">account_balance_wallet</span>
+            <p className="m-0 text-[0.82rem] text-[#8a9bb3]">
+              Transfers must be in <strong className="text-white">{wallet.currency}</strong>.
+              Transfer to our account, then upload your payment proof.
+            </p>
           </div>
+        )}
 
-          <ul className="wallet-profile-list" aria-label={t('deposit.chooseChannel')}>
-            {channels.map((channel) => (
-              <li key={channel.id} className="wallet-profile-list-item wallet-profile-list-item--stacked">
-                <p className="wallet-profile-list-item__title">{channel.nameKey}</p>
-                <p className="wallet-profile-list-item__meta">
-                  ETA {channel.eta} · {channel.fee}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </section>
+        <form
+          className="space-y-4"
+          onSubmit={(e) => { e.preventDefault(); void onSubmit() }}
+        >
+          {/* Amount */}
+          <label className="block space-y-1.5">
+            <span className="text-[0.78rem] font-semibold uppercase tracking-[0.06em] text-[#8a9bb3]">
+              {t('deposit.amountLabel', { currency: wallet?.currency ?? 'MMK' })}
+            </span>
+            <input
+              className="h-11 w-full rounded-xl border border-white/12 bg-[rgb(5_10_31_/_68%)] px-3 text-[#f7f9ff] focus:border-[rgb(0_230_118_/_55%)] focus:outline-none"
+              inputMode="numeric"
+              placeholder="e.g. 50000"
+              value={form.claimed_amount}
+              onChange={(e) => setForm((prev) => ({ ...prev, claimed_amount: e.currentTarget.value.replace(/\D/g, '') }))}
+              required
+            />
+            {wallet != null && (
+              <p className="m-0 text-[0.72rem] text-[#8a9bb3]">
+                Current balance: {wallet.balance.toLocaleString()} {wallet.currency}
+              </p>
+            )}
+          </label>
 
-        <section className="wallet-profile-card" aria-labelledby="deposit-form-heading">
-          <div className="wallet-profile-card__head">
-            <h2 id="deposit-form-heading">{t('deposit.submitRequest')}</h2>
-            <p>{t('deposit.uiOnlyDraft')}</p>
-          </div>
+          {/* Transfer note */}
+          <label className="block space-y-1.5">
+            <span className="text-[0.78rem] font-semibold uppercase tracking-[0.06em] text-[#8a9bb3]">
+              {t('deposit.transferNote')} <span className="normal-case font-normal opacity-60">(optional)</span>
+            </span>
+            <input
+              className="h-11 w-full rounded-xl border border-white/12 bg-[rgb(5_10_31_/_68%)] px-3 text-[#f7f9ff] focus:border-[rgb(0_230_118_/_55%)] focus:outline-none"
+              placeholder={t('deposit.transferNotePlaceholder')}
+              value={form.transfer_note}
+              onChange={(e) => setForm((prev) => ({ ...prev, transfer_note: e.currentTarget.value }))}
+            />
+          </label>
 
-          <form className="wallet-profile-form" onSubmit={(event) => event.preventDefault()}>
-            <label className="wallet-profile-form__field" htmlFor="deposit-amount">
-              {t('deposit.amountLabel')}
-              <input id="deposit-amount" type="text" inputMode="numeric" placeholder={t('deposit.amountPlaceholder')} />
+          {/* Proof upload */}
+          <div className="space-y-1.5">
+            <span className="text-[0.78rem] font-semibold uppercase tracking-[0.06em] text-[#8a9bb3]">
+              {t('deposit.proofOfPayment')}
+            </span>
+            <label
+              className="flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-white/15 bg-white/3 p-6 cursor-pointer hover:border-[#00e676]/30 hover:bg-[#00e676]/5 transition-all"
+              htmlFor="deposit-proof-image"
+            >
+              {proofPreviewUrl != null ? (
+                <img src={proofPreviewUrl} alt="Proof preview" className="max-h-32 rounded-lg object-contain" />
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-white/30 text-[2.5rem]">cloud_upload</span>
+                  <p className="m-0 text-[0.82rem] text-[#8a9bb3] text-center">{t('deposit.proofHint')}</p>
+                </>
+              )}
+              {form.proof_image != null && (
+                <p className="m-0 text-[0.72rem] text-[#93c5fd]">{form.proof_image.name}</p>
+              )}
             </label>
-            <label className="wallet-profile-form__field" htmlFor="deposit-note">
-              {t('deposit.transferNote')}
-              <input id="deposit-note" type="text" placeholder={t('deposit.transferNotePlaceholder')} />
-            </label>
-            <button type="submit" className="wallet-profile-primary-btn">
-              {t('deposit.createTicket')}
-            </button>
-          </form>
-        </section>
-
-        <section className="wallet-profile-card" aria-labelledby="deposit-recent-heading">
-          <div className="wallet-profile-card__head">
-            <h2 id="deposit-recent-heading">{t('deposit.recentRequests')}</h2>
-            <p>{t('deposit.recentItems')}</p>
+            <input
+              ref={fileInputRef}
+              id="deposit-proof-image"
+              type="file"
+              accept="image/png,image/jpeg,image/jpg,image/webp"
+              className="sr-only"
+              onChange={(e) => onFileChange(e.currentTarget.files?.[0] ?? null)}
+              required
+            />
           </div>
 
-          <ul className="wallet-profile-list" aria-label={t('deposit.recentRequests')}>
-            {recentDeposits.map((entry) => (
-              <li key={entry.id} className="wallet-profile-list-item">
-                <div>
-                  <p className="wallet-profile-list-item__title">{entry.channel}</p>
-                  <p className="wallet-profile-list-item__meta">
-                    {entry.submittedAt} · {entry.status}
-                  </p>
-                </div>
-                <p className="wallet-profile-list-item__amount wallet-profile-list-item__amount--positive">{entry.amount}</p>
-              </li>
-            ))}
-          </ul>
-        </section>
+          {message != null && (
+            <p className="m-0 rounded-xl border border-red-500/30 bg-red-500/8 px-4 py-3 text-[0.82rem] text-red-400">{message}</p>
+          )}
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="h-14 w-full bg-gradient-to-r from-[#00e676] to-[#2ac48b] rounded-2xl flex items-center justify-center shadow-[0_12px_24px_rgba(0,230,118,0.3)] active:scale-95 transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isSubmitting ? (
+              <svg viewBox="0 0 24 24" className="h-5 w-5 animate-spin text-[#003824]" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 3a9 9 0 1 1-9 9" strokeLinecap="round" />
+              </svg>
+            ) : (
+              <span className="font-semibold text-[0.95rem] text-[#003824] uppercase tracking-wide">
+                {t('deposit.submitDeposit')}
+              </span>
+            )}
+          </button>
+        </form>
       </main>
     </div>
   )

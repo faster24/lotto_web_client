@@ -64,12 +64,6 @@ export function BetDetailPage() {
             <p>{bet.bet_type} · {bet.total_amount} {bet.currency}</p>
             <p>Status: {bet.status} / {bet.payout_status}</p>
             <div className="grid gap-2">
-              <button type="button" className={apiButton} onClick={() => setMessage(t('betDetail.paySlipMock'))}>
-                {t('betDetail.downloadPaySlip')}
-              </button>
-              <button type="button" className={apiButton} onClick={() => setMessage(t('betDetail.payoutProofMock'))}>
-                {t('betDetail.downloadPayoutProof')}
-              </button>
               <button type="button" className={apiButton} onClick={() => void onDelete()}>
                 {t('betDetail.deleteBet')}
               </button>

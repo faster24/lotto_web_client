@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getMe } from '@/api/client'
 import type { User } from '@/api/types'
+import { BalancePill } from '@/components/wallet/BalancePill'
 
 export function ProfileWalletCard() {
     const { t } = useTranslation()
@@ -101,6 +102,8 @@ export function ProfileWalletCard() {
                                 {user.role.toUpperCase()}
                             </span>
                         )}
+
+                        <BalancePill />
                     </div>
                 </div>
             </div>

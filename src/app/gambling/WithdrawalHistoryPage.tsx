@@ -1,31 +1,47 @@
 import { useEffect, useState } from 'react'
-import { listPayoutHistory } from '@/api/client'
-import type { Bet } from '@/api/types'
+import { Link, useNavigate } from 'react-router-dom'
+import { listWithdrawals } from '@/api/client'
+import type { Withdrawal } from '@/api/types'
 import { ApiStatePanel } from '@/components/api/ApiStatePanel'
-import { apiHeader, apiScreen, screenRoot, screenScroll } from '@/styles/tw'
+import { apiScreen, screenRoot, screenScroll, apiHeader } from '@/styles/tw'
 
-const payoutStatusConfig: Partial<Record<Bet['payout_status'], { label: string; className: string }>> = {
-  PAID_OUT: { label: 'Paid Out',  className: 'bg-[#00e676]/12 text-[#00e676] border-[#00e676]/25' },
-  REFUNDED: { label: 'Refunded', className: 'bg-blue-500/12 text-blue-400 border-blue-500/25' },
+const STATUS_CONFIG: Record<Withdrawal['status'], { label: string; className: string }> = {
+  COMPLETED: { label: 'Completed', className: 'bg-[#00e676]/12 text-[#00e676] border-[#00e676]/25' },
+  PENDING: { label: 'Pending', className: 'bg-amber-500/12 text-amber-400 border-amber-500/25' },
+  REJECTED: { label: 'Rejected', className: 'bg-red-500/12 text-red-400 border-red-500/25' },
 }
 
-function formatDateTime(iso: string | null) {
-  if (iso == null) return null
-  const d = new Date(iso)
-  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
 export function WithdrawalHistoryPage() {
-  const [bets, setBets] = useState<Bet[]>([])
+  const navigate = useNavigate()
+  const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(false)
 
-  useEffect(() => {
-    listPayoutHistory()
-      .then((res) => setBets(res.data.payout_history))
-      .catch(() => setError('Unable to load payout history. Please try again.'))
-      .finally(() => setLoading(false))
-  }, [])
+  const load = async (pageNum: number, append: boolean) => {
+    try {
+      const res = await listWithdrawals({ page: pageNum, page_size: 20 })
+      const fetched = res.data.withdrawals
+      setWithdrawals((prev) => append ? [...prev, ...fetched] : fetched)
+      setHasMore(fetched.length === 20)
+    } catch {
+      setError('Unable to load withdrawal history. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { void load(1, false) }, [])
+
+  const completedCount = withdrawals.filter((w) => w.status === 'COMPLETED').length
+  const pendingCount = withdrawals.filter((w) => w.status === 'PENDING').length
+  const totalWithdrawn = withdrawals.filter((w) => w.status === 'COMPLETED').reduce((s, w) => s + w.amount, 0)
+  const currency = withdrawals[0]?.currency ?? 'MMK'
 
   return (
     <div className={`${screenRoot} ${apiScreen}`} data-testid="gambling-withdrawal-history-page">
@@ -35,57 +51,81 @@ export function WithdrawalHistoryPage() {
           Withdrawal History
         </h1>
         <p className="mt-1.5 mb-0 text-[0.86rem] leading-[1.45] text-[#8a9bb3]">
-          Track your payout requests and transfer status.
+          Track withdrawal requests and transfer status.
         </p>
       </header>
 
       <main className={screenScroll}>
+        {/* Shortcut */}
+        <Link
+          to="/wallet-profile/withdrawal"
+          className="inline-flex items-center gap-2 rounded-xl border border-[#00e676]/25 bg-[#00e676]/8 px-4 py-3 text-[0.82rem] font-semibold text-[#00e676] hover:bg-[#00e676]/14 transition-colors w-full"
+        >
+          <span className="material-symbols-outlined text-[1rem]">add</span>
+          Request Withdrawal →
+        </Link>
+
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { label: 'Completed', value: String(completedCount) },
+            { label: 'Pending', value: String(pendingCount) },
+            { label: 'Total', value: `${totalWithdrawn.toLocaleString()} ${currency}` },
+          ].map((m) => (
+            <div key={m.label} className="rounded-xl border border-white/8 bg-white/3 p-3">
+              <p className="m-0 text-[0.68rem] uppercase tracking-widest text-[#8a9bb3]">{m.label}</p>
+              <p className="m-0 mt-1 text-[0.88rem] font-bold text-white">{m.value}</p>
+            </div>
+          ))}
+        </div>
+
         <ApiStatePanel
           loading={loading}
           error={error}
-          empty={!loading && error == null && bets.length === 0}
-          emptyMessage="No payout records yet. Winnings will appear here once processed."
+          empty={!loading && error == null && withdrawals.length === 0}
+          emptyMessage="No withdrawal requests yet. Tap '+ Request Withdrawal' to get started."
         />
 
-        {bets.length > 0 && (
+        {withdrawals.length > 0 && (
           <ul className="m-0 list-none grid gap-3 p-0">
-            {bets.map((bet) => {
-              const payout = payoutStatusConfig[bet.payout_status] ?? { label: bet.payout_status, className: 'bg-white/5 text-[#8a9bb3] border-white/10' }
-              const paidAt = formatDateTime(bet.paid_out_at)
+            {withdrawals.map((w) => {
+              const status = STATUS_CONFIG[w.status]
               return (
                 <li
-                  key={bet.id}
-                  className="rounded-xl border border-white/8 bg-[linear-gradient(160deg,rgb(11_19_43_/_94%)_0%,rgb(7_15_35_/_88%)_100%)] p-4"
+                  key={w.id}
+                  className="rounded-xl border border-white/8 bg-[linear-gradient(160deg,rgb(11_19_43_/_94%)_0%,rgb(7_15_35_/_88%)_100%)] p-4 cursor-pointer hover:border-white/15 active:scale-[0.99] transition-all"
+                  onClick={() => navigate(`/gambling/withdrawal-history/${w.id}`)}
                 >
-                  {/* Header row */}
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-[0.72rem] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border bg-white/5 text-[#f7f9ff] border-white/10">
-                      {bet.bet_type}
-                    </span>
-                    <span className={`text-[0.72rem] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border ${payout.className}`}>
-                      {payout.label}
-                    </span>
-                  </div>
-
-                  {/* Amount */}
-                  <div className="mb-2">
-                    <p className="m-0 text-[0.7rem] uppercase tracking-widest text-[#8a9bb3]">Amount</p>
-                    <p className="m-0 text-[1.1rem] font-bold text-[#f7f9ff]">
-                      {bet.total_amount} <span className="text-[0.8rem] font-normal text-[#8a9bb3]">{bet.currency}</span>
-                    </p>
-                  </div>
-
-                  {/* Draw date + paid date */}
-                  <div className="flex items-center justify-between mt-1">
-                    <p className="m-0 text-[0.7rem] text-[#8a9bb3]">Draw: {bet.stock_date}</p>
-                    {paidAt != null && (
-                      <p className="m-0 text-[0.68rem] text-[#8a9bb3]">Paid: {paidAt}</p>
-                    )}
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <p className="m-0 text-[0.82rem] font-semibold text-white">Withdrawal</p>
+                      <p className="m-0 text-[0.7rem] text-[#8a9bb3]">{formatDate(w.created_at)} · {w.bank_snapshot.bank_name}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="m-0 text-[0.9rem] font-bold text-red-400">-{w.amount.toLocaleString()} {w.currency}</p>
+                      <span className={`inline-flex rounded-full border px-2 py-0.5 text-[0.65rem] font-semibold ${status.className}`}>
+                        {status.label}
+                      </span>
+                    </div>
                   </div>
                 </li>
               )
             })}
           </ul>
+        )}
+
+        {hasMore && (
+          <button
+            type="button"
+            className="w-full rounded-xl border border-white/12 bg-white/4 py-3 text-[0.82rem] font-semibold text-[#8a9bb3] hover:text-white transition-colors"
+            onClick={() => {
+              const next = page + 1
+              setPage(next)
+              void load(next, true)
+            }}
+          >
+            Load More
+          </button>
         )}
       </main>
     </div>

@@ -9,6 +9,7 @@ const sectionTitleMap: Record<AppSectionId, string> = {
   gambling: 'Gambling',
   'wallet-profile': 'Wallet Profile',
   'user-api': 'User API',
+  wallet: 'Wallet',
 }
 
 type SectionPlaceholderPageProps = {

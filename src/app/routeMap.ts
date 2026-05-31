@@ -1,4 +1,4 @@
-export type AppSectionId = 'auth' | 'tabs' | 'gambling' | 'wallet-profile' | 'user-api'
+export type AppSectionId = 'auth' | 'tabs' | 'gambling' | 'wallet-profile' | 'user-api' | 'wallet'
 
 export type AppRouteDefinition = {
   id: string
@@ -9,6 +9,15 @@ export type AppRouteDefinition = {
 }
 
 export const routeMap: Record<AppSectionId, AppRouteDefinition[]> = {
+  wallet: [
+    {
+      id: 'currency-setup',
+      section: 'wallet',
+      path: 'wallet/currency-setup',
+      label: 'Wallet Setup',
+      description: 'One-time wallet currency selection.',
+    },
+  ],
   auth: [
     {
       id: 'login',
@@ -77,6 +86,20 @@ export const routeMap: Record<AppSectionId, AppRouteDefinition[]> = {
       label: 'Withdrawal History',
       description: 'Payout history shell for cash-out records.',
     },
+    {
+      id: 'deposit-detail',
+      section: 'gambling',
+      path: 'gambling/deposit-history/:depositId',
+      label: 'Deposit Detail',
+      description: 'Deposit request detail and status.',
+    },
+    {
+      id: 'withdrawal-detail',
+      section: 'gambling',
+      path: 'gambling/withdrawal-history/:withdrawalId',
+      label: 'Withdrawal Detail',
+      description: 'Withdrawal request detail and status.',
+    },
   ],
   'wallet-profile': [
     {
@@ -92,6 +115,13 @@ export const routeMap: Record<AppSectionId, AppRouteDefinition[]> = {
       path: 'wallet-profile/deposit',
       label: 'Deposit',
       description: 'Funding shell with payment channel cards.',
+    },
+    {
+      id: 'withdrawal',
+      section: 'wallet-profile',
+      path: 'wallet-profile/withdrawal',
+      label: 'Withdrawal',
+      description: 'Request a cash withdrawal from wallet balance.',
     },
     {
       id: 'money-income',

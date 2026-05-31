@@ -2,6 +2,8 @@ import { type FormEvent, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createBet, listBankSettings } from '@/api/client'
 import type { AdminBankSetting, BetCreateInput, BetTargetOpenTime } from '@/api/types'
+import { useToast } from '@/contexts/ToastContext'
+import { useWallet } from '@/contexts/WalletContext'
 
 // ── MMT Timezone Helpers ─────────────────────────────────────────────────────
 
@@ -19,11 +21,9 @@ function getInitialOpenTime(): BetTargetOpenTime {
 // ── Types ────────────────────────────────────────────────────────────────────
 
 export type BetCreateFormState = {
-    pay_slip_image: File | null
     bet_type: BetCreateInput['bet_type']
     currency: BetCreateInput['currency']
     target_opentime: BetTargetOpenTime
-    transaction_id_last_two_digits: string
 }
 
 export type BetNumberRow = {
@@ -77,11 +77,9 @@ function mapBankSetting(setting: AdminBankSetting): AdminPaymentAccount {
 }
 
 const initialForm: BetCreateFormState = {
-    pay_slip_image: null,
     bet_type: '2D',
     currency: 'MMK',
     target_opentime: getInitialOpenTime(),
-    transaction_id_last_two_digits: '',
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -101,6 +99,8 @@ export function formatAmount(value: number, currency: BetCreateInput['currency']
 
 export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetCreateInput['bet_type'] | undefined) {
     const navigate = useNavigate()
+    const { showToast } = useToast()
+    const { wallet, refreshWallet } = useWallet()
     const [form, setForm] = useState<BetCreateFormState>(initialForm)
     const [betRows, setBetRows] = useState<BetNumberRow[]>([createEmptyRow()])
     const [rowErrors, setRowErrors] = useState<Record<string, BetRowError>>({})
@@ -110,7 +110,6 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
     const [isCurrencyOpen, setIsCurrencyOpen] = useState(false)
     const [highlightedCurrencyIndex, setHighlightedCurrencyIndex] = useState(0)
     const [copiedAccountKey, setCopiedAccountKey] = useState<string | null>(null)
-    const fileInputRef = useRef<HTMLInputElement | null>(null)
     const currencySelectRef = useRef<HTMLDivElement | null>(null)
     const currencyButtonRef = useRef<HTMLButtonElement | null>(null)
 
@@ -139,6 +138,8 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
         if (!Number.isInteger(parsed) || parsed < 1) return sum
         return sum + parsed
     }, 0)
+
+    const walletBalance = wallet?.balance ?? 0
 
     const typePillClassName = isThreeDType
         ? 'border-[rgb(245_158_11_/_42%)] bg-[rgb(245_158_11_/_14%)] text-[#fbbf24]'
@@ -212,11 +213,6 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
             return
         }
 
-        if (form.pay_slip_image == null) {
-            setMessage('Pay slip image is required.')
-            return
-        }
-
         const { errors: nextErrors, normalized } = validateRows(betRows)
         setRowErrors(nextErrors)
 
@@ -233,15 +229,14 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
         try {
             setIsSubmitting(true)
             await createBet({
-                pay_slip_image: form.pay_slip_image,
                 bet_type: activePayloadBetType,
                 currency: form.currency,
                 ...(activePayloadBetType === '2D' ? { target_opentime: form.target_opentime } : {}),
-                transaction_id_last_two_digits: form.transaction_id_last_two_digits,
                 bet_numbers: normalized,
             })
 
-            setMessage('Bet placed successfully!')
+            showToast('Bet placed!', 'success')
+            refreshWallet()
             navigate('/gambling/gambling-history')
         } catch (caughtError) {
             setMessage(caughtError instanceof Error ? caughtError.message : 'Create bet failed.')
@@ -311,13 +306,12 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
         selectedCurrency,
         currencySelectRef,
         currencyButtonRef,
-        // file upload
-        fileInputRef,
         // computed
         isTwoDType,
         isThreeDType,
         canCreateForActiveType,
         validAmountTotal,
+        walletBalance,
         paymentAccounts,
         bankSettingsLoading,
         typePillClassName,

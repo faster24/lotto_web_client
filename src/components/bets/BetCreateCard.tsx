@@ -1,8 +1,8 @@
 import type { RefObject } from 'react'
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import type { BetCreateInput, BetTargetOpenTime, WalletBankInfo } from '@/api/types'
+import type { BetCreateInput, BetTargetOpenTime } from '@/api/types'
 import { apiButton } from '@/styles/tw'
 import {
     CURRENCY_OPTIONS,
@@ -15,7 +15,6 @@ import {
     type BetCreateFormState,
     type BetNumberRow,
     type BetRowError,
-    type AdminPaymentAccount,
     type CurrencyOption,
 } from './useBetsForm'
 import { parsePastedBets } from './parsePastedBets'
@@ -900,209 +899,84 @@ function StepNumbers({
     )
 }
 
-// ── StepPaySlip (Step 3) ─────────────────────────────────────────────────────
+// ── StepConfirm (Step 3) ─────────────────────────────────────────────────────
 
-type StepPaySlipProps = {
-    form: BetCreateFormState
-    setForm: React.Dispatch<React.SetStateAction<BetCreateFormState>>
-    paymentAccounts: AdminPaymentAccount[]
-    copiedAccountKey: string | null
-    copyAccountValue: (key: string, value: string) => Promise<void>
+type StepConfirmProps = {
+    betRows: BetNumberRow[]
     validAmountTotal: number
-    canCreateForActiveType: boolean
+    currency: BetCreateInput['currency']
+    walletBalance: number
     isSubmitting: boolean
-    fileInputRef: RefObject<HTMLInputElement | null>
-    bankInfo: WalletBankInfo | null
+    message: string | null
     onBack: () => void
 }
 
-function StepPaySlip({
-    form,
-    setForm,
-    paymentAccounts,
-    copiedAccountKey,
-    copyAccountValue,
-    validAmountTotal,
-    canCreateForActiveType,
-    isSubmitting,
-    fileInputRef,
-    bankInfo,
-    onBack,
-}: StepPaySlipProps) {
+function StepConfirm({ betRows, validAmountTotal, currency, walletBalance, isSubmitting, message, onBack }: StepConfirmProps) {
     const { t } = useTranslation()
+    const navigate = useNavigate()
+    const isInsufficient = validAmountTotal > walletBalance
+    const balanceAfter = walletBalance - validAmountTotal
+
     return (
         <>
-            <section className="rounded-xl border border-[rgb(245_158_11_/_22%)] bg-[rgb(245_158_11_/_8%)] p-3.5">
-                <div className="mb-2.5">
-                    <h3 className="m-0 text-[0.9rem] font-semibold text-[#fef3c7]">{t('bets.adminAccounts')}</h3>
-                    <p className="m-0 mt-1 text-[0.74rem] leading-[1.45] text-[#fcd34d]">
-                        {t('bets.transferNote', { currency: form.currency })}
-                    </p>
+            {/* Bet Summary */}
+            <div className="rounded-xl border border-white/10 bg-[#0e131e] p-4">
+                <p className="text-[0.65rem] font-bold text-white/40 uppercase tracking-widest mb-3">Bet Summary</p>
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                    {betRows.filter((r) => r.number !== '').map((row) => {
+                        const amt = Number(row.amount)
+                        const valid = /^\d+$/.test(row.amount.trim()) && Number.isInteger(amt) && amt >= 1
+                        return (
+                            <span key={row.id} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[0.72rem] font-bold tabular-nums ${valid ? 'bg-[#51e1a5]/8 border border-[#51e1a5]/20 text-[#51e1a5]' : 'bg-amber-500/8 border border-amber-500/20 text-amber-400'}`}>
+                                {row.number}
+                                {row.amount !== '' && <span className="font-normal opacity-50">·{row.amount}</span>}
+                            </span>
+                        )
+                    })}
                 </div>
-
-                <ul className="m-0 grid list-none gap-2 p-0">
-                    {paymentAccounts.map((account) => (
-                        <li key={account.id} className="rounded-xl border border-[rgb(245_158_11_/_22%)] bg-[rgb(7_15_37_/_72%)] p-2.5">
-                            <div className="flex items-start justify-between gap-2">
-                                <div>
-                                    <p className="m-0 text-[0.82rem] font-semibold text-[#f7f9ff]">{account.bankName}</p>
-                                    {account.note != null && (
-                                        <p className="m-0 mt-0.5 text-[0.68rem] leading-[1.35] text-[#fcd34d]">{account.note}</p>
-                                    )}
-                                </div>
-                            </div>
-
-                            <dl className="mt-2 mb-0 grid gap-1.5">
-                                <div className="grid gap-0.5">
-                                    <dt className="text-[0.66rem] uppercase tracking-[0.06em] text-[#8a9bb3]">{t('bets.accountHolder')}</dt>
-                                    <dd className="m-0 flex items-center justify-between gap-2">
-                                        <span className="text-[0.8rem] text-[#f7f9ff]">{account.accountHolder}</span>
-                                    </dd>
-                                </div>
-
-                                <div className="grid gap-0.5">
-                                    <dt className="text-[0.66rem] uppercase tracking-[0.06em] text-[#8a9bb3]">{t('bets.accountNumber')}</dt>
-                                    <dd className="m-0 flex items-center justify-between gap-2">
-                                        <span className="text-[0.88rem] font-semibold tracking-[0.04em] text-[#fef3c7]">{account.accountNumber}</span>
-                                        <button
-                                            type="button"
-                                            aria-label={copiedAccountKey === `${account.id}-number` ? t('bets.copiedAccountNumber') : t('bets.copyAccountNumber')}
-                                            title={copiedAccountKey === `${account.id}-number` ? t('bets.copiedAccountNumber') : t('bets.copyAccountNumber')}
-                                            className={`inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border bg-white/6 transition-colors ${copiedAccountKey === `${account.id}-number`
-                                                ? 'border-[rgb(0_230_118_/_45%)] text-[#86efac]'
-                                                : 'border-white/15 text-[#cbd5e1] hover:border-[rgb(59_130_246_/_45%)] hover:text-[#93c5fd]'
-                                                }`}
-                                            onClick={() => void copyAccountValue(`${account.id}-number`, account.accountNumber)}
-                                        >
-                                            {copiedAccountKey === `${account.id}-number` ? (
-                                                <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
-                                                    <path d="m5 12 4 4 10-10" strokeLinecap="round" strokeLinejoin="round" />
-                                                </svg>
-                                            ) : (
-                                                <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
-                                                    <rect x="9" y="9" width="11" height="11" rx="2" />
-                                                    <path d="M5 15V6a2 2 0 0 1 2-2h9" strokeLinecap="round" />
-                                                </svg>
-                                            )}
-                                        </button>
-                                    </dd>
-                                </div>
-                            </dl>
-                        </li>
-                    ))}
-                </ul>
-
-                {paymentAccounts.length === 0 && (
-                    <p className="m-0 rounded-lg border border-white/12 bg-white/6 px-2.5 py-2 text-[0.76rem] text-[#fcd34d]">
-                        {t('bets.noAdminAccount', { currency: form.currency })}
-                    </p>
-                )}
-            </section>
-
-            {/* Payout Account */}
-            <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                    <span className="text-[0.78rem] font-semibold uppercase tracking-[0.06em] text-[#8a9bb3]">{t('bets.payoutAccount')}</span>
-                    <Link
-                        to="/user/bank-info"
-                        className="text-[0.72rem] font-medium text-[#93c5fd] hover:text-[#60a5fa] transition-colors"
-                    >
-                        {bankInfo == null ? t('bets.setUpNow') : t('bets.manage')}
-                    </Link>
+                <div className="flex justify-between pt-3 border-t border-white/8">
+                    <p className="text-sm text-white/60">Total</p>
+                    <p className="text-sm font-bold text-white">{validAmountTotal.toLocaleString()} {currency}</p>
                 </div>
-
-                {bankInfo == null ? (
-                    <div className="flex items-center gap-3 rounded-xl border border-dashed border-[rgb(245_158_11_/_35%)] bg-[rgb(245_158_11_/_6%)] px-3.5 py-3">
-                        <span className="material-symbols-outlined text-[#fcd34d] text-[1.1rem] shrink-0">account_balance</span>
-                        <div>
-                            <p className="m-0 text-[0.78rem] font-medium text-[#fef3c7]">{t('bets.noPayoutAccount')}</p>
-                            <p className="m-0 mt-0.5 text-[0.7rem] text-[#fcd34d]">{t('bets.addBankAccount')}</p>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="rounded-xl border border-white/10 bg-[rgb(5_10_31_/_68%)] px-3.5 py-3 space-y-2">
-                        <div className="flex items-center gap-2">
-                            <span className="material-symbols-outlined text-[#00e676] text-[1.1rem] shrink-0">account_balance</span>
-                            <span className="text-[0.82rem] font-semibold text-[#f7f9ff]">{bankInfo.bank_name}</span>
-                            <span className="ml-auto text-[0.66rem] uppercase tracking-widest text-[#00e676]/60 bg-[rgb(0_230_118_/_8%)] px-2 py-0.5 rounded-full">{t('bets.verified')}</span>
-                        </div>
-                        <dl className="grid grid-cols-2 gap-x-4 gap-y-1.5 m-0">
-                            <div>
-                                <dt className="text-[0.65rem] uppercase tracking-[0.06em] text-[#8a9bb3]">{t('bets.accountHolder')}</dt>
-                                <dd className="m-0 mt-0.5 text-[0.8rem] text-[#f7f9ff]">{bankInfo.account_name}</dd>
-                            </div>
-                            <div>
-                                <dt className="text-[0.65rem] uppercase tracking-[0.06em] text-[#8a9bb3]">{t('bets.accountNumber')}</dt>
-                                <dd className="m-0 mt-0.5 text-[0.8rem] font-semibold tracking-[0.04em] text-[#e2e8f0]">{bankInfo.account_number}</dd>
-                            </div>
-                        </dl>
-                        <p className="m-0 text-[0.68rem] text-[#8a9bb3]">{t('bets.winningsTransferred')}</p>
-                        <div className="flex items-start gap-2 mt-2 pt-2 border-t border-white/8">
-                            <span className="material-symbols-outlined text-[#fcd34d] text-[1rem] shrink-0 mt-px">warning</span>
-                            <p className="m-0 text-[0.68rem] text-[#fcd34d] leading-relaxed">{t('bets.doubleCheck')}</p>
-                        </div>
-                    </div>
-                )}
             </div>
 
-            <label className="block space-y-1.8">
-                <span className="text-[0.78rem] font-semibold uppercase tracking-[0.06em] text-[#8a9bb3]">{t('bets.paySlipImage')}</span>
-                <input
-                    ref={fileInputRef}
-                    className="h-11 w-full rounded-xl border border-dashed border-white/20 bg-[rgb(5_10_31_/_68%)] px-4 py-2 text-[#f7f9ff] file:mr-3 file:rounded-lg file:border-0 file:bg-[rgb(59_130_246_/_18%)] file:px-2.5 file:py-1 file:text-[0.76rem] file:font-semibold file:text-[#93c5fd]"
-                    type="file"
-                    accept="image/png,image/jpeg,image/jpg,image/webp"
-                    onChange={(event) => {
-                        const file = event.currentTarget.files?.[0] ?? null
-                        setForm((prev) => ({ ...prev, pay_slip_image: file }))
-                    }}
-                    required
-                />
-                <p className="m-0 text-[0.72rem] text-[#8a9bb3]">{t('bets.uploadImageHint')}</p>
-                {form.pay_slip_image != null && (
-                    <p className="m-0 text-[0.74rem] text-[#93c5fd]">{t('bets.selected', { name: form.pay_slip_image.name })}</p>
-                )}
-            </label>
-
-            {/* Transaction ID */}
-            <label className="block space-y-1.5">
-                <div className="flex items-center justify-between">
-                    <span className="text-[0.78rem] font-semibold uppercase tracking-[0.06em] text-[#8a9bb3]">
-                        {t('bets.transactionIdLastTwo')}
-                    </span>
-                    <span className={`text-[0.7rem] font-semibold tabular-nums ${form.transaction_id_last_two_digits.length === 2 ? 'text-[#00e676]' : 'text-[#8a9bb3]'}`}>
-                        {form.transaction_id_last_two_digits.length}/2
-                    </span>
+            {/* Balance */}
+            <div className="rounded-xl border border-white/10 bg-[#0e131e] p-4">
+                <div className="flex justify-between mb-2">
+                    <p className="text-sm text-white/60">{t('wallet.balance')}</p>
+                    <p className="text-sm font-semibold text-white">{walletBalance.toLocaleString()} {currency}</p>
                 </div>
-                <input
-                    className="h-11 w-full rounded-xl border border-white/12 bg-[rgb(5_10_31_/_68%)] px-4 text-[#f7f9ff] text-center text-2xl font-bold tracking-[0.3em] placeholder:text-white/20 placeholder:text-base placeholder:tracking-normal focus:border-[rgb(0_230_118_/_50%)] focus:outline-none"
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={2}
-                    pattern="[0-9]{2}"
-                    placeholder={t('bets.transactionIdExample')}
-                    required
-                    value={form.transaction_id_last_two_digits}
-                    onChange={(event) => {
-                        const v = event.currentTarget.value.replace(/\D/g, '').slice(0, 2)
-                        setForm((prev) => ({ ...prev, transaction_id_last_two_digits: v }))
-                    }}
-                />
-                <p className="m-0 text-[0.72rem] text-[#8a9bb3]">
-                    {t('bets.transactionIdHint')}
-                </p>
-            </label>
+                <div className="flex justify-between">
+                    <p className="text-sm text-white/60">After this bet</p>
+                    <p className={`text-sm font-semibold ${isInsufficient ? 'text-red-400' : 'text-[#00e676]'}`}>
+                        {isInsufficient ? 'Insufficient' : `${balanceAfter.toLocaleString()} ${currency}`}
+                    </p>
+                </div>
+            </div>
+
+            {message != null && (
+                <p className="text-red-400 text-sm">{message}</p>
+            )}
+
+            {isInsufficient && (
+                <button
+                    type="button"
+                    onClick={() => navigate('/wallet-profile/deposit')}
+                    className="w-full rounded-xl border border-[rgb(0_230_118_/_35%)] bg-[rgb(0_230_118_/_10%)] text-[#00e676] py-3 text-sm font-semibold hover:bg-[rgb(0_230_118_/_16%)] transition-colors"
+                >
+                    → Top up wallet
+                </button>
+            )}
 
             <div className="my-3 rounded-xl border border-white/12 bg-[rgb(7_15_37_/_70%)] p-3.5">
                 <div className="mb-2 flex items-center justify-between gap-2 text-[0.82rem]">
                     <span className="text-[#8a9bb3]">{t('bets.estimatedTotal')}</span>
-                    <strong className="text-[#f7f9ff]">{formatAmount(validAmountTotal, form.currency)}</strong>
+                    <strong className="text-[#f7f9ff]">{formatAmount(validAmountTotal, currency)}</strong>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                     <button
                         type="button"
                         aria-label={t('bets.previousStep')}
-                        title={t('bets.previousStep')}
                         className={`${apiButton} h-14 w-full !justify-between px-6`}
                         onClick={onBack}
                     >
@@ -1112,9 +986,8 @@ function StepPaySlip({
                     <button
                         type="submit"
                         aria-label={t('bets.submitBet')}
-                        title={t('bets.submitBet')}
                         className="h-16 w-full bg-gradient-to-r from-[#00e676] to-[#2ac48b] rounded-2xl flex items-center justify-between px-6 shadow-[0_12px_24px_rgba(0,230,118,0.3)] hover:scale-[1.02] active:scale-95 transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60 group"
-                        disabled={!canCreateForActiveType || isSubmitting}
+                        disabled={isSubmitting || isInsufficient}
                     >
                         <span className="font-semibold text-[0.9rem] text-[#003824] tracking-tight uppercase">
                             {isSubmitting ? t('bets.submitting') : t('bets.confirmWager')}
@@ -1156,8 +1029,6 @@ type BetCreateCardProps = {
     selectedCurrency: CurrencyOption
     currencySelectRef: RefObject<HTMLDivElement | null>
     currencyButtonRef: RefObject<HTMLButtonElement | null>
-    fileInputRef: RefObject<HTMLInputElement | null>
-    paymentAccounts: AdminPaymentAccount[]
     copiedAccountKey: string | null
     copyAccountValue: (key: string, value: string) => Promise<void>
     selectCurrency: (code: BetCreateInput['currency']) => void
@@ -1165,9 +1036,10 @@ type BetCreateCardProps = {
     isTwoDType: boolean
     isThreeDType: boolean
     validAmountTotal: number
+    walletBalance: number
     isSubmitting: boolean
     typePillClassName: string
-    bankInfo: WalletBankInfo | null
+    message: string | null
     goToStepTwo: () => void
     goToStepThree: () => void
     setMessage: React.Dispatch<React.SetStateAction<string | null>>
@@ -1184,7 +1056,6 @@ export function BetCreateCard({
     setForm,
     betRows,
     setBetRows,
-    bankInfo,
     rowErrors,
     setRowErrors,
     isCurrencyOpen,
@@ -1194,16 +1065,16 @@ export function BetCreateCard({
     selectedCurrency,
     currencySelectRef,
     currencyButtonRef,
-    fileInputRef,
-    paymentAccounts,
-    copiedAccountKey,
-    copyAccountValue,
+    copiedAccountKey: _copiedAccountKey,
+    copyAccountValue: _copyAccountValue,
     selectCurrency,
-    canCreateForActiveType,
+    canCreateForActiveType: _canCreateForActiveType,
     isTwoDType,
     validAmountTotal,
+    walletBalance,
     isSubmitting,
     typePillClassName,
+    message,
     goToStepTwo: _goToStepTwo,
     goToStepThree,
     setMessage,
@@ -1255,17 +1126,13 @@ export function BetCreateCard({
                 )}
 
                 {currentStep === 3 && (
-                    <StepPaySlip
-                        form={form}
-                        setForm={setForm}
-                        paymentAccounts={paymentAccounts}
-                        copiedAccountKey={copiedAccountKey}
-                        copyAccountValue={copyAccountValue}
+                    <StepConfirm
+                        betRows={betRows}
                         validAmountTotal={validAmountTotal}
-                        canCreateForActiveType={canCreateForActiveType}
+                        currency={form.currency}
+                        walletBalance={walletBalance}
                         isSubmitting={isSubmitting}
-                        fileInputRef={fileInputRef}
-                        bankInfo={bankInfo}
+                        message={message}
                         onBack={() => {
                             setMessage(null)
                             setCurrentStep(2)
