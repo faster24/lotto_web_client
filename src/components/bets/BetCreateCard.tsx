@@ -20,6 +20,9 @@ import {
 import { parsePastedBets } from './parsePastedBets'
 import { parsePastedBets3D } from './parsePastedBets3D'
 
+const DEV_BYPASS_OPEN_TIME =
+    import.meta.env.DEV && import.meta.env.VITE_DEV_BYPASS_OPEN_TIME === 'true'
+
 // ── CurrencyFlag ─────────────────────────────────────────────────────────────
 
 function CurrencyFlag({ code }: { code: BetCreateInput['currency'] }) {
@@ -74,7 +77,7 @@ function TargetOpenTimeSelector({ form, setForm }: TargetOpenTimeSelectorProps) 
         return () => window.clearInterval(id)
     }, [form.target_opentime])
 
-    if (isSessionExpired('16:30:00')) {
+    if (!DEV_BYPASS_OPEN_TIME && isSessionExpired('16:30:00')) {
         return (
             <div className="mb-5">
                 <p className="text-[0.6rem] font-bold text-white/40 uppercase tracking-widest mb-2 px-1">
@@ -93,7 +96,9 @@ function TargetOpenTimeSelector({ form, setForm }: TargetOpenTimeSelectorProps) 
         )
     }
 
-    const availableOptions = TARGET_OPEN_TIME_OPTIONS.filter((v) => !isSessionExpired(v))
+    const availableOptions = DEV_BYPASS_OPEN_TIME
+        ? TARGET_OPEN_TIME_OPTIONS
+        : TARGET_OPEN_TIME_OPTIONS.filter((v) => !isSessionExpired(v))
     const selectedLabel = TARGET_OPEN_TIME_LABELS[form.target_opentime] ?? form.target_opentime
 
     return (

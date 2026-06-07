@@ -31,6 +31,8 @@ VITE_BET_LIST_LIVE_ENABLED=true                   # use real /bets list endpoint
 VITE_TWOD_RESULTS_LIVE_ENABLED=true               # use real /two-d-results/last-5-days endpoint (live by default)
 VITE_PAYOUT_LIVE_ENABLED=true                     # use real /bets/payout-history endpoint (live by default)
 VITE_ACCEPTED_PAYMENTS_LIVE_ENABLED=true          # use real /bets/accepted-payments endpoint (live by default)
+VITE_WITHDRAWALS_LIVE_ENABLED=true                # use real /withdrawals endpoints (live by default)
+VITE_DEV_BYPASS_OPEN_TIME=true                    # skip client-side open-time gate for dev testing
 ```
 
 All endpoints default to live. Set any flag to `false` to fall back to mock mode.
