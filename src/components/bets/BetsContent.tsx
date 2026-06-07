@@ -31,16 +31,9 @@ export function BetsContent({ initialBetTypeId }: Props) {
                 setBetRows={form.setBetRows}
                 rowErrors={form.rowErrors}
                 setRowErrors={form.setRowErrors}
-                isCurrencyOpen={form.isCurrencyOpen}
-                setIsCurrencyOpen={form.setIsCurrencyOpen}
-                highlightedCurrencyIndex={form.highlightedCurrencyIndex}
-                setHighlightedCurrencyIndex={form.setHighlightedCurrencyIndex}
-                selectedCurrency={form.selectedCurrency}
-                currencySelectRef={form.currencySelectRef}
-                currencyButtonRef={form.currencyButtonRef}
+                currency={form.currency}
                 copiedAccountKey={form.copiedAccountKey}
                 copyAccountValue={form.copyAccountValue}
-                selectCurrency={form.selectCurrency}
                 canCreateForActiveType={form.canCreateForActiveType}
                 isTwoDType={form.isTwoDType}
                 isThreeDType={form.isThreeDType}

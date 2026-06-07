@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useRef, useState } from 'react'
+import { type FormEvent, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createBet, listBankSettings } from '@/api/client'
 import type { AdminBankSetting, BetCreateInput, BetTargetOpenTime } from '@/api/types'
@@ -22,7 +22,6 @@ function getInitialOpenTime(): BetTargetOpenTime {
 
 export type BetCreateFormState = {
     bet_type: BetCreateInput['bet_type']
-    currency: BetCreateInput['currency']
     target_opentime: BetTargetOpenTime
 }
 
@@ -35,12 +34,6 @@ export type BetNumberRow = {
 export type BetRowError = {
     number?: string
     amount?: string
-}
-
-export type CurrencyOption = {
-    code: BetCreateInput['currency']
-    name: string
-    flagClass: string
 }
 
 export type AdminPaymentAccount = {
@@ -61,11 +54,6 @@ export const TARGET_OPEN_TIME_LABELS: Record<string, string> = {
     '16:30:00': '4:30 PM',
 }
 
-export const CURRENCY_OPTIONS: CurrencyOption[] = [
-    { code: 'MMK', name: 'Myanmar Kyat', flagClass: 'fi-mm' },
-    { code: 'THB', name: 'Thai Baht', flagClass: 'fi-th' },
-]
-
 function mapBankSetting(setting: AdminBankSetting): AdminPaymentAccount {
     return {
         id: String(setting.id),
@@ -78,7 +66,6 @@ function mapBankSetting(setting: AdminBankSetting): AdminPaymentAccount {
 
 const initialForm: BetCreateFormState = {
     bet_type: '2D',
-    currency: 'MMK',
     target_opentime: getInitialOpenTime(),
 }
 
@@ -107,11 +94,7 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
     const [message, setMessage] = useState<string | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(2)
-    const [isCurrencyOpen, setIsCurrencyOpen] = useState(false)
-    const [highlightedCurrencyIndex, setHighlightedCurrencyIndex] = useState(0)
     const [copiedAccountKey, setCopiedAccountKey] = useState<string | null>(null)
-    const currencySelectRef = useRef<HTMLDivElement | null>(null)
-    const currencyButtonRef = useRef<HTMLButtonElement | null>(null)
 
     const [allBankSettings, setAllBankSettings] = useState<AdminPaymentAccount[]>([])
     const [bankSettingsLoading, setBankSettingsLoading] = useState(true)
@@ -130,8 +113,8 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
     const isTwoDType = activePayloadBetType === '2D'
     const isThreeDType = activePayloadBetType === '3D'
     const canCreateForActiveType = activePayloadBetType != null
-    const selectedCurrency = CURRENCY_OPTIONS.find((item) => item.code === form.currency) ?? CURRENCY_OPTIONS[0]!
-    const paymentAccounts = allBankSettings.filter((account) => account.currency === form.currency)
+    const currency = wallet?.currency ?? 'MMK'
+    const paymentAccounts = allBankSettings.filter((account) => account.currency === currency)
 
     const validAmountTotal = betRows.reduce((sum, row) => {
         const parsed = Number(row.amount)
@@ -144,24 +127,6 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
     const typePillClassName = isThreeDType
         ? 'border-[rgb(245_158_11_/_42%)] bg-[rgb(245_158_11_/_14%)] text-[#fbbf24]'
         : 'border-[rgb(0_230_118_/_42%)] bg-[rgb(0_230_118_/_14%)] text-[#86efac]'
-
-    useEffect(() => {
-        if (!isCurrencyOpen) return
-        const selectedIndex = CURRENCY_OPTIONS.findIndex((item) => item.code === form.currency)
-        setHighlightedCurrencyIndex(selectedIndex === -1 ? 0 : selectedIndex)
-    }, [form.currency, isCurrencyOpen])
-
-    useEffect(() => {
-        if (!isCurrencyOpen) return
-        const onMouseDown = (event: MouseEvent) => {
-            if (currencySelectRef.current == null) return
-            if (!currencySelectRef.current.contains(event.target as Node)) {
-                setIsCurrencyOpen(false)
-            }
-        }
-        document.addEventListener('mousedown', onMouseDown)
-        return () => { document.removeEventListener('mousedown', onMouseDown) }
-    }, [isCurrencyOpen])
 
     const validateRows = (rows: BetNumberRow[]) => {
         const errors: Record<string, BetRowError> = {}
@@ -230,7 +195,7 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
             setIsSubmitting(true)
             await createBet({
                 bet_type: activePayloadBetType,
-                currency: form.currency,
+                currency,
                 ...(activePayloadBetType === '2D' ? { target_opentime: form.target_opentime } : {}),
                 bet_numbers: normalized,
             })
@@ -272,12 +237,6 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
         setCurrentStep(3)
     }
 
-    const selectCurrency = (code: BetCreateInput['currency']) => {
-        setForm((prev) => ({ ...prev, currency: code }))
-        setIsCurrencyOpen(false)
-        currencyButtonRef.current?.focus()
-    }
-
     const copyAccountValue = async (key: string, value: string) => {
         try {
             await navigator.clipboard?.writeText(value)
@@ -298,15 +257,8 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
         setRowErrors,
         currentStep,
         setCurrentStep,
-        // currency dropdown
-        isCurrencyOpen,
-        setIsCurrencyOpen,
-        highlightedCurrencyIndex,
-        setHighlightedCurrencyIndex,
-        selectedCurrency,
-        currencySelectRef,
-        currencyButtonRef,
         // computed
+        currency,
         isTwoDType,
         isThreeDType,
         canCreateForActiveType,
@@ -321,7 +273,6 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
         isSubmitting,
         copiedAccountKey,
         // handlers
-        selectCurrency,
         copyAccountValue,
         goToStepTwo,
         goToStepThree,

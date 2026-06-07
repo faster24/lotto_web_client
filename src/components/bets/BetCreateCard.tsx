@@ -1,11 +1,9 @@
-import type { RefObject } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { BetCreateInput, BetTargetOpenTime } from '@/api/types'
 import { apiButton } from '@/styles/tw'
 import {
-    CURRENCY_OPTIONS,
     TARGET_OPEN_TIME_OPTIONS,
     TARGET_OPEN_TIME_LABELS,
     MMT_OFFSET_MS,
@@ -15,20 +13,12 @@ import {
     type BetCreateFormState,
     type BetNumberRow,
     type BetRowError,
-    type CurrencyOption,
 } from './useBetsForm'
 import { parsePastedBets } from './parsePastedBets'
 import { parsePastedBets3D } from './parsePastedBets3D'
 
 const DEV_BYPASS_OPEN_TIME =
     import.meta.env.DEV && import.meta.env.VITE_DEV_BYPASS_OPEN_TIME === 'true'
-
-// ── CurrencyFlag ─────────────────────────────────────────────────────────────
-
-function CurrencyFlag({ code }: { code: BetCreateInput['currency'] }) {
-    const option = CURRENCY_OPTIONS.find((item) => item.code === code) ?? CURRENCY_OPTIONS[0]!
-    return <span aria-hidden="true" className={`fi ${option.flagClass} h-[14px] w-5 overflow-hidden rounded-[3px] border border-white/10`} />
-}
 
 // ── TargetOpenTimeSelector ───────────────────────────────────────────────────
 
@@ -681,14 +671,7 @@ type StepNumbersProps = {
     setBetRows: React.Dispatch<React.SetStateAction<BetNumberRow[]>>
     rowErrors: Record<string, BetRowError>
     setRowErrors: React.Dispatch<React.SetStateAction<Record<string, BetRowError>>>
-    isCurrencyOpen: boolean
-    setIsCurrencyOpen: React.Dispatch<React.SetStateAction<boolean>>
-    highlightedCurrencyIndex: number
-    setHighlightedCurrencyIndex: React.Dispatch<React.SetStateAction<number>>
-    selectedCurrency: CurrencyOption
-    currencySelectRef: RefObject<HTMLDivElement | null>
-    currencyButtonRef: RefObject<HTMLButtonElement | null>
-    selectCurrency: (code: BetCreateInput['currency']) => void
+    currency: BetCreateInput['currency']
     isTwoDType: boolean
     validAmountTotal: number
     goToStepThree: () => void
@@ -698,9 +681,7 @@ function StepNumbers({
     form, setForm,
     betRows, setBetRows,
     rowErrors, setRowErrors,
-    isCurrencyOpen, setIsCurrencyOpen,
-    highlightedCurrencyIndex, setHighlightedCurrencyIndex,
-    selectedCurrency, currencySelectRef, currencyButtonRef, selectCurrency,
+    currency,
     isTwoDType, validAmountTotal, goToStepThree,
 }: StepNumbersProps) {
     const { t } = useTranslation()
@@ -708,74 +689,11 @@ function StepNumbers({
         <>
             {isTwoDType && <TargetOpenTimeSelector form={form} setForm={setForm} />}
 
-            <div className="mb-1" ref={currencySelectRef}>
-                <p className="text-[0.6rem] font-bold text-white/40 uppercase tracking-widest mb-2 px-1">
-                    {t('bets.currency')}
-                </p>
-                <button
-                    ref={currencyButtonRef}
-                    type="button"
-                    aria-haspopup="listbox"
-                    aria-expanded={isCurrencyOpen}
-                    aria-controls="currency-options"
-                    className="w-full bg-[#1f2634] rounded-xl p-4 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all border border-transparent hover:border-[#51e1a5]/20 focus:outline-none"
-                    onClick={() => setIsCurrencyOpen((prev) => !prev)}
-                    onKeyDown={(event) => {
-                        if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter' || event.key === ' ') {
-                            event.preventDefault()
-                            setIsCurrencyOpen(true)
-                        }
-                    }}
-                >
-                    <div className="flex items-center gap-3">
-                        <span className="material-symbols-outlined text-[#51e1a5] text-[1.25rem]">payments</span>
-                        <p className="text-sm font-bold text-white">{selectedCurrency.code}</p>
-                    </div>
-                    <span className="material-symbols-outlined text-white/40 text-[1.1rem]">
-                        {isCurrencyOpen ? 'expand_less' : 'expand_more'}
-                    </span>
-                </button>
-                {isCurrencyOpen && (
-                    <ul id="currency-options" role="listbox" aria-label={t('bets.currencyOptions')} className="mt-2 flex flex-col gap-2"
-                        onKeyDown={(event) => {
-                            if (event.key === 'ArrowDown') { event.preventDefault(); setHighlightedCurrencyIndex((prev) => Math.min(prev + 1, CURRENCY_OPTIONS.length - 1)); return }
-                            if (event.key === 'ArrowUp') { event.preventDefault(); setHighlightedCurrencyIndex((prev) => Math.max(prev - 1, 0)); return }
-                            if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); const active = CURRENCY_OPTIONS[highlightedCurrencyIndex]; if (active != null) selectCurrency(active.code); return }
-                            if (event.key === 'Escape') { event.preventDefault(); setIsCurrencyOpen(false); currencyButtonRef.current?.focus() }
-                        }}
-                    >
-                        {CURRENCY_OPTIONS.map((option, index) => {
-                            const isSelected = form.currency === option.code
-                            const isHighlighted = index === highlightedCurrencyIndex
-                            return (
-                                <li key={option.code}>
-                                    <button
-                                        id={`currency-option-${option.code}`}
-                                        type="button"
-                                        role="option"
-                                        aria-selected={isSelected}
-                                        className={`w-full rounded-xl p-3 flex items-center justify-between transition-all active:scale-[0.98] ${isSelected || isHighlighted ? 'bg-[#51e1a5]/10 border border-[#51e1a5]/20 text-[#51e1a5]' : 'bg-[#19202d] border border-transparent text-white/60 hover:text-white'}`}
-                                        onMouseEnter={() => setHighlightedCurrencyIndex(index)}
-                                        onClick={() => selectCurrency(option.code)}
-                                    >
-                                        <span className="flex items-center gap-2">
-                                            <CurrencyFlag code={option.code} />
-                                            <span className="text-sm font-bold">{option.code}</span>
-                                        </span>
-                                        {isSelected && <span className="material-symbols-outlined text-[#51e1a5] text-[1rem]">check</span>}
-                                    </button>
-                                </li>
-                            )
-                        })}
-                    </ul>
-                )}
-            </div>
-
             <div className="pt-3">
                 <SmartGenerateCard betRows={betRows} setBetRows={setBetRows} isTwoDType={isTwoDType} />
             </div>
 
-            <BetNumbersSummary betRows={betRows} validAmountTotal={validAmountTotal} currency={form.currency} />
+            <BetNumbersSummary betRows={betRows} validAmountTotal={validAmountTotal} currency={currency} />
 
             <fieldset className="m-0 mt-3 rounded-xl border border-white/12 bg-white/3 p-2.5 sm:p-3">
                 <legend className="px-1 text-[0.78rem] font-semibold uppercase tracking-[0.06em] text-[#8a9bb3]">{t('bets.betNumbers')}</legend>
@@ -1027,16 +945,9 @@ type BetCreateCardProps = {
     setBetRows: React.Dispatch<React.SetStateAction<BetNumberRow[]>>
     rowErrors: Record<string, BetRowError>
     setRowErrors: React.Dispatch<React.SetStateAction<Record<string, BetRowError>>>
-    isCurrencyOpen: boolean
-    setIsCurrencyOpen: React.Dispatch<React.SetStateAction<boolean>>
-    highlightedCurrencyIndex: number
-    setHighlightedCurrencyIndex: React.Dispatch<React.SetStateAction<number>>
-    selectedCurrency: CurrencyOption
-    currencySelectRef: RefObject<HTMLDivElement | null>
-    currencyButtonRef: RefObject<HTMLButtonElement | null>
+    currency: BetCreateInput['currency']
     copiedAccountKey: string | null
     copyAccountValue: (key: string, value: string) => Promise<void>
-    selectCurrency: (code: BetCreateInput['currency']) => void
     canCreateForActiveType: boolean
     isTwoDType: boolean
     isThreeDType: boolean
@@ -1063,16 +974,9 @@ export function BetCreateCard({
     setBetRows,
     rowErrors,
     setRowErrors,
-    isCurrencyOpen,
-    setIsCurrencyOpen,
-    highlightedCurrencyIndex,
-    setHighlightedCurrencyIndex,
-    selectedCurrency,
-    currencySelectRef,
-    currencyButtonRef,
+    currency,
     copiedAccountKey: _copiedAccountKey,
     copyAccountValue: _copyAccountValue,
-    selectCurrency,
     canCreateForActiveType: _canCreateForActiveType,
     isTwoDType,
     validAmountTotal,
@@ -1116,14 +1020,7 @@ export function BetCreateCard({
                         setBetRows={setBetRows}
                         rowErrors={rowErrors}
                         setRowErrors={setRowErrors}
-                        isCurrencyOpen={isCurrencyOpen}
-                        setIsCurrencyOpen={setIsCurrencyOpen}
-                        highlightedCurrencyIndex={highlightedCurrencyIndex}
-                        setHighlightedCurrencyIndex={setHighlightedCurrencyIndex}
-                        selectedCurrency={selectedCurrency}
-                        currencySelectRef={currencySelectRef}
-                        currencyButtonRef={currencyButtonRef}
-                        selectCurrency={selectCurrency}
+                        currency={currency}
                         isTwoDType={isTwoDType}
                         validAmountTotal={validAmountTotal}
                         goToStepThree={goToStepThree}
@@ -1134,7 +1031,7 @@ export function BetCreateCard({
                     <StepConfirm
                         betRows={betRows}
                         validAmountTotal={validAmountTotal}
-                        currency={form.currency}
+                        currency={currency}
                         walletBalance={walletBalance}
                         isSubmitting={isSubmitting}
                         message={message}
