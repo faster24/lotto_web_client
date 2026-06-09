@@ -6,8 +6,7 @@ import { apiButton } from '@/styles/tw'
 import {
     TARGET_OPEN_TIME_OPTIONS,
     TARGET_OPEN_TIME_LABELS,
-    MMT_OFFSET_MS,
-    mmtTotalMinutes,
+    utcTotalMinutes,
     createEmptyRow,
     formatAmount,
     type BetCreateFormState,
@@ -22,22 +21,26 @@ const DEV_BYPASS_OPEN_TIME =
 
 // ── TargetOpenTimeSelector ───────────────────────────────────────────────────
 
+// openTime values are MMT (e.g. '16:30:00'); offset to UTC by subtracting 6h30m
+const MMT_OFFSET_MIN = 390
+
 function secondsUntil(openTime: string): number {
     const parts = openTime.split(':')
     const h = parseInt(parts[0] ?? '0', 10)
     const m = parseInt(parts[1] ?? '0', 10)
     const s = parseInt(parts[2] ?? '0', 10)
-    const mmtNow = new Date(Date.now() + MMT_OFFSET_MS)
-    const mmtTarget = new Date(Date.now() + MMT_OFFSET_MS)
-    mmtTarget.setUTCHours(h, m + 30, s, 0)
-    return Math.max(0, Math.floor((mmtTarget.getTime() - mmtNow.getTime()) / 1000))
+    const now = new Date()
+    const target = new Date()
+    const closeMMT = h * 60 + m - 30
+    target.setUTCHours(Math.floor((closeMMT - MMT_OFFSET_MIN) / 60), (closeMMT - MMT_OFFSET_MIN) % 60, s, 0)
+    return Math.max(0, Math.floor((target.getTime() - now.getTime()) / 1000))
 }
 
 function isSessionExpired(openTime: string): boolean {
     const parts = openTime.split(':')
     const h = parseInt(parts[0] ?? '0', 10)
     const m = parseInt(parts[1] ?? '0', 10)
-    return mmtTotalMinutes() >= h * 60 + m
+    return utcTotalMinutes() >= h * 60 + m - MMT_OFFSET_MIN - 30
 }
 
 function formatCountdown(totalSeconds: number): string {

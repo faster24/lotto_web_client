@@ -5,17 +5,16 @@ import type { AdminBankSetting, BetCreateInput, BetTargetOpenTime } from '@/api/
 import { useToast } from '@/contexts/ToastContext'
 import { useWallet } from '@/contexts/WalletContext'
 
-// ── MMT Timezone Helpers ─────────────────────────────────────────────────────
+// ── UTC Time Helpers ─────────────────────────────────────────────────────────
 
-export const MMT_OFFSET_MS = (6 * 60 + 30) * 60 * 1000 // UTC+6:30
-
-export function mmtTotalMinutes(): number {
-    const d = new Date(Date.now() + MMT_OFFSET_MS)
+export function utcTotalMinutes(): number {
+    const d = new Date()
     return d.getUTCHours() * 60 + d.getUTCMinutes()
 }
 
 function getInitialOpenTime(): BetTargetOpenTime {
-    return mmtTotalMinutes() < 12 * 60 + 1 ? '12:01:00' : '16:30:00'
+    // closes 30 min before open: 11:31 MMT = 05:01 UTC
+    return utcTotalMinutes() < 5 * 60 + 1 ? '12:01:00' : '16:30:00'
 }
 
 // ── Types ────────────────────────────────────────────────────────────────────
