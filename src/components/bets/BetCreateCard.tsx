@@ -14,7 +14,7 @@ import {
     type BetRowError,
 } from './useBetsForm'
 import { parsePastedBets } from './parsePastedBets'
-import { parsePastedBets3D } from './parsePastedBets3D'
+import { parsePastedBets3D, getPermutations3D } from './parsePastedBets3D'
 
 const DEV_BYPASS_OPEN_TIME =
     import.meta.env.DEV && import.meta.env.VITE_DEV_BYPASS_OPEN_TIME === 'true'
@@ -151,7 +151,7 @@ function TargetOpenTimeSelector({ form, setForm }: TargetOpenTimeSelectorProps) 
 
 // ── SmartGenerateCard ────────────────────────────────────────────────────────
 
-type GeneratorKey = 'reverse' | 'double' | 'nakkhat' | 'power' | 'brother' | 'khway' | 'a-par' | 'paste'
+type GeneratorKey = 'reverse' | 'double' | 'nakkhat' | 'power' | 'brother' | 'khway' | 'a-par' | 'paste' | 'tut'
 
 const NAKKHAT_PAIRS: [string, string][] = [
     ['07', '70'], ['18', '81'], ['24', '42'], ['35', '53'], ['69', '96'],
@@ -191,6 +191,7 @@ function SmartGenerateCard({ betRows, setBetRows, isTwoDType }: SmartGenerateCar
     const [modalError, setModalError] = useState<string | null>(null)
     const [modalDigits, setModalDigits] = useState<Set<string>>(new Set())
     const [modalIncludeDoubles, setModalIncludeDoubles] = useState(false)
+    const [modalDirectAmount, setModalDirectAmount] = useState('')
     const [pasteText, setPasteText] = useState('')
     const pasteTextareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -261,6 +262,13 @@ function SmartGenerateCard({ betRows, setBetRows, isTwoDType }: SmartGenerateCar
             },
         ] : [
             {
+                key: 'tut' as GeneratorKey,
+                icon: 'all_inclusive',
+                label: 'Tut',
+                description: 'Direct + Box permutations',
+                fields: { number: false, amount: false },
+            },
+            {
                 key: 'paste' as GeneratorKey,
                 icon: 'content_paste',
                 label: 'Paste',
@@ -277,6 +285,7 @@ function SmartGenerateCard({ betRows, setBetRows, isTwoDType }: SmartGenerateCar
         setModalError(null)
         setModalDigits(new Set())
         setModalIncludeDoubles(false)
+        setModalDirectAmount('')
         setPasteText('')
         if (key === 'paste') { setModalAmount('100'); setTimeout(() => pasteTextareaRef.current?.focus(), 50) }
     }
@@ -294,6 +303,31 @@ function SmartGenerateCard({ betRows, setBetRows, isTwoDType }: SmartGenerateCar
 
     const confirm = () => {
         setModalError(null)
+
+        if (activeGen === 'tut') {
+            const num = modalNumber.trim()
+            if (!/^\d{3}$/.test(num)) { setModalError('Enter exactly 3 digits.'); return }
+            const boxAmt = modalAmount.trim()
+            if (!/^\d+$/.test(boxAmt) || Number(boxAmt) < 1) { setModalError('Box amount must be an integer ≥ 1.'); return }
+            const directAmt = modalDirectAmount.trim()
+            const hasDirectBet = /^\d+$/.test(directAmt) && Number(directAmt) >= 1
+
+            const existing = new Set(betRows.map((r) => r.number))
+            const newRows: BetNumberRow[] = []
+
+            if (hasDirectBet && !existing.has(num)) {
+                newRows.push({ ...createEmptyRow(), number: num, amount: directAmt })
+            }
+            for (const perm of getPermutations3D(num)) {
+                const alreadyInNew = newRows.some((r) => r.number === perm && r.amount === boxAmt)
+                if (!existing.has(perm) && !alreadyInNew) {
+                    newRows.push({ ...createEmptyRow(), number: perm, amount: boxAmt })
+                }
+            }
+            if (newRows.length > 0) setBetRows((prev) => mergeRows(prev, newRows))
+            closeModal()
+            return
+        }
 
         if (activeGen === 'paste') {
             const amt = modalAmount.trim()
@@ -465,6 +499,54 @@ function SmartGenerateCard({ betRows, setBetRows, isTwoDType }: SmartGenerateCar
 
                         {/* Fields */}
                         <div className="space-y-3">
+                            {activeGen === 'tut' && (
+                                <>
+                                    <div>
+                                        <label className="block text-[0.72rem] text-[#8a9bb3] mb-1.5">Number (000–999)</label>
+                                        <input
+                                            className="h-11 w-full rounded-xl border border-white/12 bg-[rgb(5_10_31_/_68%)] px-3 text-[#f7f9ff] text-center text-xl font-bold tracking-widest focus:border-[rgb(0_230_118_/_55%)] focus:outline-none"
+                                            inputMode="numeric"
+                                            maxLength={3}
+                                            placeholder="123"
+                                            value={modalNumber}
+                                            onChange={(e) => {
+                                                setModalError(null)
+                                                setModalNumber(e.currentTarget.value.replace(/\D/g, '').slice(0, 3))
+                                            }}
+                                            autoFocus
+                                        />
+                                        {modalNumber.length === 3 && (
+                                            <p className="mt-1 text-[0.62rem] text-[#51e1a5]">
+                                                {getPermutations3D(modalNumber).length} permutation{getPermutations3D(modalNumber).length !== 1 ? 's' : ''}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <label className="block text-[0.72rem] text-[#8a9bb3] mb-1.5">Direct Amount <span className="text-white/30">(0 = skip)</span></label>
+                                        <input
+                                            className="h-11 w-full rounded-xl border border-white/12 bg-[rgb(5_10_31_/_68%)] px-3 text-[#f7f9ff] text-center text-xl font-bold tracking-widest focus:border-[rgb(0_230_118_/_55%)] focus:outline-none"
+                                            type="number"
+                                            min={0}
+                                            step={1}
+                                            placeholder="0"
+                                            value={modalDirectAmount}
+                                            onChange={(e) => { setModalError(null); setModalDirectAmount(e.currentTarget.value) }}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[0.72rem] text-[#8a9bb3] mb-1.5">Box Amount per permutation</label>
+                                        <input
+                                            className="h-11 w-full rounded-xl border border-white/12 bg-[rgb(5_10_31_/_68%)] px-3 text-[#f7f9ff] text-center text-xl font-bold tracking-widest focus:border-[rgb(0_230_118_/_55%)] focus:outline-none"
+                                            type="number"
+                                            min={1}
+                                            step={1}
+                                            placeholder="100"
+                                            value={modalAmount}
+                                            onChange={(e) => { setModalError(null); setModalAmount(e.currentTarget.value) }}
+                                        />
+                                    </div>
+                                </>
+                            )}
                             {activeGen === 'paste' && (
                                 <>
                                     <div>
@@ -502,7 +584,7 @@ function SmartGenerateCard({ betRows, setBetRows, isTwoDType }: SmartGenerateCar
                                     )}
                                 </>
                             )}
-                            {activeGen !== 'paste' && activeDef.fields.number && (
+                            {activeGen !== 'paste' && activeGen !== 'tut' && activeDef.fields.number && (
                                 <div>
                                     <label className="block text-[0.72rem] text-[#8a9bb3] mb-1.5">{activeDef.numberLabel}</label>
                                     <input
@@ -524,7 +606,7 @@ function SmartGenerateCard({ betRows, setBetRows, isTwoDType }: SmartGenerateCar
                                 </div>
                             )}
 
-                            {activeGen !== 'paste' && activeDef.fields.digits === true && (
+                            {activeGen !== 'paste' && activeGen !== 'tut' && activeDef.fields.digits === true && (
                                 <>
                                     <div>
                                         <label className="block text-[0.72rem] text-[#8a9bb3] mb-2">Select digits</label>
@@ -571,7 +653,7 @@ function SmartGenerateCard({ betRows, setBetRows, isTwoDType }: SmartGenerateCar
                                 </>
                             )}
 
-                            {activeGen !== 'paste' && (
+                            {activeGen !== 'paste' && activeGen !== 'tut' && (
                                 <div>
                                     <label className="block text-[0.72rem] text-[#8a9bb3] mb-1.5">Amount per number</label>
                                     <input
