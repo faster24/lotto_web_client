@@ -2,12 +2,11 @@ import { useTranslation } from 'react-i18next'
 import { useDepositForm } from '@/components/deposit/useDepositForm'
 import { useWallet } from '@/contexts/WalletContext'
 import { apiHeader, apiScreen, screenRoot, screenScroll } from '@/styles/tw'
-import { WalletProfileRouteNav } from './WalletProfileRouteNav'
 
 export function DepositPage() {
   const { t } = useTranslation()
   const { wallet } = useWallet()
-  const { form, setForm, isSubmitting, message, onSubmit, proofPreviewUrl, fileInputRef, onFileChange } = useDepositForm()
+  const { form, setForm, isSubmitting, message, onSubmit, proofPreviewUrl, fileInputRef, onFileChange, selectedBank, bankSettingsLoading } = useDepositForm()
 
   return (
     <div className={`${screenRoot} ${apiScreen}`} data-testid="wallet-profile-deposit-page">
@@ -20,8 +19,6 @@ export function DepositPage() {
       </header>
 
       <main className={screenScroll}>
-        <WalletProfileRouteNav activeId="deposit" />
-
         {wallet != null && (
           <div className="rounded-xl border border-white/10 bg-white/4 px-4 py-3 flex items-center gap-3">
             <span className="material-symbols-outlined text-[#00e676] text-[1.1rem]">account_balance_wallet</span>
@@ -29,6 +26,23 @@ export function DepositPage() {
               Transfers must be in <strong className="text-white">{wallet.currency}</strong>.
               Transfer to our account, then upload your payment proof.
             </p>
+          </div>
+        )}
+
+        {bankSettingsLoading ? (
+          <div className="rounded-xl border border-white/10 bg-white/4 px-4 py-3 text-[0.82rem] text-[#8a9bb3]">
+            Loading bank account info…
+          </div>
+        ) : selectedBank != null ? (
+          <div className="rounded-xl border border-[#00e676]/20 bg-[#00e676]/5 px-4 py-3 space-y-1">
+            <p className="m-0 text-[0.72rem] font-semibold uppercase tracking-[0.06em] text-[#00e676]">Transfer To</p>
+            <p className="m-0 text-[0.9rem] font-semibold text-white">{selectedBank.bank_name}</p>
+            <p className="m-0 text-[0.82rem] text-[#8a9bb3]">{selectedBank.account_holder_name}</p>
+            <p className="m-0 text-[0.82rem] font-mono text-white">{selectedBank.account_number}</p>
+          </div>
+        ) : (
+          <div className="rounded-xl border border-red-500/30 bg-red-500/8 px-4 py-3 text-[0.82rem] text-red-400">
+            No active bank account available. Please contact support.
           </div>
         )}
 
@@ -46,7 +60,7 @@ export function DepositPage() {
               inputMode="numeric"
               placeholder="e.g. 50000"
               value={form.claimed_amount}
-              onChange={(e) => setForm((prev) => ({ ...prev, claimed_amount: e.currentTarget.value.replace(/\D/g, '') }))}
+              onChange={(e) => { const v = e.currentTarget.value.replace(/\D/g, ''); setForm((prev) => ({ ...prev, claimed_amount: v })) }}
               required
             />
             {wallet != null && (
@@ -65,7 +79,7 @@ export function DepositPage() {
               className="h-11 w-full rounded-xl border border-white/12 bg-[rgb(5_10_31_/_68%)] px-3 text-[#f7f9ff] focus:border-[rgb(0_230_118_/_55%)] focus:outline-none"
               placeholder={t('deposit.transferNotePlaceholder')}
               value={form.transfer_note}
-              onChange={(e) => setForm((prev) => ({ ...prev, transfer_note: e.currentTarget.value }))}
+              onChange={(e) => { const v = e.currentTarget.value; setForm((prev) => ({ ...prev, transfer_note: v })) }}
             />
           </label>
 

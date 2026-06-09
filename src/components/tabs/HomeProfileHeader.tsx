@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getMe } from '@/api/client'
 import type { User } from '@/api/types'
+import { useWallet } from '@/contexts/WalletContext'
 
 export function HomeProfileHeader() {
   const [user, setUser] = useState<User | null>(null)
+  const { wallet, walletLoading } = useWallet()
 
   useEffect(() => {
     let active = true
@@ -38,12 +40,18 @@ export function HomeProfileHeader() {
         <div className="flex flex-col leading-tight">
           <span className="font-bold italic tracking-tighter text-xl text-[#51e1a5]">{displayName}</span>
           <div className="flex items-center gap-1">
-            <span className="text-[10px] tracking-widest uppercase text-white/50">Verified User: {avatarText}</span>
             <span
               className="material-symbols-outlined text-[#51e1a5]"
-              style={{ fontSize: '12px', fontVariationSettings: "'FILL' 1" }}
+              style={{ fontSize: '13px', fontVariationSettings: "'FILL' 1" }}
             >
-              verified
+              account_balance_wallet
+            </span>
+            <span className="text-[12px] font-semibold text-[#51e1a5]/80 tabular-nums">
+              {walletLoading
+                ? '–'
+                : wallet != null
+                  ? `${wallet.currency ?? 'MMK'} ${wallet.balance.toLocaleString()}`
+                  : '–'}
             </span>
           </div>
         </div>

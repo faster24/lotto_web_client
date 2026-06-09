@@ -46,6 +46,9 @@ const my = {
     signInLink: 'ဝင်ရောက်မည်',
     passwordMismatch: 'စကားဝှက်နှင့် အတည်ပြုချက် မတူညီပါ။',
     registrationFailed: 'မှတ်ပုံတင်မှု မအောင်မြင်ပါ။ ဖောင်ကို စစ်ဆေးပြီး ထပ်ကြိုးစားပါ။',
+    currencyLabel: 'ငွေကြေး',
+    currencyMMK: 'MMK — မြန်မာကျပ်',
+    currencyTHB: 'THB — ထိုင်းဘတ်',
   },
 
   home: {
@@ -127,6 +130,8 @@ const my = {
     preferences: 'နှစ်သက်မှုများ',
     title: 'ဆက်တင်',
     menuSettings: 'မီနူး ဆက်တင်',
+    deposit: 'ငွေဖြည့်',
+    depositSubtitle: 'သင့်ပိုက်ဆံအိတ် ငွေဖြည့်ပါ',
     bankAccount: 'ဘဏ်အကောင့်',
     bankAccountSubtitle: 'သင့်ငွေထုတ် အကောင့် စီမံပါ',
     oddsPayouts: 'အနှုန်းနှင့် ငွေပေးချေမှု',

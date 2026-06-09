@@ -26,6 +26,7 @@ export type RegisterInput = {
     email: string
     password: string
     password_confirmation: string
+    currency: WalletCurrency
 }
 
 export type LoginInput = {
@@ -239,6 +240,8 @@ export type SetWalletCurrencyInput = {
 }
 
 export type CreateDepositInput = {
+    admin_bank_setting_id: number
+    currency: WalletCurrency
     claimed_amount: number
     transfer_note?: string
     proof_image: File

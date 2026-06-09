@@ -1,6 +1,7 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { createDeposit } from '@/api/client'
+import { createDeposit, listBankSettings } from '@/api/client'
+import type { AdminBankSetting } from '@/api/types'
 import { useToast } from '@/contexts/ToastContext'
 import { useWallet } from '@/contexts/WalletContext'
 
@@ -19,12 +20,35 @@ const initialForm: DepositFormState = {
 export function useDepositForm() {
   const navigate = useNavigate()
   const { showToast } = useToast()
-  const { refreshWallet } = useWallet()
+  const { wallet, refreshWallet } = useWallet()
   const [form, setForm] = useState<DepositFormState>(initialForm)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [proofPreviewUrl, setProofPreviewUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+
+  const [bankSettings, setBankSettings] = useState<AdminBankSetting[]>([])
+  const [bankSettingsLoading, setBankSettingsLoading] = useState(true)
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const response = await listBankSettings()
+        setBankSettings(response.data.admin_bank_settings.filter((s) => s.is_active))
+      } finally {
+        setBankSettingsLoading(false)
+      }
+    })()
+  }, [])
+
+  const walletCurrency = wallet?.currency ?? null
+  const matchingBanks = walletCurrency != null
+    ? bankSettings.filter((s) => s.currency === walletCurrency)
+    : bankSettings
+
+  // Auto-select: prefer is_primary, else first match
+  const selectedBank: AdminBankSetting | null =
+    matchingBanks.find((s) => s.is_primary) ?? matchingBanks[0] ?? null
 
   const onFileChange = (file: File | null) => {
     setMessage(null)
@@ -60,9 +84,21 @@ export function useDepositForm() {
       return
     }
 
+    if (selectedBank == null) {
+      setMessage('No active bank account available. Please contact support.')
+      return
+    }
+
+    if (walletCurrency == null) {
+      setMessage('Wallet currency not set. Please set your currency first.')
+      return
+    }
+
     try {
       setIsSubmitting(true)
       await createDeposit({
+        admin_bank_setting_id: selectedBank.id,
+        currency: walletCurrency,
         claimed_amount: amount,
         proof_image: form.proof_image,
         ...(form.transfer_note.trim().length > 0 ? { transfer_note: form.transfer_note.trim() } : {}),
@@ -77,5 +113,9 @@ export function useDepositForm() {
     }
   }
 
-  return { form, setForm, isSubmitting, message, onSubmit, proofPreviewUrl, fileInputRef, onFileChange }
+  return {
+    form, setForm, isSubmitting, message, onSubmit,
+    proofPreviewUrl, fileInputRef, onFileChange,
+    selectedBank, bankSettingsLoading, walletCurrency,
+  }
 }

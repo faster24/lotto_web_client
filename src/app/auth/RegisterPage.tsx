@@ -19,6 +19,7 @@ const initialForm: RegisterInput = {
     email: '',
     password: '',
     password_confirmation: '',
+    currency: 'MMK',
 }
 
 export function RegisterPage() {
@@ -188,6 +189,23 @@ export function RegisterPage() {
                                 <span className="sr-only">{showConfirmPassword ? t('auth.hidePassword') : t('auth.showPassword')}</span>
                             </button>
                         </div>
+                    </AuthField>
+
+                    <AuthField htmlFor="register-currency" label={t('auth.currencyLabel')}>
+                        <select
+                            id="register-currency"
+                            name="currency"
+                            className={authInputClassName}
+                            required
+                            value={form.currency}
+                            onChange={(event) => {
+                                const value = event.currentTarget.value as 'MMK' | 'THB'
+                                setForm((prev) => ({ ...prev, currency: value }))
+                            }}
+                        >
+                            <option value="MMK">{t('auth.currencyMMK')}</option>
+                            <option value="THB">{t('auth.currencyTHB')}</option>
+                        </select>
                     </AuthField>
 
                     {error != null && <AuthFeedback kind="error" message={error} />}

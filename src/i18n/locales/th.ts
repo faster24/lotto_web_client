@@ -46,6 +46,9 @@ const th = {
     signInLink: 'เข้าสู่ระบบ',
     passwordMismatch: 'รหัสผ่านและการยืนยันไม่ตรงกัน',
     registrationFailed: 'การลงทะเบียนล้มเหลว กรุณาตรวจสอบข้อมูลและลองอีกครั้ง',
+    currencyLabel: 'สกุลเงิน',
+    currencyMMK: 'MMK — จ๊าตเมียนมา',
+    currencyTHB: 'THB — บาทไทย',
   },
 
   home: {
@@ -141,6 +144,8 @@ const th = {
     preferences: 'การตั้งค่า',
     title: 'ตั้งค่า',
     menuSettings: 'ตั้งค่าเมนู',
+    deposit: 'ฝากเงิน',
+    depositSubtitle: 'เติมเงินในกระเป๋าของคุณ',
     bankAccount: 'บัญชีธนาคาร',
     bankAccountSubtitle: 'จัดการบัญชีสำหรับรับเงิน',
     oddsPayouts: 'อัตราและการจ่าย',

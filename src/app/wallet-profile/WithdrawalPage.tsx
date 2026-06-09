@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { useWithdrawalForm } from '@/components/withdrawal/useWithdrawalForm'
 import { useWallet } from '@/contexts/WalletContext'
 import { apiHeader, apiScreen, screenRoot, screenScroll } from '@/styles/tw'
-import { WalletProfileRouteNav } from './WalletProfileRouteNav'
 
 export function WithdrawalPage() {
   const { t } = useTranslation()
@@ -24,8 +23,6 @@ export function WithdrawalPage() {
       </header>
 
       <main className={screenScroll}>
-        <WalletProfileRouteNav activeId="withdrawal" />
-
         {/* Bank info display */}
         {hasBankInfo && wallet != null ? (
           <div className="rounded-xl border border-white/10 bg-white/4 p-4 space-y-2">

@@ -792,6 +792,8 @@ async function postFormData<TResponse>(path: string, payload: FormData, fallback
 export async function createDeposit(input: CreateDepositInput): Promise<ApiResult<{ deposit: Deposit }>> {
   if (DEPOSITS_LIVE_ENABLED) {
     const payload = new FormData()
+    payload.append('admin_bank_setting_id', String(input.admin_bank_setting_id))
+    payload.append('currency', input.currency)
     payload.append('claimed_amount', String(input.claimed_amount))
     payload.append('proof_image', input.proof_image)
     if (input.transfer_note != null) payload.append('transfer_note', input.transfer_note)
@@ -881,7 +883,7 @@ export async function downloadDepositProof(depositId: string): Promise<Blob> {
 
 export async function createWithdrawal(input: CreateWithdrawalInput): Promise<ApiResult<{ withdrawal: Withdrawal }>> {
   if (WITHDRAWALS_LIVE_ENABLED) {
-    return authedRequest<ApiResult<{ withdrawal: Withdrawal }>>('POST', '/me/withdrawals', input, 'Create withdrawal failed.')
+    return authedRequest<ApiResult<{ withdrawal: Withdrawal }>>('POST', '/withdrawals', input, 'Create withdrawal failed.')
   }
 
   await wait(NETWORK_DELAY_MS)
@@ -917,7 +919,7 @@ export async function listWithdrawals(params?: {
     const query = new URLSearchParams()
     if (params?.page != null) query.set('page', String(params.page))
     if (params?.page_size != null) query.set('page_size', String(params.page_size))
-    const path = `/me/withdrawals${query.toString() ? `?${query.toString()}` : ''}`
+    const path = `/withdrawals${query.toString() ? `?${query.toString()}` : ''}`
     return authedRequest<ApiResult<{ withdrawals: Withdrawal[] }>>('GET', path, null, 'Failed to load withdrawals.')
   }
 
@@ -927,7 +929,7 @@ export async function listWithdrawals(params?: {
 
 export async function getWithdrawalById(withdrawalId: string): Promise<ApiResult<{ withdrawal: Withdrawal | null }>> {
   if (WITHDRAWALS_LIVE_ENABLED) {
-    return authedRequest<ApiResult<{ withdrawal: Withdrawal | null }>>('GET', `/me/withdrawals/${withdrawalId}`, null, 'Failed to load withdrawal.')
+    return authedRequest<ApiResult<{ withdrawal: Withdrawal | null }>>('GET', `/withdrawals/${withdrawalId}`, null, 'Failed to load withdrawal.')
   }
 
   await wait(NETWORK_DELAY_MS)
@@ -937,7 +939,7 @@ export async function getWithdrawalById(withdrawalId: string): Promise<ApiResult
 
 export async function cancelWithdrawal(withdrawalId: string): Promise<ApiResult<{ withdrawal: Withdrawal }>> {
   if (WITHDRAWALS_LIVE_ENABLED) {
-    return authedRequest<ApiResult<{ withdrawal: Withdrawal }>>('DELETE', `/me/withdrawals/${withdrawalId}`, null, 'Failed to cancel withdrawal.')
+    return authedRequest<ApiResult<{ withdrawal: Withdrawal }>>('POST', `/withdrawals/${withdrawalId}/cancel`, null, 'Failed to cancel withdrawal.')
   }
 
   await wait(NETWORK_DELAY_MS)
@@ -955,7 +957,7 @@ export async function cancelWithdrawal(withdrawalId: string): Promise<ApiResult<
 export async function downloadWithdrawalProof(withdrawalId: string): Promise<Blob> {
   if (WITHDRAWALS_LIVE_ENABLED) {
     const token = getAuthToken()
-    const response = await fetch(buildApiUrl(`/me/withdrawals/${withdrawalId}/proof`), {
+    const response = await fetch(buildApiUrl(`/withdrawals/${withdrawalId}/proof`), {
       headers: {
         ...(token != null ? { Authorization: `Bearer ${token}` } : {}),
       },
