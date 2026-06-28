@@ -18,11 +18,11 @@ export function RequireWalletCurrency({ children }: { children: ReactNode }) {
     return <LoadingScreen />
   }
 
-  if (wallet !== null && wallet.currency === null) {
+  if (wallet !== null && (wallet.currency === null || wallet.bank_name === null)) {
     return (
       <Navigate
         replace
-        to="/wallet/currency-setup"
+        to="/wallet/bank-setup"
         state={{ from: location.pathname }}
       />
     )

@@ -19,7 +19,8 @@ const initialForm: RegisterInput = {
     email: '',
     password: '',
     password_confirmation: '',
-    currency: 'MMK',
+    pin: '',
+    pin_confirmation: '',
 }
 
 export function RegisterPage() {
@@ -28,6 +29,8 @@ export function RegisterPage() {
     const location = useLocation()
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+    const [showPin, setShowPin] = useState(false)
+    const [showConfirmPin, setShowConfirmPin] = useState(false)
     const [form, setForm] = useState<RegisterInput>(initialForm)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -45,13 +48,23 @@ export function RegisterPage() {
             return
         }
 
+        if (!/^\d{6}$/.test(form.pin)) {
+            setError('Security PIN must be exactly 6 digits.')
+            return
+        }
+
+        if (form.pin !== form.pin_confirmation) {
+            setError('Security PINs do not match.')
+            return
+        }
+
         setLoading(true)
 
         try {
             const response = await registerUser(form)
             setSuccess(`${response.message}. Redirecting...`)
             window.setTimeout(() => {
-                void navigate(postAuthPath, { replace: true })
+                void navigate('/wallet/bank-setup', { replace: true, state: { from: postAuthPath } })
             }, 500)
         } catch (caughtError) {
             setError(caughtError instanceof Error ? caughtError.message : t('auth.registrationFailed'))
@@ -191,21 +204,94 @@ export function RegisterPage() {
                         </div>
                     </AuthField>
 
-                    <AuthField htmlFor="register-currency" label={t('auth.currencyLabel')}>
-                        <select
-                            id="register-currency"
-                            name="currency"
-                            className={authInputClassName}
-                            required
-                            value={form.currency}
-                            onChange={(event) => {
-                                const value = event.currentTarget.value as 'MMK' | 'THB'
-                                setForm((prev) => ({ ...prev, currency: value }))
-                            }}
-                        >
-                            <option value="MMK">{t('auth.currencyMMK')}</option>
-                            <option value="THB">{t('auth.currencyTHB')}</option>
-                        </select>
+                    <AuthField htmlFor="register-pin" label="Security PIN">
+                        <div className={authPasswordWrapClassName}>
+                            <input
+                                id="register-pin"
+                                name="pin"
+                                type={showPin ? 'text' : 'password'}
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                autoComplete="new-password"
+                                className={authInputClassName}
+                                placeholder="6-digit PIN for placing bets"
+                                required
+                                maxLength={6}
+                                value={form.pin}
+                                onChange={(event) => {
+                                    const value = event.currentTarget.value.replace(/\D/g, '').slice(0, 6)
+                                    setForm((prev) => ({ ...prev, pin: value }))
+                                }}
+                            />
+                            <button
+                                type="button"
+                                className={authToggleClassName}
+                                onClick={() => setShowPin((v) => !v)}
+                                aria-controls="register-pin"
+                                aria-pressed={showPin}
+                                aria-label={showPin ? 'Hide PIN' : 'Show PIN'}
+                            >
+                                {showPin ? (
+                                    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M3 3 21 21" strokeLinecap="round" />
+                                        <path d="M10.7 6.4A10.8 10.8 0 0 1 12 6c6 0 9.5 6 9.5 6a16.9 16.9 0 0 1-3.1 3.9" strokeLinecap="round" />
+                                        <path d="M6.4 10.7A16.8 16.8 0 0 0 2.5 12s3.5 6 9.5 6c1.8 0 3.3-.5 4.6-1.2" strokeLinecap="round" />
+                                        <path d="M14.1 14.1A3 3 0 0 1 9.9 9.9" strokeLinecap="round" />
+                                    </svg>
+                                ) : (
+                                    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" strokeLinecap="round" strokeLinejoin="round" />
+                                        <circle cx="12" cy="12" r="3" />
+                                    </svg>
+                                )}
+                                <span className="sr-only">{showPin ? 'Hide PIN' : 'Show PIN'}</span>
+                            </button>
+                        </div>
+                    </AuthField>
+
+                    <AuthField htmlFor="register-pin-confirm" label="Confirm Security PIN">
+                        <div className={authPasswordWrapClassName}>
+                            <input
+                                id="register-pin-confirm"
+                                name="pin_confirmation"
+                                type={showConfirmPin ? 'text' : 'password'}
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                autoComplete="new-password"
+                                className={authInputClassName}
+                                placeholder="Re-enter 6-digit PIN"
+                                required
+                                maxLength={6}
+                                value={form.pin_confirmation}
+                                onChange={(event) => {
+                                    const value = event.currentTarget.value.replace(/\D/g, '').slice(0, 6)
+                                    setForm((prev) => ({ ...prev, pin_confirmation: value }))
+                                }}
+                            />
+                            <button
+                                type="button"
+                                className={authToggleClassName}
+                                onClick={() => setShowConfirmPin((v) => !v)}
+                                aria-controls="register-pin-confirm"
+                                aria-pressed={showConfirmPin}
+                                aria-label={showConfirmPin ? 'Hide PIN' : 'Show PIN'}
+                            >
+                                {showConfirmPin ? (
+                                    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M3 3 21 21" strokeLinecap="round" />
+                                        <path d="M10.7 6.4A10.8 10.8 0 0 1 12 6c6 0 9.5 6 9.5 6a16.9 16.9 0 0 1-3.1 3.9" strokeLinecap="round" />
+                                        <path d="M6.4 10.7A16.8 16.8 0 0 0 2.5 12s3.5 6 9.5 6c1.8 0 3.3-.5 4.6-1.2" strokeLinecap="round" />
+                                        <path d="M14.1 14.1A3 3 0 0 1 9.9 9.9" strokeLinecap="round" />
+                                    </svg>
+                                ) : (
+                                    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" strokeLinecap="round" strokeLinejoin="round" />
+                                        <circle cx="12" cy="12" r="3" />
+                                    </svg>
+                                )}
+                                <span className="sr-only">{showConfirmPin ? 'Hide PIN' : 'Show PIN'}</span>
+                            </button>
+                        </div>
                     </AuthField>
 
                     {error != null && <AuthFeedback kind="error" message={error} />}

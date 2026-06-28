@@ -917,9 +917,11 @@ type StepConfirmProps = {
     isSubmitting: boolean
     message: string | null
     onBack: () => void
+    pin: string
+    onPinChange: (pin: string) => void
 }
 
-function StepConfirm({ betRows, validAmountTotal, currency, walletBalance, isSubmitting, message, onBack }: StepConfirmProps) {
+function StepConfirm({ betRows, validAmountTotal, currency, walletBalance, isSubmitting, message, onBack, pin, onPinChange }: StepConfirmProps) {
     const { t } = useTranslation()
     const navigate = useNavigate()
     const isInsufficient = validAmountTotal > walletBalance
@@ -962,6 +964,22 @@ function StepConfirm({ betRows, validAmountTotal, currency, walletBalance, isSub
                 </div>
             </div>
 
+            {/* Security PIN */}
+            <div className="rounded-xl border border-white/10 bg-[#0e131e] p-4">
+                <p className="text-[0.65rem] font-bold text-white/40 uppercase tracking-widest mb-3">Security PIN</p>
+                <input
+                    type="password"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={6}
+                    placeholder="Enter 6-digit PIN"
+                    value={pin}
+                    onChange={(e) => onPinChange(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    className="w-full rounded-xl border border-white/12 bg-white/5 px-4 py-3 text-[0.9rem] text-white placeholder-white/30 focus:border-[#00e676]/50 focus:outline-none focus:ring-1 focus:ring-[#00e676]/25 tracking-[0.3em]"
+                    autoComplete="current-password"
+                />
+            </div>
+
             {message != null && (
                 <p className="text-red-400 text-sm">{message}</p>
             )}
@@ -995,7 +1013,7 @@ function StepConfirm({ betRows, validAmountTotal, currency, walletBalance, isSub
                         type="submit"
                         aria-label={t('bets.submitBet')}
                         className="h-16 w-full bg-gradient-to-r from-[#00e676] to-[#2ac48b] rounded-2xl flex items-center justify-between px-6 shadow-[0_12px_24px_rgba(0,230,118,0.3)] hover:scale-[1.02] active:scale-95 transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60 group"
-                        disabled={isSubmitting || isInsufficient}
+                        disabled={isSubmitting || isInsufficient || pin.length !== 6}
                     >
                         <span className="font-semibold text-[0.9rem] text-[#003824] tracking-tight uppercase">
                             {isSubmitting ? t('bets.submitting') : t('bets.confirmWager')}
@@ -1045,6 +1063,8 @@ type BetCreateCardProps = {
     goToStepThree: () => void
     setMessage: React.Dispatch<React.SetStateAction<string | null>>
     onSubmit: (event: React.FormEvent<HTMLFormElement>) => Promise<void>
+    pin: string
+    onPinChange: (pin: string) => void
 }
 
 export function BetCreateCard({
@@ -1073,6 +1093,8 @@ export function BetCreateCard({
     goToStepThree,
     setMessage,
     onSubmit,
+    pin,
+    onPinChange,
 }: BetCreateCardProps) {
     const { t } = useTranslation()
     return (
@@ -1124,6 +1146,8 @@ export function BetCreateCard({
                             setMessage(null)
                             setCurrentStep(2)
                         }}
+                        pin={pin}
+                        onPinChange={onPinChange}
                     />
                 )}
             </form>

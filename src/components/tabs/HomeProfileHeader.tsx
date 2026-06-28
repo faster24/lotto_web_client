@@ -2,11 +2,14 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getMe } from '@/api/client'
 import type { User } from '@/api/types'
+import { useNotifications } from '@/contexts/NotificationContext'
 import { useWallet } from '@/contexts/WalletContext'
 
 export function HomeProfileHeader() {
   const [user, setUser] = useState<User | null>(null)
   const { wallet, walletLoading } = useWallet()
+  const { notificationStats } = useNotifications()
+  const unreadCount = notificationStats?.unread ?? 0
 
   useEffect(() => {
     let active = true
@@ -57,13 +60,18 @@ export function HomeProfileHeader() {
         </div>
       </div>
 
-      <button
-        type="button"
+      <Link
+        to="/wallet-profile/notifications"
         aria-label="Open notifications"
-        className="w-10 h-10 flex items-center justify-center rounded-full bg-[#23293c] hover:opacity-80 active:scale-95 transition-all"
+        className="relative w-10 h-10 flex items-center justify-center rounded-full bg-[#23293c] hover:opacity-80 active:scale-95 transition-all"
       >
         <span className="material-symbols-outlined text-[#51e1a5]">notifications</span>
-      </button>
+        {unreadCount > 0 && (
+          <span className="absolute -top-1 -right-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-1 text-[0.62rem] font-bold leading-none text-white">
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </span>
+        )}
+      </Link>
     </header>
   )
 }

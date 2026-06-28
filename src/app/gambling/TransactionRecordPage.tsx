@@ -85,13 +85,13 @@ export function TransactionRecordPage() {
         )}
 
         {/* Filter chips */}
-        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+        <div className="flex flex-wrap gap-2">
           {FILTER_OPTIONS.map((opt) => (
             <button
               key={String(opt.value)}
               type="button"
               onClick={() => setFilter(opt.value)}
-              className={`shrink-0 rounded-full border px-3 py-1.5 text-[0.72rem] font-semibold transition-colors ${
+              className={`rounded-full border px-3 py-1.5 text-[0.72rem] font-semibold transition-colors ${
                 filter === opt.value
                   ? 'border-[#00e676]/40 bg-[#00e676]/12 text-[#00e676]'
                   : 'border-white/12 bg-white/4 text-[#8a9bb3] hover:text-white'

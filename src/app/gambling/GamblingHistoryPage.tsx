@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { listBets } from '@/api/client'
+import { listenForBetNotifications } from '@/lib/betNotificationBus'
 import type { Bet } from '@/api/types'
 import { ApiStatePanel } from '@/components/api/ApiStatePanel'
 import { screenRoot, screenScroll, apiScreen, apiHeader } from '@/styles/tw'
@@ -33,6 +34,14 @@ export function GamblingHistoryPage() {
       .catch(() => setError(t('gambling.loadError')))
       .finally(() => setLoading(false))
   }, [t])
+
+  useEffect(() => {
+    return listenForBetNotifications(() => {
+      listBets()
+        .then((res) => setBets(res.data.bets))
+        .catch(() => {})
+    })
+  }, [])
 
   return (
     <div className={`${screenRoot} ${apiScreen}`} data-testid="gambling-history-page">

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { listWithdrawals } from '@/api/client'
+import { listenForWithdrawalNotifications } from '@/lib/withdrawalNotificationBus'
 import type { Withdrawal } from '@/api/types'
 import { ApiStatePanel } from '@/components/api/ApiStatePanel'
 import { apiScreen, screenRoot, screenScroll, apiHeader } from '@/styles/tw'
@@ -37,6 +38,13 @@ export function WithdrawalHistoryPage() {
   }
 
   useEffect(() => { void load(1, false) }, [])
+
+  useEffect(() => {
+    return listenForWithdrawalNotifications(() => {
+      setPage(1)
+      void load(1, false)
+    })
+  }, [])
 
   const completedCount = withdrawals.filter((w) => w.status === 'COMPLETED').length
   const pendingCount = withdrawals.filter((w) => w.status === 'PENDING').length

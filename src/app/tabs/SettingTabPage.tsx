@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next'
-import { ActionGrid } from '@/components/setting/ActionGrid'
 import { MenuSettingsCard } from '@/components/setting/MenuSettingsCard'
 import { ProfileWalletCard } from '@/components/setting/ProfileWalletCard'
 import { ServiceCenterCard } from '@/components/setting/ServiceCenterCard'
@@ -17,7 +16,6 @@ export function SettingTabPage() {
 
       <main className={screenScroll}>
         <ProfileWalletCard />
-        <ActionGrid />
         <MenuSettingsCard />
         <ServiceCenterCard />
       </main>

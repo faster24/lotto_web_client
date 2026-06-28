@@ -17,6 +17,13 @@ export const routeMap: Record<AppSectionId, AppRouteDefinition[]> = {
       label: 'Wallet Setup',
       description: 'One-time wallet currency selection.',
     },
+    {
+      id: 'bank-setup',
+      section: 'wallet',
+      path: 'wallet/bank-setup',
+      label: 'Bank Setup',
+      description: 'Mandatory currency + bank info setup after registration.',
+    },
   ],
   auth: [
     {
@@ -59,13 +66,6 @@ export const routeMap: Record<AppSectionId, AppRouteDefinition[]> = {
   ],
   gambling: [
     {
-      id: 'deposit-history',
-      section: 'gambling',
-      path: 'gambling/deposit-history',
-      label: 'Deposit History',
-      description: 'Transaction ledger shell for recent deposits.',
-    },
-    {
       id: 'gambling-history',
       section: 'gambling',
       path: 'gambling/gambling-history',
@@ -85,13 +85,6 @@ export const routeMap: Record<AppSectionId, AppRouteDefinition[]> = {
       path: 'gambling/withdrawal-history',
       label: 'Withdrawal History',
       description: 'Payout history shell for cash-out records.',
-    },
-    {
-      id: 'deposit-detail',
-      section: 'gambling',
-      path: 'gambling/deposit-history/:depositId',
-      label: 'Deposit Detail',
-      description: 'Deposit request detail and status.',
     },
     {
       id: 'withdrawal-detail',
@@ -143,6 +136,13 @@ export const routeMap: Record<AppSectionId, AppRouteDefinition[]> = {
       path: 'privacy-policy',
       label: 'Privacy Policy',
       description: 'Privacy and policy information.',
+    },
+    {
+      id: 'notifications',
+      section: 'wallet-profile',
+      path: 'wallet-profile/notifications',
+      label: 'Notifications',
+      description: 'Notification inbox from /notifications/logs.',
     },
     {
       id: 'help-center',

@@ -26,7 +26,9 @@ export type RegisterInput = {
     email: string
     password: string
     password_confirmation: string
-    currency: WalletCurrency
+    currency?: WalletCurrency
+    pin: string
+    pin_confirmation: string
 }
 
 export type LoginInput = {
@@ -120,6 +122,7 @@ export type BetCreateInput = {
     currency: BetCurrency
     target_opentime?: BetTargetOpenTime
     bet_numbers: BetNumberInput[]
+    security_pin: string
 }
 
 export type ApiResult<T> = {
@@ -190,7 +193,7 @@ export type Deposit = {
     rejection_reason: string | null
     reviewed_by_user_id: string | null
     reviewed_at: string | null
-    proof_of_payment: {
+    proof_image: {
         exists: boolean
         download_url: string | null
         file_name: string | null
@@ -250,4 +253,82 @@ export type CreateDepositInput = {
 export type CreateWithdrawalInput = {
     currency: WalletCurrency
     amount: number
+}
+
+// ── FCM / Notifications ──────────────────────────────────────────────────────
+
+export type FcmDeviceType = 'android' | 'ios' | 'web'
+
+export type FcmTokenRecord = {
+    id: number
+    user_id: string
+    token?: string
+    device_type: FcmDeviceType
+    device_name: string | null
+    is_active: boolean
+    last_used_at: string | null
+    created_at: string
+    updated_at: string
+}
+
+export type RegisterFcmTokenInput = {
+    token: string
+    device_type: FcmDeviceType
+    device_name?: string
+}
+
+export type NotificationLogStatus = 'sent' | 'failed' | 'delivered'
+
+export type NotificationLogEntry = {
+    id: number
+    user_id: string
+    title: string
+    body: string
+    notification_type: string
+    data: Record<string, unknown> | null
+    status: NotificationLogStatus
+    error_message: string | null
+    sent_at: string | null
+    read_at: string | null
+    created_at: string
+    updated_at: string
+}
+
+export type NotificationStatsByType = {
+    notification_type: string
+    count: number
+}
+
+export type NotificationStats = {
+    total: number
+    sent: number
+    failed: number
+    unread: number
+    by_type: NotificationStatsByType[]
+}
+
+export type PaginationLink = {
+    url: string | null
+    label: string
+    active: boolean
+}
+
+// Laravel's default LengthAwarePaginator::toArray() shape — flat, not split
+// into separate data/links/meta sub-objects (confirmed against the live
+// `GET /notifications/logs` response; the controller returns the raw
+// paginator, not a Resource Collection).
+export type PaginatedNotificationLogs = {
+    current_page: number
+    data: NotificationLogEntry[]
+    first_page_url: string | null
+    from: number | null
+    last_page: number
+    last_page_url: string | null
+    links: PaginationLink[]
+    next_page_url: string | null
+    path: string
+    per_page: number
+    prev_page_url: string | null
+    to: number | null
+    total: number
 }

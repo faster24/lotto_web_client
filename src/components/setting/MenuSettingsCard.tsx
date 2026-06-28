@@ -40,23 +40,6 @@ export function MenuSettingsCard() {
       </h2>
 
       <div className="overflow-hidden rounded-xl border border-white/8 bg-[linear-gradient(160deg,rgb(11_19_43_/_94%)_0%,rgb(7_15_35_/_88%)_100%)] divide-y divide-white/8">
-        {/* Deposit row */}
-        <Link
-          to="/wallet-profile/deposit"
-          className="group flex items-center justify-between p-4 transition-colors hover:bg-white/5"
-        >
-          <div className="flex items-center gap-4">
-            <span className="material-symbols-outlined text-[#8a9bb3] transition-colors group-hover:text-[#00e676]">
-              add_card
-            </span>
-            <div>
-              <p className="text-sm font-medium text-[#f7f9ff] leading-tight">{t('settings.deposit')}</p>
-              <p className="text-[11px] text-[#8a9bb3] leading-tight mt-0.5">{t('settings.depositSubtitle')}</p>
-            </div>
-          </div>
-          <span className="material-symbols-outlined text-[#8a9bb3]">chevron_right</span>
-        </Link>
-
         {/* Bank Account row */}
         <Link
           to="/user/bank-info"
@@ -69,23 +52,6 @@ export function MenuSettingsCard() {
             <div>
               <p className="text-sm font-medium text-[#f7f9ff] leading-tight">{t('settings.bankAccount')}</p>
               <p className="text-[11px] text-[#8a9bb3] leading-tight mt-0.5">{t('settings.bankAccountSubtitle')}</p>
-            </div>
-          </div>
-          <span className="material-symbols-outlined text-[#8a9bb3]">chevron_right</span>
-        </Link>
-
-        {/* Withdrawal row */}
-        <Link
-          to="/wallet-profile/withdrawal"
-          className="group flex items-center justify-between p-4 transition-colors hover:bg-white/5"
-        >
-          <div className="flex items-center gap-4">
-            <span className="material-symbols-outlined text-[#8a9bb3] transition-colors group-hover:text-[#00e676]">
-              payments
-            </span>
-            <div>
-              <p className="text-sm font-medium text-[#f7f9ff] leading-tight">{t('settings.withdrawal')}</p>
-              <p className="text-[11px] text-[#8a9bb3] leading-tight mt-0.5">{t('settings.withdrawalSubtitle')}</p>
             </div>
           </div>
           <span className="material-symbols-outlined text-[#8a9bb3]">chevron_right</span>

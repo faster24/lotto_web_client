@@ -1,6 +1,5 @@
 import { HomeProfileHeader } from '@/components/tabs/HomeProfileHeader'
 import { LiveNumberCard } from '@/components/tabs/LiveNumberCard'
-import { BalancePill } from '@/components/wallet/BalancePill'
 import { screenRoot, screenScroll, tabScreen } from '@/styles/tw'
 
 export function HomeTabPage() {
@@ -9,9 +8,6 @@ export function HomeTabPage() {
       <HomeProfileHeader />
 
       <main className={screenScroll}>
-        <div className="flex justify-end">
-          <BalancePill />
-        </div>
         <LiveNumberCard />
       </main>
     </div>

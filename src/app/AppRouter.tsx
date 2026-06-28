@@ -3,8 +3,6 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-route
 import { LoginPage } from '@/app/auth/LoginPage'
 import { RegisterPage } from '@/app/auth/RegisterPage'
 import { hasAuthToken } from '@/api/client'
-import { DepositDetailPage } from '@/app/gambling/DepositDetailPage'
-import { DepositHistoryPage } from '@/app/gambling/DepositHistoryPage'
 import { GamblingHistoryPage } from '@/app/gambling/GamblingHistoryPage'
 import { TransactionRecordPage } from '@/app/gambling/TransactionRecordPage'
 import { WithdrawalDetailPage } from '@/app/gambling/WithdrawalDetailPage'
@@ -15,25 +13,26 @@ import { WithdrawalHistoryPage } from '@/app/gambling/WithdrawalHistoryPage'
 import { BetDetailPage } from '@/app/bets/BetDetailPage'
 import { BetsPage } from '@/app/bets/BetsPage'
 import { PlaceBetPage } from '@/app/bets/PlaceBetPage'
+import { NotificationsPage } from '@/app/notifications/NotificationsPage'
 import { OddSettingDetailPage } from '@/app/odd-settings/OddSettingDetailPage'
 import { OddSettingsPage } from '@/app/odd-settings/OddSettingsPage'
 import { ThreeDLatestPage } from '@/app/results/ThreeDLatestPage'
 import { ThreeDResultsPage } from '@/app/results/ThreeDResultsPage'
 import { TwoDLatestPage } from '@/app/results/TwoDLatestPage'
 import { TwoDResultsPage } from '@/app/results/TwoDResultsPage'
-import { ExploreTabPage } from '@/app/tabs/ExploreTabPage'
+import { BetTabPage } from '@/app/tabs/BetTabPage'
 import { HomeTabPage } from '@/app/tabs/HomeTabPage'
 import { SettingTabPage } from '@/app/tabs/SettingTabPage'
 import { BankInfoPage } from '@/app/user/BankInfoPage'
 import { UserProfilePage } from '@/app/user/UserProfilePage'
 import { AboutPage } from '@/app/wallet-profile/AboutPage'
 import { AdPage } from '@/app/wallet-profile/AdPage'
+import { BankSetupPage } from '@/app/wallet-profile/BankSetupPage'
 import { DepositPage } from '@/app/wallet-profile/DepositPage'
 import { HelpCenterPage } from '@/app/wallet-profile/HelpCenterPage'
 import { LotteryPage } from '@/app/wallet-profile/LotteryPage'
 import { MoneyIncomePage } from '@/app/wallet-profile/MoneyIncomePage'
 import { NumberPlayPage } from '@/app/wallet-profile/NumberPlayPage'
-import { WalletCurrencySetupPage } from '@/app/wallet-profile/WalletCurrencySetupPage'
 import { WithdrawalPage } from '@/app/wallet-profile/WithdrawalPage'
 import { RequireWalletCurrency } from '@/components/wallet/WalletCurrencyGate'
 import { MobileFrameShell } from '@/layouts/MobileFrameShell'
@@ -68,15 +67,11 @@ function resolveRouteElement(section: AppSectionId, routeId: string) {
   }
 
   if (section === 'tabs' && routeId === 'bets') {
-    return <ProtectedRoute><RequireWalletCurrency><ExploreTabPage /></RequireWalletCurrency></ProtectedRoute>
+    return <ProtectedRoute><RequireWalletCurrency><BetTabPage /></RequireWalletCurrency></ProtectedRoute>
   }
 
   if (section === 'tabs' && routeId === 'setting') {
     return <ProtectedRoute><RequireWalletCurrency><SettingTabPage /></RequireWalletCurrency></ProtectedRoute>
-  }
-
-  if (section === 'gambling' && routeId === 'deposit-history') {
-    return <ProtectedRoute><RequireWalletCurrency><DepositHistoryPage /></RequireWalletCurrency></ProtectedRoute>
   }
 
   if (section === 'gambling' && routeId === 'gambling-history') {
@@ -89,10 +84,6 @@ function resolveRouteElement(section: AppSectionId, routeId: string) {
 
   if (section === 'gambling' && routeId === 'withdrawal-history') {
     return <ProtectedRoute><RequireWalletCurrency><WithdrawalHistoryPage /></RequireWalletCurrency></ProtectedRoute>
-  }
-
-  if (section === 'gambling' && routeId === 'deposit-detail') {
-    return <ProtectedRoute><RequireWalletCurrency><DepositDetailPage /></RequireWalletCurrency></ProtectedRoute>
   }
 
   if (section === 'gambling' && routeId === 'withdrawal-detail') {
@@ -112,7 +103,11 @@ function resolveRouteElement(section: AppSectionId, routeId: string) {
   }
 
   if (section === 'wallet' && routeId === 'currency-setup') {
-    return <ProtectedRoute><WalletCurrencySetupPage /></ProtectedRoute>
+    return <Navigate replace to="/wallet/bank-setup" />
+  }
+
+  if (section === 'wallet' && routeId === 'bank-setup') {
+    return <ProtectedRoute><BankSetupPage /></ProtectedRoute>
   }
 
   if (section === 'wallet-profile' && routeId === 'money-income') {
@@ -125,6 +120,10 @@ function resolveRouteElement(section: AppSectionId, routeId: string) {
 
   if (section === 'wallet-profile' && routeId === 'about') {
     return <AboutPage />
+  }
+
+  if (section === 'wallet-profile' && routeId === 'notifications') {
+    return <ProtectedRoute><NotificationsPage /></ProtectedRoute>
   }
 
   if (section === 'wallet-profile' && routeId === 'help-center') {

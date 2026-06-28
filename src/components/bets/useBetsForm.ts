@@ -94,6 +94,7 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(2)
     const [copiedAccountKey, setCopiedAccountKey] = useState<string | null>(null)
+    const [pin, setPin] = useState('')
 
     const [allBankSettings, setAllBankSettings] = useState<AdminPaymentAccount[]>([])
     const [bankSettingsLoading, setBankSettingsLoading] = useState(true)
@@ -190,6 +191,11 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
             return
         }
 
+        if (pin.length !== 6) {
+            setMessage('Please enter your 6-digit security PIN.')
+            return
+        }
+
         try {
             setIsSubmitting(true)
             await createBet({
@@ -197,9 +203,11 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
                 currency,
                 ...(activePayloadBetType === '2D' ? { target_opentime: form.target_opentime } : {}),
                 bet_numbers: normalized,
+                security_pin: pin,
             })
 
             showToast('Bet placed!', 'success')
+            setPin('')
             refreshWallet()
             navigate('/gambling/gambling-history')
         } catch (caughtError) {
@@ -256,6 +264,8 @@ export function useBetsForm(_activeBetTypeId: string, activePayloadBetType: BetC
         setRowErrors,
         currentStep,
         setCurrentStep,
+        pin,
+        setPin,
         // computed
         currency,
         isTwoDType,

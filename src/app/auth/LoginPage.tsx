@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { loginUser } from '@/api/client'
 import type { LoginInput } from '@/api/types'
+import { useNotifications } from '@/contexts/NotificationContext'
 import {
     AuthCard,
     AuthFeedback,
@@ -23,6 +24,7 @@ export function LoginPage() {
     const { t } = useTranslation()
     const navigate = useNavigate()
     const location = useLocation()
+    const { registerPushToken, refreshNotificationStats } = useNotifications()
     const [showPassword, setShowPassword] = useState(false)
     const [form, setForm] = useState<LoginInput>(initialForm)
     const [loading, setLoading] = useState(false)
@@ -40,6 +42,8 @@ export function LoginPage() {
         try {
             const response = await loginUser(form)
             setSuccess(`${response.message}. Redirecting...`)
+            void registerPushToken()
+            refreshNotificationStats()
             window.setTimeout(() => {
                 void navigate(postAuthPath, { replace: true })
             }, 500)

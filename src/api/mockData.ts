@@ -1,4 +1,4 @@
-import type { AdminBankSetting, Announcement, Bet, Deposit, OddSetting, ThreeDResult, TwoDResult, User, Wallet, WalletBankInfo, WalletTransaction, Withdrawal } from './types'
+import type { AdminBankSetting, Announcement, Bet, Deposit, FcmTokenRecord, NotificationLogEntry, NotificationStats, OddSetting, ThreeDResult, TwoDResult, User, Wallet, WalletBankInfo, WalletTransaction, Withdrawal } from './types'
 
 export let mockUser: User = {
     id: 609763,
@@ -281,7 +281,7 @@ export let mockDeposits: Deposit[] = [
         rejection_reason: null,
         reviewed_by_user_id: 'admin-1',
         reviewed_at: '2026-03-10T09:42:00Z',
-        proof_of_payment: { exists: true, download_url: null, file_name: 'slip.jpg', mime_type: 'image/jpeg', size: 204800 },
+        proof_image: { exists: true, download_url: null, file_name: 'slip.jpg', mime_type: 'image/jpeg', size: 204800 },
         created_at: '2026-03-10T09:30:00Z',
         updated_at: '2026-03-10T09:42:00Z',
     },
@@ -298,7 +298,7 @@ export let mockDeposits: Deposit[] = [
         rejection_reason: null,
         reviewed_by_user_id: null,
         reviewed_at: null,
-        proof_of_payment: { exists: true, download_url: null, file_name: 'proof2.jpg', mime_type: 'image/jpeg', size: 102400 },
+        proof_image: { exists: true, download_url: null, file_name: 'proof2.jpg', mime_type: 'image/jpeg', size: 102400 },
         created_at: '2026-03-11T07:00:00Z',
         updated_at: '2026-03-11T07:00:00Z',
     },
@@ -346,3 +346,70 @@ export const mockThreeDResults: ThreeDResult[] = [
         updated_at: '2026-03-25T10:00:00Z',
     },
 ]
+
+export let mockFcmTokens: FcmTokenRecord[] = [
+    {
+        id: 1,
+        user_id: 'a1f740aa-0bd0-4e88-81bd-38483511e0a5',
+        device_type: 'web',
+        device_name: 'Chrome on Linux',
+        is_active: true,
+        last_used_at: '2026-06-20T10:00:00Z',
+        created_at: '2026-06-01T09:00:00Z',
+        updated_at: '2026-06-20T10:00:00Z',
+    },
+]
+
+export function setMockFcmTokens(next: FcmTokenRecord[]) {
+    mockFcmTokens = next
+}
+
+export let mockNotificationLogs: NotificationLogEntry[] = [
+    {
+        id: 1,
+        user_id: 'a1f740aa-0bd0-4e88-81bd-38483511e0a5',
+        title: 'Bet Won!',
+        body: 'Your 2D bet on 85 won 80,000 MMK.',
+        notification_type: 'bet_win',
+        data: { bet_id: '64b66a80-f4ec-4e3a-a614-8cbf53da28e8' },
+        status: 'sent',
+        error_message: null,
+        sent_at: '2026-06-20T09:00:00Z',
+        read_at: null,
+        created_at: '2026-06-20T09:00:00Z',
+        updated_at: '2026-06-20T09:00:00Z',
+    },
+    {
+        id: 2,
+        user_id: 'a1f740aa-0bd0-4e88-81bd-38483511e0a5',
+        title: 'Deposit Approved',
+        body: 'Your deposit of 120,000 MMK has been approved.',
+        notification_type: 'deposit_approved',
+        data: { deposit_id: 'dep-mock-1' },
+        status: 'sent',
+        error_message: null,
+        sent_at: '2026-06-19T14:00:00Z',
+        read_at: null,
+        created_at: '2026-06-19T14:00:00Z',
+        updated_at: '2026-06-19T14:00:00Z',
+    },
+]
+
+export function setMockNotificationLogs(next: NotificationLogEntry[]) {
+    mockNotificationLogs = next
+}
+
+export let mockNotificationStats: NotificationStats = {
+    total: 2,
+    sent: 2,
+    failed: 0,
+    unread: 2,
+    by_type: [
+        { notification_type: 'bet_win', count: 1 },
+        { notification_type: 'deposit_approved', count: 1 },
+    ],
+}
+
+export function setMockNotificationStats(next: NotificationStats) {
+    mockNotificationStats = next
+}

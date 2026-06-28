@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { cancelWithdrawal, downloadWithdrawalProof, getWithdrawalById } from '@/api/client'
+import { listenForWithdrawalNotifications } from '@/lib/withdrawalNotificationBus'
 import type { Withdrawal } from '@/api/types'
 import { ApiStatePanel } from '@/components/api/ApiStatePanel'
 import { useToast } from '@/contexts/ToastContext'
@@ -37,6 +38,14 @@ export function WithdrawalDetailPage() {
       .then((res) => setWithdrawal(res.data.withdrawal))
       .catch(() => setError('Unable to load withdrawal detail.'))
       .finally(() => setLoading(false))
+  }, [withdrawalId])
+
+  useEffect(() => {
+    if (withdrawalId == null) return
+    return listenForWithdrawalNotifications((detail) => {
+      if (detail.withdrawalId !== withdrawalId) return
+      getWithdrawalById(withdrawalId).then((res) => setWithdrawal(res.data.withdrawal))
+    })
   }, [withdrawalId])
 
   const onDownload = async () => {

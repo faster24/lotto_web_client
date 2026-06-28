@@ -163,6 +163,7 @@ const th = {
     withdrawalSubtitle: 'ขอถอนเงิน',
     serviceCenter: 'ศูนย์บริการ',
     announcements: 'ประกาศ',
+    notifications: 'การแจ้งเตือน',
     about: 'นโยบายความเป็นส่วนตัว',
     logout: 'ออกจากระบบ',
     loggingOut: 'กำลังออกจากระบบ...',
@@ -231,6 +232,15 @@ const th = {
     desc: 'ข้อมูลจาก `/announcements`',
     empty: 'ไม่มีประกาศ',
     loadError: 'ไม่สามารถโหลดประกาศ',
+  },
+
+  notifications: {
+    eyebrow: 'กล่องข้อความ',
+    title: 'การแจ้งเตือน',
+    desc: 'การแจ้งเตือนล่าสุดเกี่ยวกับการเดิมพัน การฝากเงิน และบัญชีของคุณ',
+    empty: 'ยังไม่มีการแจ้งเตือน',
+    loadError: 'ไม่สามารถโหลดการแจ้งเตือน',
+    loadMore: 'โหลดเพิ่มเติม',
   },
 
   odds: {

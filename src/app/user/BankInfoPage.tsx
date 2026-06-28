@@ -2,23 +2,9 @@ import { type FormEvent, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { createMyBankInfo, getMyBankInfo, updateMyBankInfo } from '@/api/client'
 import type { WalletBankInfo } from '@/api/types'
+import { BANKS, CURRENCY_LABEL } from '@/constants/banks'
 import { ApiStatePanel } from '@/components/api/ApiStatePanel'
 import { apiCard, apiHeader, apiScreen, screenRoot, screenScroll } from '@/styles/tw'
-
-const BANKS: { code: WalletBankInfo['bank_name']; label: string; group: string }[] = [
-  { code: 'KBZ', label: 'Kanbawza Bank', group: 'Myanmar' },
-  { code: 'AYA', label: 'AYA Bank', group: 'Myanmar' },
-  { code: 'CB', label: 'CB Bank', group: 'Myanmar' },
-  { code: 'UAB', label: 'United Amara Bank', group: 'Myanmar' },
-  { code: 'YOMA', label: 'Yoma Bank', group: 'Myanmar' },
-  { code: 'SCB', label: 'Siam Commercial Bank', group: 'Thailand' },
-  { code: 'KBANK', label: 'Kasikorn Bank', group: 'Thailand' },
-  { code: 'BBL', label: 'Bangkok Bank', group: 'Thailand' },
-  { code: 'KTB', label: 'Krungthai Bank', group: 'Thailand' },
-  { code: 'BAY', label: 'Bank of Ayudhya (Krungsri)', group: 'Thailand' },
-  { code: 'TTB', label: 'TMBThanachart Bank', group: 'Thailand' },
-  { code: 'GSB', label: 'Government Savings Bank', group: 'Thailand' },
-]
 
 const emptyForm: WalletBankInfo = {
   bank_name: 'KBZ',
@@ -130,15 +116,15 @@ export function BankInfoPage() {
                   {showBankList && (() => {
                     const q = bankSearch.toLowerCase()
                     const filtered = BANKS.filter(b => b.code.toLowerCase().includes(q) || b.label.toLowerCase().includes(q))
-                    const groups = ['Myanmar', 'Thailand']
+                    const currencies = ['MMK', 'THB'] as const
                     return (
                       <div className="absolute z-20 mt-1 w-full rounded-xl border border-white/10 bg-[rgb(8_14_40)] shadow-2xl overflow-hidden max-h-64 overflow-y-auto">
-                        {groups.map(group => {
-                          const items = filtered.filter(b => b.group === group)
+                        {currencies.map(cur => {
+                          const items = filtered.filter(b => b.currency === cur)
                           if (items.length === 0) return null
                           return (
-                            <div key={group}>
-                              <div className="px-3 py-1.5 text-[0.65rem] font-semibold uppercase tracking-widest text-[#4a5d7a] bg-white/3">{group}</div>
+                            <div key={cur}>
+                              <div className="px-3 py-1.5 text-[0.65rem] font-semibold uppercase tracking-widest text-[#4a5d7a] bg-white/3">{CURRENCY_LABEL[cur]}</div>
                               {items.map(b => (
                                 <button
                                   key={b.code}

@@ -129,7 +129,7 @@ const en = {
 
     settings: {
         preferences: 'Preferences',
-        title: 'Setting',
+        title: 'Settings',
         menuSettings: 'Menu Settings',
         deposit: 'Deposit',
         depositSubtitle: 'Top up your wallet balance',
@@ -150,6 +150,7 @@ const en = {
         withdrawalSubtitle: 'Request a withdrawal from your balance',
         serviceCenter: 'Service Center',
         announcements: 'Announcements',
+        notifications: 'Notifications',
         about: 'Privacy Policy',
         logout: 'Log out',
         loggingOut: 'Logging out...',
@@ -230,9 +231,18 @@ const en = {
         loadError: 'Unable to load announcements.',
     },
 
+    notifications: {
+        eyebrow: 'Inbox',
+        title: 'Notifications',
+        desc: 'Recent alerts about your bets, deposits, and account.',
+        empty: 'No notifications yet.',
+        loadError: 'Unable to load notifications.',
+        loadMore: 'Load More',
+    },
+
     odds: {
         eyebrow: 'Odds Settings',
-        title: 'Odd Settings',
+        title: 'Odds Settings',
         desc: 'Current payout rates by bet type and account tier.',
         empty: 'No odd settings.',
         loadError: 'Unable to load odd settings.',

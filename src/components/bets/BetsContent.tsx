@@ -46,6 +46,8 @@ export function BetsContent({ initialBetTypeId }: Props) {
                 goToStepThree={form.goToStepThree}
                 setMessage={form.setMessage}
                 onSubmit={form.onSubmit}
+                pin={form.pin}
+                onPinChange={form.setPin}
             />
 
             {form.message != null && (

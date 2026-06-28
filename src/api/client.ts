@@ -4,6 +4,9 @@ import {
   mockBankInfo,
   mockBets,
   mockDeposits,
+  mockFcmTokens,
+  mockNotificationLogs,
+  mockNotificationStats,
   mockOddSettings,
   mockThreeDResults,
   mockTransactions,
@@ -14,6 +17,9 @@ import {
   setMockBankInfo,
   setMockBets,
   setMockDeposits,
+  setMockFcmTokens,
+  setMockNotificationLogs,
+  setMockNotificationStats,
   setMockUser,
   setMockWallet,
   setMockWithdrawals,
@@ -29,8 +35,13 @@ import type {
   CreateDepositInput,
   CreateWithdrawalInput,
   Deposit,
+  FcmTokenRecord,
   LoginInput,
+  NotificationLogStatus,
+  NotificationStats,
   OddSetting,
+  PaginatedNotificationLogs,
+  RegisterFcmTokenInput,
   RegisterInput,
   SetWalletCurrencyInput,
   ThreeDResult,
@@ -59,6 +70,7 @@ const WALLET_CURRENCY_LIVE_ENABLED = (import.meta.env.VITE_WALLET_CURRENCY_LIVE_
 const DEPOSITS_LIVE_ENABLED = (import.meta.env.VITE_DEPOSITS_LIVE_ENABLED as string | undefined) !== 'false'
 const WITHDRAWALS_LIVE_ENABLED = (import.meta.env.VITE_WITHDRAWALS_LIVE_ENABLED as string | undefined) !== 'false'
 const WALLET_TRANSACTIONS_LIVE_ENABLED = (import.meta.env.VITE_WALLET_TRANSACTIONS_LIVE_ENABLED as string | undefined) !== 'false'
+const FCM_LIVE_ENABLED = (import.meta.env.VITE_FCM_LIVE_ENABLED as string | undefined) !== 'false'
 const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'http://localhost:8000/api/v1').replace(/\/+$/, '')
 
 const wait = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms))
@@ -584,6 +596,7 @@ export async function createBet(input: BetCreateInput) {
     {
       bet_type: input.bet_type,
       currency: input.currency,
+      security_pin: input.security_pin,
       ...(input.target_opentime != null ? { target_opentime: input.target_opentime } : {}),
       bet_numbers: normalizedNumbers,
     },
@@ -814,7 +827,7 @@ export async function createDeposit(input: CreateDepositInput): Promise<ApiResul
     rejection_reason: null,
     reviewed_by_user_id: null,
     reviewed_at: null,
-    proof_of_payment: { exists: true, download_url: null, file_name: input.proof_image.name, mime_type: input.proof_image.type, size: input.proof_image.size },
+    proof_image: { exists: true, download_url: null, file_name: input.proof_image.name, mime_type: input.proof_image.type, size: input.proof_image.size },
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   }
@@ -830,7 +843,7 @@ export async function listDeposits(params?: {
     const query = new URLSearchParams()
     if (params?.page != null) query.set('page', String(params.page))
     if (params?.page_size != null) query.set('page_size', String(params.page_size))
-    const path = `/me/deposits${query.toString() ? `?${query.toString()}` : ''}`
+    const path = `/deposits${query.toString() ? `?${query.toString()}` : ''}`
     return authedRequest<ApiResult<{ deposits: Deposit[] }>>('GET', path, null, 'Failed to load deposits.')
   }
 
@@ -840,7 +853,7 @@ export async function listDeposits(params?: {
 
 export async function getDepositById(depositId: string): Promise<ApiResult<{ deposit: Deposit | null }>> {
   if (DEPOSITS_LIVE_ENABLED) {
-    return authedRequest<ApiResult<{ deposit: Deposit | null }>>('GET', `/me/deposits/${depositId}`, null, 'Failed to load deposit.')
+    return authedRequest<ApiResult<{ deposit: Deposit | null }>>('GET', `/deposits/${depositId}`, null, 'Failed to load deposit.')
   }
 
   await wait(NETWORK_DELAY_MS)
@@ -850,7 +863,7 @@ export async function getDepositById(depositId: string): Promise<ApiResult<{ dep
 
 export async function cancelDeposit(depositId: string): Promise<ApiResult<{ deposit: Deposit }>> {
   if (DEPOSITS_LIVE_ENABLED) {
-    return authedRequest<ApiResult<{ deposit: Deposit }>>('DELETE', `/me/deposits/${depositId}`, null, 'Failed to cancel deposit.')
+    return authedRequest<ApiResult<{ deposit: Deposit }>>('POST', `/deposits/${depositId}/cancel`, null, 'Failed to cancel deposit.')
   }
 
   await wait(NETWORK_DELAY_MS)
@@ -866,7 +879,7 @@ export async function cancelDeposit(depositId: string): Promise<ApiResult<{ depo
 export async function downloadDepositProof(depositId: string): Promise<Blob> {
   if (DEPOSITS_LIVE_ENABLED) {
     const token = getAuthToken()
-    const response = await fetch(buildApiUrl(`/me/deposits/${depositId}/proof`), {
+    const response = await fetch(buildApiUrl(`/deposits/${depositId}/proof`), {
       headers: {
         ...(token != null ? { Authorization: `Bearer ${token}` } : {}),
       },
@@ -968,4 +981,156 @@ export async function downloadWithdrawalProof(withdrawalId: string): Promise<Blo
 
   await wait(NETWORK_DELAY_MS)
   return new Blob(['mock withdrawal proof'], { type: 'image/jpeg' })
+}
+
+// ── FCM / Notifications ──────────────────────────────────────────────────────
+
+export async function registerFcmToken(input: RegisterFcmTokenInput): Promise<FcmTokenRecord> {
+  if (FCM_LIVE_ENABLED) {
+    const response = await authedRequest<{ message: string; data: FcmTokenRecord }>(
+      'POST',
+      '/fcm/token',
+      input,
+      'Failed to register push token.',
+    )
+    return response.data
+  }
+
+  await wait(NETWORK_DELAY_MS)
+  const record: FcmTokenRecord = {
+    id: mockFcmTokens.length + 1,
+    user_id: 'a1f740aa-0bd0-4e88-81bd-38483511e0a5',
+    token: input.token,
+    device_type: input.device_type,
+    device_name: input.device_name ?? 'Unknown Device',
+    is_active: true,
+    last_used_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+  setMockFcmTokens([...mockFcmTokens, record])
+  return record
+}
+
+export async function removeFcmToken(token: string): Promise<{ message: string }> {
+  if (FCM_LIVE_ENABLED) {
+    return authedRequest<{ message: string }>(
+      'DELETE',
+      '/fcm/token',
+      { token },
+      'Failed to remove push token.',
+      () => ({ message: 'Token not found' }),
+    )
+  }
+
+  await wait(NETWORK_DELAY_MS)
+  setMockFcmTokens(mockFcmTokens.filter((t) => t.token !== token))
+  return { message: 'FCM token removed successfully' }
+}
+
+export async function logoutAllFcmTokens(): Promise<{ message: string }> {
+  if (FCM_LIVE_ENABLED) {
+    return authedRequest<{ message: string }>(
+      'POST',
+      '/fcm/logout-all',
+      null,
+      'Failed to deactivate push tokens.',
+    )
+  }
+
+  await wait(NETWORK_DELAY_MS)
+  setMockFcmTokens(mockFcmTokens.map((t) => ({ ...t, is_active: false })))
+  return { message: 'All devices logged out successfully' }
+}
+
+export async function listFcmTokens(): Promise<{ count: number; data: FcmTokenRecord[] }> {
+  if (FCM_LIVE_ENABLED) {
+    return authedRequest<{ count: number; data: FcmTokenRecord[] }>(
+      'GET',
+      '/fcm/tokens',
+      null,
+      'Failed to load push tokens.',
+    )
+  }
+
+  await wait(NETWORK_DELAY_MS)
+  return { count: mockFcmTokens.length, data: mockFcmTokens }
+}
+
+export async function listNotificationLogs(params?: {
+  type?: string
+  status?: NotificationLogStatus
+  start_date?: string
+  end_date?: string
+  per_page?: number
+  page?: number
+}): Promise<{ data: PaginatedNotificationLogs }> {
+  if (FCM_LIVE_ENABLED) {
+    const query = new URLSearchParams()
+    if (params?.type != null) query.set('type', params.type)
+    if (params?.status != null) query.set('status', params.status)
+    if (params?.start_date != null) query.set('start_date', params.start_date)
+    if (params?.end_date != null) query.set('end_date', params.end_date)
+    if (params?.per_page != null) query.set('per_page', String(params.per_page))
+    if (params?.page != null) query.set('page', String(params.page))
+    const path = `/notifications/logs${query.toString() ? `?${query.toString()}` : ''}`
+    return authedRequest<{ data: PaginatedNotificationLogs }>('GET', path, null, 'Failed to load notifications.')
+  }
+
+  await wait(NETWORK_DELAY_MS)
+  const perPage = params?.per_page ?? 20
+  return {
+    data: {
+      current_page: 1,
+      data: mockNotificationLogs,
+      first_page_url: null,
+      from: mockNotificationLogs.length > 0 ? 1 : null,
+      last_page: 1,
+      last_page_url: null,
+      links: [],
+      next_page_url: null,
+      path: '/notifications/logs',
+      per_page: perPage,
+      prev_page_url: null,
+      to: mockNotificationLogs.length,
+      total: mockNotificationLogs.length,
+    },
+  }
+}
+
+export async function getNotificationStats(): Promise<{ data: NotificationStats }> {
+  if (FCM_LIVE_ENABLED) {
+    return authedRequest<{ data: NotificationStats }>('GET', '/notifications/stats', null, 'Failed to load notification stats.')
+  }
+
+  await wait(NETWORK_DELAY_MS)
+  return { data: mockNotificationStats }
+}
+
+export async function sendTestNotification(): Promise<{ message: string }> {
+  return authedRequest<{ message: string }>(
+    'POST',
+    '/notifications/test',
+    null,
+    'Failed to send test notification.',
+    () => ({ message: 'No active tokens' }),
+  )
+}
+
+export async function markAllNotificationsAsRead(): Promise<{ message: string; updated_count: number }> {
+  if (FCM_LIVE_ENABLED) {
+    return authedRequest<{ message: string; updated_count: number }>(
+      'POST',
+      '/notifications/read-all',
+      null,
+      'Failed to mark notifications as read.',
+    )
+  }
+
+  await wait(NETWORK_DELAY_MS)
+  const updatedCount = mockNotificationLogs.filter((item) => item.read_at == null).length
+  const now = new Date().toISOString()
+  setMockNotificationLogs(mockNotificationLogs.map((item) => (item.read_at == null ? { ...item, read_at: now } : item)))
+  setMockNotificationStats({ ...mockNotificationStats, unread: 0 })
+  return { message: 'All notifications marked as read.', updated_count: updatedCount }
 }

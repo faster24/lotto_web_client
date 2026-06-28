@@ -105,7 +105,7 @@ export function useDepositForm() {
       })
       showToast('Deposit request submitted!', 'success')
       refreshWallet()
-      navigate('/gambling/deposit-history')
+      navigate(-1)
     } catch (err) {
       setMessage(err instanceof Error ? err.message : 'Deposit submission failed.')
     } finally {

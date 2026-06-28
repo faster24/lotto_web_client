@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { logoutUser } from '@/api/client'
+import { logoutAllFcmTokens, logoutUser } from '@/api/client'
 
 type ServiceItem = {
   id: string
@@ -20,6 +20,12 @@ const serviceItems: ServiceItem[] = [
   //   icon: 'campaign',
   //   pulse: true,
   // },
+  {
+    id: 'notifications',
+    titleKey: 'settings.notifications',
+    path: '/wallet-profile/notifications',
+    icon: 'notifications',
+  },
   {
     id: 'about',
     titleKey: 'settings.about',
@@ -40,6 +46,12 @@ export function ServiceCenterCard() {
     setLogoutMessage(null)
 
     try {
+      try {
+        await logoutAllFcmTokens()
+      } catch {
+        // non-fatal — proceed with logout even if token deactivation fails
+      }
+
       const response = await logoutUser()
       setLogoutMessage(response.message)
       void navigate('/auth/login', { replace: true })
