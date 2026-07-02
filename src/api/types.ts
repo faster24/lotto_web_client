@@ -253,6 +253,7 @@ export type CreateDepositInput = {
 export type CreateWithdrawalInput = {
     currency: WalletCurrency
     amount: number
+    security_pin: string
 }
 
 // ── FCM / Notifications ──────────────────────────────────────────────────────

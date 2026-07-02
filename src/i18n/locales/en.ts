@@ -304,6 +304,8 @@ const en = {
         bankDestination: 'Transfer destination',
         noBankInfo: 'No bank account linked.',
         noBankInfoCta: 'Set up bank info →',
+        pinLabel: 'Security PIN',
+        pinHint: 'Enter your 6-digit security PIN to confirm.',
         submitWithdrawal: 'Submit Withdrawal Request',
         submitting: 'Submitting…',
         submitted: 'Withdrawal request submitted!',

@@ -1,5 +1,4 @@
 import { useId } from 'react'
-import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { LANG_KEY } from '@/i18n/index'
 
@@ -40,23 +39,6 @@ export function MenuSettingsCard() {
       </h2>
 
       <div className="overflow-hidden rounded-xl border border-white/8 bg-[linear-gradient(160deg,rgb(11_19_43_/_94%)_0%,rgb(7_15_35_/_88%)_100%)] divide-y divide-white/8">
-        {/* Bank Account row */}
-        <Link
-          to="/user/bank-info"
-          className="group flex items-center justify-between p-4 transition-colors hover:bg-white/5"
-        >
-          <div className="flex items-center gap-4">
-            <span className="material-symbols-outlined text-[#8a9bb3] transition-colors group-hover:text-[#00e676]">
-              account_balance
-            </span>
-            <div>
-              <p className="text-sm font-medium text-[#f7f9ff] leading-tight">{t('settings.bankAccount')}</p>
-              <p className="text-[11px] text-[#8a9bb3] leading-tight mt-0.5">{t('settings.bankAccountSubtitle')}</p>
-            </div>
-          </div>
-          <span className="material-symbols-outlined text-[#8a9bb3]">chevron_right</span>
-        </Link>
-
         {/* Language row */}
         <div className="group flex items-center justify-between p-4 transition-colors hover:bg-white/5">
           <div className="flex items-center gap-4">

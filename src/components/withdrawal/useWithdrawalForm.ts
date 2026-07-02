@@ -9,6 +9,8 @@ export function useWithdrawalForm() {
   const { showToast } = useToast()
   const { wallet, refreshWallet } = useWallet()
   const [amount, setAmount] = useState('')
+  const [pin, setPin] = useState('')
+  const [showPin, setShowPin] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
 
@@ -36,6 +38,11 @@ export function useWithdrawalForm() {
       return
     }
 
+    if (!/^\d{6}$/.test(pin)) {
+      setMessage('Security PIN must be exactly 6 digits.')
+      return
+    }
+
     if (wallet == null || wallet.currency == null) {
       setMessage('Wallet not available.')
       return
@@ -43,7 +50,7 @@ export function useWithdrawalForm() {
 
     try {
       setIsSubmitting(true)
-      await createWithdrawal({ currency: wallet.currency, amount: parsedAmount })
+      await createWithdrawal({ currency: wallet.currency, amount: parsedAmount, security_pin: pin })
       showToast('Withdrawal request submitted!', 'success')
       refreshWallet()
       navigate('/gambling/withdrawal-history')
@@ -54,5 +61,5 @@ export function useWithdrawalForm() {
     }
   }
 
-  return { amount, setAmount, isSubmitting, message, onSubmit, parsedAmount, isValidAmount, isInsufficient, balanceAfter, hasBankInfo }
+  return { amount, setAmount, pin, setPin, showPin, setShowPin, isSubmitting, message, onSubmit, parsedAmount, isValidAmount, isInsufficient, balanceAfter, hasBankInfo }
 }

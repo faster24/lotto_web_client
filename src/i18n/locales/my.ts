@@ -303,6 +303,8 @@ const my = {
     bankDestination: 'လွှဲပြောင်းမည့်နေရာ',
     noBankInfo: 'ဘဏ်အကောင့် မချိတ်ဆက်ရသေး',
     noBankInfoCta: 'ဘဏ်အချက်အလက် ဆက်တင်ပါ →',
+    pinLabel: 'လုံခြုံရေး PIN',
+    pinHint: 'အတည်ပြုရန် သင်၏ ဂဏန်း ၆ လုံး PIN ထည့်ပါ',
     submitWithdrawal: 'ငွေထုတ်တောင်းဆိုမှု တင်မည်',
     submitting: 'တင်နေသည်…',
     submitted: 'ငွေထုတ်တောင်းဆိုမှု တင်သွင်းပြီး!',

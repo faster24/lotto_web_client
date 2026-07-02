@@ -8,7 +8,8 @@ export function WithdrawalPage() {
   const { t } = useTranslation()
   const { wallet } = useWallet()
   const {
-    amount, setAmount, isSubmitting, message, onSubmit,
+    amount, setAmount, pin, setPin, showPin, setShowPin,
+    isSubmitting, message, onSubmit,
     isValidAmount, isInsufficient, balanceAfter, hasBankInfo,
   } = useWithdrawalForm()
 
@@ -78,6 +79,51 @@ export function WithdrawalPage() {
                 Exceeds available balance ({wallet?.balance.toLocaleString()} {wallet?.currency})
               </p>
             )}
+          </div>
+
+          {/* Security PIN */}
+          <div className="space-y-1.5">
+            <label className="text-[0.78rem] font-semibold uppercase tracking-[0.06em] text-[#8a9bb3]" htmlFor="withdrawal-pin">
+              {t('withdrawal.pinLabel')}
+            </label>
+            <div className="relative flex items-center">
+              <input
+                id="withdrawal-pin"
+                type={showPin ? 'text' : 'password'}
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={6}
+                placeholder="••••••"
+                className="h-11 w-full rounded-xl border border-white/12 bg-[rgb(5_10_31_/_68%)] px-3 pr-11 text-[#f7f9ff] focus:border-[rgb(0_230_118_/_55%)] focus:outline-none"
+                value={pin}
+                onChange={(e) => setPin(e.currentTarget.value.replace(/\D/g, '').slice(0, 6))}
+                required
+              />
+              <button
+                type="button"
+                className="absolute right-3 flex items-center text-[#8a9bb3] hover:text-[#f7f9ff] transition-colors"
+                onClick={() => setShowPin((v) => !v)}
+                aria-controls="withdrawal-pin"
+                aria-pressed={showPin}
+                aria-label={showPin ? 'Hide PIN' : 'Show PIN'}
+              >
+                {showPin ? (
+                  <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 3 21 21" strokeLinecap="round" />
+                    <path d="M10.7 6.4A10.8 10.8 0 0 1 12 6c6 0 9.5 6 9.5 6a16.9 16.9 0 0 1-3.1 3.9" strokeLinecap="round" />
+                    <path d="M6.4 10.7A16.8 16.8 0 0 0 2.5 12s3.5 6 9.5 6c1.8 0 3.3-.5 4.6-1.2" strokeLinecap="round" />
+                    <path d="M14.1 14.1A3 3 0 0 1 9.9 9.9" strokeLinecap="round" />
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" strokeLinecap="round" strokeLinejoin="round" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                )}
+                <span className="sr-only">{showPin ? 'Hide PIN' : 'Show PIN'}</span>
+              </button>
+            </div>
+            <p className="m-0 text-[0.72rem] text-[#8a9bb3]">{t('withdrawal.pinHint')}</p>
           </div>
 
           {message != null && (

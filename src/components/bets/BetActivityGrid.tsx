@@ -31,6 +31,13 @@ const activityItems: ActivityItem[] = [
     path: '/results/2d',
     icon: 'confirmation_number',
   },
+  {
+    id: 'bank-account',
+    titleKey: 'settings.bankAccount',
+    subtitleKey: 'settings.bankAccountSubtitle',
+    path: '/user/bank-info',
+    icon: 'account_balance',
+  },
 ]
 
 export function BetActivityGrid() {
