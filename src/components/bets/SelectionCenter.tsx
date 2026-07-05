@@ -89,13 +89,10 @@ export function SelectionCenter() {
             <span className="px-3 py-1 bg-[#51e1a5] text-[#003824] text-[0.6rem] font-semibold uppercase tracking-widest rounded-full shadow-[0_0_12px_rgba(81,225,165,0.4)]">
               Featured Dimension
             </span>
-            <span className="material-symbols-outlined text-[#51e1a5] text-xl">rocket_launch</span>
           </div>
-          <div>
-            <h3 className="text-4xl font-bold tracking-tight text-white">3D ROUNDS</h3>
-            <p className="text-sm text-white/50 font-medium mt-1">
-              Three-digit premium rounds with higher multipliers.
-            </p>
+          <div className="flex items-center gap-4">
+            <span className="material-symbols-outlined text-[#51e1a5] text-[3.5rem] leading-none">looks_3</span>
+            <h3 className="text-4xl font-bold tracking-tight text-white">3D</h3>
           </div>
           <button
             type="button"
@@ -103,7 +100,6 @@ export function SelectionCenter() {
             onClick={(e) => { e.stopPropagation(); goToPlace('3D') }}
           >
             Enter Arena
-            <span className="material-symbols-outlined text-sm">arrow_forward</span>
           </button>
         </div>
       </div>
@@ -115,11 +111,9 @@ export function SelectionCenter() {
           className="relative overflow-hidden rounded-xl bg-[#19202d] border border-white/8 flex flex-col justify-between p-5 gap-3 active:scale-[0.98] transition-transform duration-200 cursor-pointer"
           onClick={() => goToPlace('2D')}
         >
-          <div>
-            <h3 className="text-xl font-bold tracking-tight text-[#51e1a5]">2D CLASSIC</h3>
-            <p className="text-[0.6rem] text-white/40 font-bold uppercase tracking-widest mt-0.5">
-              Instant Results
-            </p>
+          <div className="flex items-center gap-3">
+            <span className="material-symbols-outlined text-[#51e1a5] text-[2.5rem] leading-none">looks_two</span>
+            <h3 className="text-xl font-bold tracking-tight text-[#51e1a5]">2D</h3>
           </div>
           <p className="text-4xl font-bold text-white">{liveNumber}</p>
           <button
