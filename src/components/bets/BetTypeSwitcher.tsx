@@ -2,15 +2,16 @@ import { useTranslation } from 'react-i18next'
 import { apiCard } from '@/styles/tw'
 import type { BetCreateInput } from '@/api/types'
 import { betTypeCatalog } from './betTypeCatalog'
+import { CardIcon } from '@/components/primitives/CardIcon'
 
 type Props = {
     activeBetTypeId: string
     onSelect: (id: string, payloadBetType: BetCreateInput['bet_type'] | undefined) => void
 }
 
-const captionKeyMap: Record<string, string> = {
-    '2D': 'bets.twoDCaption',
-    '3D': 'bets.threeDCaption',
+const iconMap: Record<string, string> = {
+    '2D': '/assets/icons/noun-two-7144005.svg',
+    '3D': '/assets/icons/noun-three-7144024.svg',
 }
 
 export function BetTypeSwitcher({ activeBetTypeId, onSelect }: Props) {
@@ -28,8 +29,6 @@ export function BetTypeSwitcher({ activeBetTypeId, onSelect }: Props) {
                     const tabClassName = active
                         ? 'border-[rgb(0_230_118_/_44%)] bg-[linear-gradient(140deg,rgb(0_230_118_/_16%)_0%,rgb(0_151_255_/_10%)_100%)] shadow-[0_0_20px_rgba(0,230,118,0.1)]'
                         : 'border-white/12 bg-white/3 hover:border-[rgb(0_230_118_/_28%)] hover:bg-white/5'
-                    const captionKey = captionKeyMap[item.id] ?? ''
-
                     return (
                         <button
                             key={item.id}
@@ -38,15 +37,20 @@ export function BetTypeSwitcher({ activeBetTypeId, onSelect }: Props) {
                             aria-selected={active}
                             aria-controls={`bet-panel-${item.id}`}
                             id={`bet-tab-${item.id}`}
-                            className={`cursor-pointer rounded-xl border p-6 flex flex-col items-center justify-center gap-3 transition-all duration-300 ${tabClassName}`}
+                            className={`aspect-square cursor-pointer overflow-hidden rounded-xl border flex flex-col items-center justify-center transition-all duration-300 ${tabClassName}`}
                             onClick={() => onSelect(item.id, item.payloadBetType)}
                         >
-                            <div className={`w-14 h-14 rounded-full flex items-center justify-center ${active ? 'bg-[rgb(0_230_118)] shadow-[0_0_15px_rgba(0,230,118,0.4)]' : 'bg-white/5 border border-white/10'}`}>
-                                <span className={`text-2xl font-bold ${active ? 'text-[#003824]' : 'text-[#00e676]'}`}>{item.label}</span>
+                            <CardIcon
+                                src={iconMap[item.id] ?? ''}
+                                color={active ? '#00e676' : 'rgba(255,255,255,0.25)'}
+                                size="clamp(3.5rem, 16vw, 5rem)"
+                            />
+                            <div className="-mt-1 text-center">
+                                <p className={`m-0 text-[0.95rem] font-bold uppercase tracking-wide ${active ? 'text-[#00e676]' : 'text-[#8a9bb3]'}`}>
+                                    {item.label}
+                                </p>
+                                <p className="m-0 text-[0.65rem] tracking-wide text-[#8a9bb3]">{item.caption}</p>
                             </div>
-                            <p className={`m-0 text-[0.65rem] tracking-widest uppercase ${active ? 'font-bold text-[#00e676]' : 'font-medium text-[#8a9bb3]'}`}>
-                                {captionKey ? t(captionKey) : item.caption}
-                            </p>
                         </button>
                     )
                 })}
