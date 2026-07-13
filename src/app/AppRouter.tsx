@@ -63,7 +63,7 @@ function resolveRouteElement(section: AppSectionId, routeId: string) {
   }
 
   if (section === 'tabs' && routeId === 'home') {
-    return <ProtectedRoute><RequireWalletCurrency><HomeTabPage /></RequireWalletCurrency></ProtectedRoute>
+    return <RequireWalletCurrency><HomeTabPage /></RequireWalletCurrency>
   }
 
   if (section === 'tabs' && routeId === 'bets') {
